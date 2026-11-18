@@ -21,9 +21,12 @@ func (a *App) View(c *ui.Context) {
 	c.SetTheme(th)
 	a.pal, a.acc = pal, acc
 
-	a.shortcuts(c)
 	a.tick(c)
-
+	a.shortcuts(c)
+	if a.lib.open {
+		a.libraryView(c)
+		return
+	}
 	ui.Column(c).Fill().AlignItems(ui.Stretch).Background(pal.Bg).Children(func() {
 		a.titleBar(c)
 		a.editorArea(c)
@@ -33,13 +36,22 @@ func (a *App) View(c *ui.Context) {
 }
 
 func (a *App) shortcuts(c *ui.Context) {
-	c.OnWindowShortcut(ui.Cmd, ui.KeyN, func() { a.NewTab(store.KindText) })
-	c.OnWindowShortcut(ui.Cmd, ui.KeyT, func() { a.NewTab(store.KindTodo) })
-	c.OnWindowShortcut(ui.Cmd, ui.KeyW, a.CloseActive)
-	c.OnWindowShortcut(ui.Cmd|ui.Shift, ui.KeyC, func() { a.CopyAll(c.Now()) })
+	run := func(act keys.Action) func() { return func() { a.Run(act, c.Now()) } }
+	c.OnWindowShortcut(ui.Cmd, ui.KeyN, run(keys.NewText))
+	c.OnWindowShortcut(ui.Cmd, ui.KeyT, run(keys.NewTodo))
+	c.OnWindowShortcut(ui.Cmd, ui.KeyW, run(keys.CloseTab))
+	c.OnWindowShortcut(ui.Cmd, ui.KeyK, run(keys.AllSnippets))
+	c.OnWindowShortcut(ui.Cmd|ui.Shift, ui.KeyC, run(keys.CopyAll))
 	if !a.switcher.open {
-		c.OnWindowShortcut(ui.Cmd, ui.KeyBackquote, a.OpenSwitcher)
+		c.OnWindowShortcut(ui.Cmd, ui.KeyBackquote, run(keys.Recent))
 	}
+	if !a.lib.open || a.lib.confirm {
+		return
+	}
+	c.OnWindowShortcut(0, ui.KeyEscape, a.CloseLibrary)
+	// Wherever the focus is in the page; the search field takes them first.
+	c.OnWindowShortcut(0, ui.KeyDown, func() { a.lib.move(1) })
+	c.OnWindowShortcut(0, ui.KeyUp, func() { a.lib.move(-1) })
 }
 
 func tabTitle(t *Tab) string {

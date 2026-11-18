@@ -2,16 +2,34 @@
   "@@locale": "en",
   "appName": "Lastab",
   "untitled": "Untitled · {time}",
-  "@untitled": { "description": "A snippet whose title has not been generated yet.", "placeholders": { "time": { "type": "String", "example": "14:52" } } },
+  "@untitled": {
+    "description": "A snippet whose title has not been generated yet.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "14:52"
+      }
+    }
+  },
   "newTab": "New snippet",
-  "@newTab": { "description": "Tab label of a blank, unsaved snippet." },
+  "@newTab": {
+    "description": "Tab label of a blank, unsaved snippet."
+  },
   "editorPlaceholder": "Paste or type. No need to name it — it's kept automatically.",
   "editorLabel": "Snippet text",
   "saving": "Saving…",
   "saved": "Kept automatically",
-  "@saved": { "description": "Status bar, after the body was written to disk." },
+  "@saved": {
+    "description": "Status bar, after the body was written to disk."
+  },
   "saveFailed": "Couldn't keep: {reason}",
-  "@saveFailed": { "placeholders": { "reason": { "type": "String" } } },
+  "@saveFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "retry": "Retry",
   "recovered": "Restored after an unexpected quit",
   "copyAll": "Copy all",
@@ -19,9 +37,21 @@
   "copiedAnnounce": "Copied all text to the clipboard",
   "chars": "{count, plural, one {# char} other {# chars}}",
   "created": "Created {time}",
-  "@created": { "placeholders": { "time": { "type": "String" } } },
+  "@created": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "modified": "Edited {time}",
-  "@modified": { "placeholders": { "time": { "type": "String" } } },
+  "@modified": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "plainText": "Plain text",
   "closeTab": "Close snippet",
   "newSnippetMenu": "New Snippet",
@@ -40,5 +70,136 @@
   "switcherEmpty": "No open snippet matches",
   "switcherHint": "Tab next · ⇧Tab previous · ↵ open · esc cancel",
   "tabsLabel": "Open snippets",
-  "justNow": "just now"
+  "justNow": "just now",
+  "allSnippets": "All snippets",
+  "backToEditor": "Back to editor",
+  "searchAll": "Search all snippets",
+  "searchPlaceholder": "Search titles and text — any language or code symbols",
+  "matchCount": "{count, plural, one {# match} other {# matches}} · {total} total",
+  "@matchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "totalCount": "{total, plural, one {# snippet} other {# snippets}}",
+  "@totalCount": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "filterTime": "Time",
+  "filterScope": "Scope",
+  "filterKind": "Type",
+  "optAll": "All",
+  "optToday": "Today",
+  "opt7Days": "7 days",
+  "opt30Days": "30 days",
+  "optOpen": "Open",
+  "optClosed": "Closed",
+  "optText": "Text",
+  "optTodo": "To-do",
+  "sortedByEdit": "Sorted by last edit",
+  "closedBadge": "Closed",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "createdLine": "Created {time} · {count, plural, =0 {no versions} one {# version} other {# versions}}",
+  "@createdLine": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "todoKind": "To-do",
+  "openInWorkspace": "Open in workspace",
+  "versionsCount": "{count, plural, =0 {No versions} one {# version} other {# versions}}",
+  "@versionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "linesChars": "{lines, plural, one {# line} other {# lines}} · {chars, plural, one {# char} other {# chars}}",
+  "@linesChars": {
+    "placeholders": {
+      "lines": {
+        "type": "int"
+      },
+      "chars": {
+        "type": "int"
+      }
+    }
+  },
+  "revealSecrets": "Reveal secrets",
+  "hideSecrets": "Hide secrets",
+  "openEdit": "Open",
+  "deleteEllipsis": "Delete…",
+  "confirmDeleteTitle": "Delete this snippet?",
+  "confirmDeleteBody": "“{title}” and its {count, plural, =0 {history} one {# version} other {# versions}} will be gone for good. It won’t show up in the list or search.",
+  "@confirmDeleteBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cancel": "Cancel",
+  "deleteSnippet": "Delete snippet",
+  "emptyQuery": "Nothing matches “{query}”",
+  "@emptyQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyNone": "No snippets yet",
+  "emptyFilteredBody": "The filters narrow the results. Clear them to search everything, including closed snippets.",
+  "emptyBody": "Search covers every snippet, closed ones too.",
+  "clearFilters": "Clear filters",
+  "noPreview": "Pick a snippet to preview it here",
+  "libraryHint": "↑↓ select · {enter} open · hold {alt} for exact times",
+  "@libraryHint": {
+    "placeholders": {
+      "enter": {
+        "type": "String"
+      },
+      "alt": {
+        "type": "String"
+      }
+    }
+  },
+  "libraryHintExact": "↑↓ select · {enter} open · release {alt} for relative times",
+  "@libraryHintExact": {
+    "placeholders": {
+      "enter": {
+        "type": "String"
+      },
+      "alt": {
+        "type": "String"
+      }
+    }
+  },
+  "deleted": "Deleted “{title}”",
+  "@deleted": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
 }

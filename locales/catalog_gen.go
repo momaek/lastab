@@ -395,3 +395,437 @@ func JustNow() string { return In(i18n.Locale()).JustNow() }
 func (msgs Messages) JustNow() string {
 	return Catalog.Format(msgs.locale, "justNow", nil)
 }
+
+// AllSnippets says "All snippets"
+// in the language the app shows.
+func AllSnippets() string { return In(i18n.Locale()).AllSnippets() }
+
+// AllSnippets says "All snippets"
+// in the language of msgs.
+func (msgs Messages) AllSnippets() string {
+	return Catalog.Format(msgs.locale, "allSnippets", nil)
+}
+
+// BackToEditor says "Back to editor"
+// in the language the app shows.
+func BackToEditor() string { return In(i18n.Locale()).BackToEditor() }
+
+// BackToEditor says "Back to editor"
+// in the language of msgs.
+func (msgs Messages) BackToEditor() string {
+	return Catalog.Format(msgs.locale, "backToEditor", nil)
+}
+
+// SearchAll says "Search all snippets"
+// in the language the app shows.
+func SearchAll() string { return In(i18n.Locale()).SearchAll() }
+
+// SearchAll says "Search all snippets"
+// in the language of msgs.
+func (msgs Messages) SearchAll() string {
+	return Catalog.Format(msgs.locale, "searchAll", nil)
+}
+
+// SearchPlaceholder says "Search titles and text — any language or code symbols"
+// in the language the app shows.
+func SearchPlaceholder() string { return In(i18n.Locale()).SearchPlaceholder() }
+
+// SearchPlaceholder says "Search titles and text — any language or code symbols"
+// in the language of msgs.
+func (msgs Messages) SearchPlaceholder() string {
+	return Catalog.Format(msgs.locale, "searchPlaceholder", nil)
+}
+
+// MatchCount says "{count, plural, one {# match} other {# matches}} · {total} total"
+// in the language the app shows.
+func MatchCount(count int, total int) string { return In(i18n.Locale()).MatchCount(count, total) }
+
+// MatchCount says "{count, plural, one {# match} other {# matches}} · {total} total"
+// in the language of msgs.
+func (msgs Messages) MatchCount(count int, total int) string {
+	return Catalog.Format(msgs.locale, "matchCount", map[string]any{"count": count, "total": total})
+}
+
+// TotalCount says "{total, plural, one {# snippet} other {# snippets}}"
+// in the language the app shows.
+func TotalCount(total int) string { return In(i18n.Locale()).TotalCount(total) }
+
+// TotalCount says "{total, plural, one {# snippet} other {# snippets}}"
+// in the language of msgs.
+func (msgs Messages) TotalCount(total int) string {
+	return Catalog.Format(msgs.locale, "totalCount", map[string]any{"total": total})
+}
+
+// FilterTime says "Time"
+// in the language the app shows.
+func FilterTime() string { return In(i18n.Locale()).FilterTime() }
+
+// FilterTime says "Time"
+// in the language of msgs.
+func (msgs Messages) FilterTime() string {
+	return Catalog.Format(msgs.locale, "filterTime", nil)
+}
+
+// FilterScope says "Scope"
+// in the language the app shows.
+func FilterScope() string { return In(i18n.Locale()).FilterScope() }
+
+// FilterScope says "Scope"
+// in the language of msgs.
+func (msgs Messages) FilterScope() string {
+	return Catalog.Format(msgs.locale, "filterScope", nil)
+}
+
+// FilterKind says "Type"
+// in the language the app shows.
+func FilterKind() string { return In(i18n.Locale()).FilterKind() }
+
+// FilterKind says "Type"
+// in the language of msgs.
+func (msgs Messages) FilterKind() string {
+	return Catalog.Format(msgs.locale, "filterKind", nil)
+}
+
+// OptAll says "All"
+// in the language the app shows.
+func OptAll() string { return In(i18n.Locale()).OptAll() }
+
+// OptAll says "All"
+// in the language of msgs.
+func (msgs Messages) OptAll() string {
+	return Catalog.Format(msgs.locale, "optAll", nil)
+}
+
+// OptToday says "Today"
+// in the language the app shows.
+func OptToday() string { return In(i18n.Locale()).OptToday() }
+
+// OptToday says "Today"
+// in the language of msgs.
+func (msgs Messages) OptToday() string {
+	return Catalog.Format(msgs.locale, "optToday", nil)
+}
+
+// Opt7Days says "7 days"
+// in the language the app shows.
+func Opt7Days() string { return In(i18n.Locale()).Opt7Days() }
+
+// Opt7Days says "7 days"
+// in the language of msgs.
+func (msgs Messages) Opt7Days() string {
+	return Catalog.Format(msgs.locale, "opt7Days", nil)
+}
+
+// Opt30Days says "30 days"
+// in the language the app shows.
+func Opt30Days() string { return In(i18n.Locale()).Opt30Days() }
+
+// Opt30Days says "30 days"
+// in the language of msgs.
+func (msgs Messages) Opt30Days() string {
+	return Catalog.Format(msgs.locale, "opt30Days", nil)
+}
+
+// OptOpen says "Open"
+// in the language the app shows.
+func OptOpen() string { return In(i18n.Locale()).OptOpen() }
+
+// OptOpen says "Open"
+// in the language of msgs.
+func (msgs Messages) OptOpen() string {
+	return Catalog.Format(msgs.locale, "optOpen", nil)
+}
+
+// OptClosed says "Closed"
+// in the language the app shows.
+func OptClosed() string { return In(i18n.Locale()).OptClosed() }
+
+// OptClosed says "Closed"
+// in the language of msgs.
+func (msgs Messages) OptClosed() string {
+	return Catalog.Format(msgs.locale, "optClosed", nil)
+}
+
+// OptText says "Text"
+// in the language the app shows.
+func OptText() string { return In(i18n.Locale()).OptText() }
+
+// OptText says "Text"
+// in the language of msgs.
+func (msgs Messages) OptText() string {
+	return Catalog.Format(msgs.locale, "optText", nil)
+}
+
+// OptTodo says "To-do"
+// in the language the app shows.
+func OptTodo() string { return In(i18n.Locale()).OptTodo() }
+
+// OptTodo says "To-do"
+// in the language of msgs.
+func (msgs Messages) OptTodo() string {
+	return Catalog.Format(msgs.locale, "optTodo", nil)
+}
+
+// SortedByEdit says "Sorted by last edit"
+// in the language the app shows.
+func SortedByEdit() string { return In(i18n.Locale()).SortedByEdit() }
+
+// SortedByEdit says "Sorted by last edit"
+// in the language of msgs.
+func (msgs Messages) SortedByEdit() string {
+	return Catalog.Format(msgs.locale, "sortedByEdit", nil)
+}
+
+// ClosedBadge says "Closed"
+// in the language the app shows.
+func ClosedBadge() string { return In(i18n.Locale()).ClosedBadge() }
+
+// ClosedBadge says "Closed"
+// in the language of msgs.
+func (msgs Messages) ClosedBadge() string {
+	return Catalog.Format(msgs.locale, "closedBadge", nil)
+}
+
+// Today says "Today"
+// in the language the app shows.
+func Today() string { return In(i18n.Locale()).Today() }
+
+// Today says "Today"
+// in the language of msgs.
+func (msgs Messages) Today() string {
+	return Catalog.Format(msgs.locale, "today", nil)
+}
+
+// Yesterday says "Yesterday"
+// in the language the app shows.
+func Yesterday() string { return In(i18n.Locale()).Yesterday() }
+
+// Yesterday says "Yesterday"
+// in the language of msgs.
+func (msgs Messages) Yesterday() string {
+	return Catalog.Format(msgs.locale, "yesterday", nil)
+}
+
+// CreatedLine says "Created {time} · {count, plural, =0 {no versions} one {# version} other {# versions}}"
+// in the language the app shows.
+func CreatedLine(time_ string, count int) string { return In(i18n.Locale()).CreatedLine(time_, count) }
+
+// CreatedLine says "Created {time} · {count, plural, =0 {no versions} one {# version} other {# versions}}"
+// in the language of msgs.
+func (msgs Messages) CreatedLine(time_ string, count int) string {
+	return Catalog.Format(msgs.locale, "createdLine", map[string]any{"time": time_, "count": count})
+}
+
+// TodoKind says "To-do"
+// in the language the app shows.
+func TodoKind() string { return In(i18n.Locale()).TodoKind() }
+
+// TodoKind says "To-do"
+// in the language of msgs.
+func (msgs Messages) TodoKind() string {
+	return Catalog.Format(msgs.locale, "todoKind", nil)
+}
+
+// OpenInWorkspace says "Open in workspace"
+// in the language the app shows.
+func OpenInWorkspace() string { return In(i18n.Locale()).OpenInWorkspace() }
+
+// OpenInWorkspace says "Open in workspace"
+// in the language of msgs.
+func (msgs Messages) OpenInWorkspace() string {
+	return Catalog.Format(msgs.locale, "openInWorkspace", nil)
+}
+
+// VersionsCount says "{count, plural, =0 {No versions} one {# version} other {# versions}}"
+// in the language the app shows.
+func VersionsCount(count int) string { return In(i18n.Locale()).VersionsCount(count) }
+
+// VersionsCount says "{count, plural, =0 {No versions} one {# version} other {# versions}}"
+// in the language of msgs.
+func (msgs Messages) VersionsCount(count int) string {
+	return Catalog.Format(msgs.locale, "versionsCount", map[string]any{"count": count})
+}
+
+// LinesChars says "{lines, plural, one {# line} other {# lines}} · {chars, plural, one {# char} other {# chars}}"
+// in the language the app shows.
+func LinesChars(lines int, chars int) string { return In(i18n.Locale()).LinesChars(lines, chars) }
+
+// LinesChars says "{lines, plural, one {# line} other {# lines}} · {chars, plural, one {# char} other {# chars}}"
+// in the language of msgs.
+func (msgs Messages) LinesChars(lines int, chars int) string {
+	return Catalog.Format(msgs.locale, "linesChars", map[string]any{"lines": lines, "chars": chars})
+}
+
+// RevealSecrets says "Reveal secrets"
+// in the language the app shows.
+func RevealSecrets() string { return In(i18n.Locale()).RevealSecrets() }
+
+// RevealSecrets says "Reveal secrets"
+// in the language of msgs.
+func (msgs Messages) RevealSecrets() string {
+	return Catalog.Format(msgs.locale, "revealSecrets", nil)
+}
+
+// HideSecrets says "Hide secrets"
+// in the language the app shows.
+func HideSecrets() string { return In(i18n.Locale()).HideSecrets() }
+
+// HideSecrets says "Hide secrets"
+// in the language of msgs.
+func (msgs Messages) HideSecrets() string {
+	return Catalog.Format(msgs.locale, "hideSecrets", nil)
+}
+
+// OpenEdit says "Open"
+// in the language the app shows.
+func OpenEdit() string { return In(i18n.Locale()).OpenEdit() }
+
+// OpenEdit says "Open"
+// in the language of msgs.
+func (msgs Messages) OpenEdit() string {
+	return Catalog.Format(msgs.locale, "openEdit", nil)
+}
+
+// DeleteEllipsis says "Delete…"
+// in the language the app shows.
+func DeleteEllipsis() string { return In(i18n.Locale()).DeleteEllipsis() }
+
+// DeleteEllipsis says "Delete…"
+// in the language of msgs.
+func (msgs Messages) DeleteEllipsis() string {
+	return Catalog.Format(msgs.locale, "deleteEllipsis", nil)
+}
+
+// ConfirmDeleteTitle says "Delete this snippet?"
+// in the language the app shows.
+func ConfirmDeleteTitle() string { return In(i18n.Locale()).ConfirmDeleteTitle() }
+
+// ConfirmDeleteTitle says "Delete this snippet?"
+// in the language of msgs.
+func (msgs Messages) ConfirmDeleteTitle() string {
+	return Catalog.Format(msgs.locale, "confirmDeleteTitle", nil)
+}
+
+// ConfirmDeleteBody says "“{title}” and its {count, plural, =0 {history} one {# version} other {# versions}} will be gone for good. It won…"
+// in the language the app shows.
+func ConfirmDeleteBody(title string, count int) string {
+	return In(i18n.Locale()).ConfirmDeleteBody(title, count)
+}
+
+// ConfirmDeleteBody says "“{title}” and its {count, plural, =0 {history} one {# version} other {# versions}} will be gone for good. It won…"
+// in the language of msgs.
+func (msgs Messages) ConfirmDeleteBody(title string, count int) string {
+	return Catalog.Format(msgs.locale, "confirmDeleteBody", map[string]any{"title": title, "count": count})
+}
+
+// Cancel says "Cancel"
+// in the language the app shows.
+func Cancel() string { return In(i18n.Locale()).Cancel() }
+
+// Cancel says "Cancel"
+// in the language of msgs.
+func (msgs Messages) Cancel() string {
+	return Catalog.Format(msgs.locale, "cancel", nil)
+}
+
+// DeleteSnippet says "Delete snippet"
+// in the language the app shows.
+func DeleteSnippet() string { return In(i18n.Locale()).DeleteSnippet() }
+
+// DeleteSnippet says "Delete snippet"
+// in the language of msgs.
+func (msgs Messages) DeleteSnippet() string {
+	return Catalog.Format(msgs.locale, "deleteSnippet", nil)
+}
+
+// EmptyQuery says "Nothing matches “{query}”"
+// in the language the app shows.
+func EmptyQuery(query string) string { return In(i18n.Locale()).EmptyQuery(query) }
+
+// EmptyQuery says "Nothing matches “{query}”"
+// in the language of msgs.
+func (msgs Messages) EmptyQuery(query string) string {
+	return Catalog.Format(msgs.locale, "emptyQuery", map[string]any{"query": query})
+}
+
+// EmptyNone says "No snippets yet"
+// in the language the app shows.
+func EmptyNone() string { return In(i18n.Locale()).EmptyNone() }
+
+// EmptyNone says "No snippets yet"
+// in the language of msgs.
+func (msgs Messages) EmptyNone() string {
+	return Catalog.Format(msgs.locale, "emptyNone", nil)
+}
+
+// EmptyFilteredBody says "The filters narrow the results. Clear them to search everything, including closed snippets."
+// in the language the app shows.
+func EmptyFilteredBody() string { return In(i18n.Locale()).EmptyFilteredBody() }
+
+// EmptyFilteredBody says "The filters narrow the results. Clear them to search everything, including closed snippets."
+// in the language of msgs.
+func (msgs Messages) EmptyFilteredBody() string {
+	return Catalog.Format(msgs.locale, "emptyFilteredBody", nil)
+}
+
+// EmptyBody says "Search covers every snippet, closed ones too."
+// in the language the app shows.
+func EmptyBody() string { return In(i18n.Locale()).EmptyBody() }
+
+// EmptyBody says "Search covers every snippet, closed ones too."
+// in the language of msgs.
+func (msgs Messages) EmptyBody() string {
+	return Catalog.Format(msgs.locale, "emptyBody", nil)
+}
+
+// ClearFilters says "Clear filters"
+// in the language the app shows.
+func ClearFilters() string { return In(i18n.Locale()).ClearFilters() }
+
+// ClearFilters says "Clear filters"
+// in the language of msgs.
+func (msgs Messages) ClearFilters() string {
+	return Catalog.Format(msgs.locale, "clearFilters", nil)
+}
+
+// NoPreview says "Pick a snippet to preview it here"
+// in the language the app shows.
+func NoPreview() string { return In(i18n.Locale()).NoPreview() }
+
+// NoPreview says "Pick a snippet to preview it here"
+// in the language of msgs.
+func (msgs Messages) NoPreview() string {
+	return Catalog.Format(msgs.locale, "noPreview", nil)
+}
+
+// LibraryHint says "↑↓ select · {enter} open · hold {alt} for exact times"
+// in the language the app shows.
+func LibraryHint(enter string, alt string) string { return In(i18n.Locale()).LibraryHint(enter, alt) }
+
+// LibraryHint says "↑↓ select · {enter} open · hold {alt} for exact times"
+// in the language of msgs.
+func (msgs Messages) LibraryHint(enter string, alt string) string {
+	return Catalog.Format(msgs.locale, "libraryHint", map[string]any{"enter": enter, "alt": alt})
+}
+
+// LibraryHintExact says "↑↓ select · {enter} open · release {alt} for relative times"
+// in the language the app shows.
+func LibraryHintExact(enter string, alt string) string {
+	return In(i18n.Locale()).LibraryHintExact(enter, alt)
+}
+
+// LibraryHintExact says "↑↓ select · {enter} open · release {alt} for relative times"
+// in the language of msgs.
+func (msgs Messages) LibraryHintExact(enter string, alt string) string {
+	return Catalog.Format(msgs.locale, "libraryHintExact", map[string]any{"enter": enter, "alt": alt})
+}
+
+// Deleted says "Deleted “{title}”"
+// in the language the app shows.
+func Deleted(title string) string { return In(i18n.Locale()).Deleted(title) }
+
+// Deleted says "Deleted “{title}”"
+// in the language of msgs.
+func (msgs Messages) Deleted(title string) string {
+	return Catalog.Format(msgs.locale, "deleted", map[string]any{"title": title})
+}

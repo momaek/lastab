@@ -101,6 +101,7 @@ type App struct {
 	recovered   bool
 	copiedUntil time.Time
 	switcher    switcher
+	lib         library
 
 	// focusEditor asks the next frame to focus the active editor.
 	focusEditor bool

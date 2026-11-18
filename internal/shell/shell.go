@@ -4,10 +4,10 @@ package shell
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/egoist/mygo"
 
-	"github.com/momaek/lastab/internal/store"
 	appui "github.com/momaek/lastab/internal/ui"
 	"github.com/momaek/lastab/internal/ui/keys"
 	"github.com/momaek/lastab/locales"
@@ -43,31 +43,32 @@ func (s *Shell) Show() {
 // Summon shows the window with a new blank snippet, for the global
 // shortcut: the app is already running, so it is instant.
 func (s *Shell) Summon() {
-	s.do(func() { s.App.NewTab(store.KindText) })
+	s.do(func() { s.App.Run(keys.NewText, time.Now()) })
 	s.Show()
 }
 
 // Menu returns the menu bar. The Window menu holds only roles that leave
 // Cmd+` free, which the recent switcher takes.
 func (s *Shell) Menu() *mygo.Menu {
-	item := func(label string, a keys.Action, fn func()) *mygo.MenuItem {
+	item := func(label string, a keys.Action) *mygo.MenuItem {
 		return &mygo.MenuItem{Label: label, Accelerator: keys.Default(a), Click: func(*mygo.MenuItem, *mygo.Window) {
-			s.do(fn)
+			s.do(func() { s.App.Run(a, time.Now()) })
 		}}
 	}
 	return mygo.NewMenu([]*mygo.MenuItem{
 		{Role: mygo.RoleAppMenu},
 		{Label: locales.FileMenu(), Submenu: []*mygo.MenuItem{
-			item(locales.NewSnippetMenu(), keys.NewText, func() { s.App.NewTab(store.KindText) }),
-			item(locales.NewTodoMenu(), keys.NewTodo, func() { s.App.NewTab(store.KindTodo) }),
+			item(locales.NewSnippetMenu(), keys.NewText),
+			item(locales.NewTodoMenu(), keys.NewTodo),
 			mygo.Separator(),
-			item(locales.CopyAllMenu(), keys.CopyAll, func() { s.App.CopyAll(nowFrame()) }),
+			item(locales.CopyAllMenu(), keys.CopyAll),
 			mygo.Separator(),
-			item(locales.CloseSnippetMenu(), keys.CloseTab, s.App.CloseActive),
+			item(locales.CloseSnippetMenu(), keys.CloseTab),
 		}},
 		{Role: mygo.RoleEditMenu},
 		{Label: locales.GoMenu(), Submenu: []*mygo.MenuItem{
-			item(locales.RecentMenu(), keys.Recent, s.App.OpenSwitcher),
+			item(locales.RecentMenu(), keys.Recent),
+			item(locales.AllSnippetsMenu(), keys.AllSnippets),
 		}},
 		{Label: "Window", Submenu: []*mygo.MenuItem{
 			{Role: mygo.RoleMinimize},

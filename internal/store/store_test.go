@@ -247,3 +247,21 @@ func TestGetByPrefix(t *testing.T) {
 		t.Fatalf("short prefix: %v", err)
 	}
 }
+
+func TestClosedOnlyAndVersionCounts(t *testing.T) {
+	ctx := context.Background()
+	s := openTest(t)
+	a, _ := s.CreateSnippet(ctx, KindText, "open one", 0)
+	b, _ := s.CreateSnippet(ctx, KindText, "closed one", 1)
+	s.CloseTab(ctx, b.ID)
+	got, _ := s.Search(ctx, "one", ListOptions{ClosedOnly: true})
+	if len(got) != 1 || got[0].ID != b.ID {
+		t.Fatalf("closed only: %v", ids(got))
+	}
+	s.AddVersion(ctx, a.ID, "x", ReasonPaused, 1)
+	s.AddVersion(ctx, a.ID, "y", ReasonPaused, 1)
+	n, err := s.VersionCounts(ctx, []string{a.ID, b.ID})
+	if err != nil || n[a.ID] != 2 || n[b.ID] != 0 {
+		t.Fatalf("%v %v", n, err)
+	}
+}

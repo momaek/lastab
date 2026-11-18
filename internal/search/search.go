@@ -86,20 +86,27 @@ func Preview(body, q string, max int) (string, []Range) {
 		text = strings.TrimRightFunc(text, unicode.IsSpace) + "…"
 	}
 	text = prefix + text
-	var hs []Range
-	if q != "" {
-		off := 0
-		for {
-			i := indexFold(text[off:], q)
-			if i < 0 {
-				break
-			}
-			l := foldLen(text[off+i:], q)
-			hs = append(hs, Range{off + i, off + i + l})
-			off += i + max1(l)
-		}
+	return text, Highlights(text, q)
+}
+
+// Highlights returns the byte ranges of text matching q, ignoring case.
+func Highlights(text, q string) []Range {
+	q = strings.TrimSpace(q)
+	if q == "" {
+		return nil
 	}
-	return text, hs
+	var hs []Range
+	off := 0
+	for off < len(text) {
+		i := indexFold(text[off:], q)
+		if i < 0 {
+			break
+		}
+		l := foldLen(text[off+i:], q)
+		hs = append(hs, Range{off + i, off + i + l})
+		off += i + max1(l)
+	}
+	return hs
 }
 
 func max1(n int) int {

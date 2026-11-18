@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -75,6 +76,33 @@ func (s *Store) Versions(ctx context.Context, snippetID string) ([]Version, erro
 		}
 		v.CreatedAt = time.UnixMilli(created)
 		out = append(out, v)
+	}
+	return out, rows.Err()
+}
+
+// VersionCounts returns how many versions each snippet has.
+func (s *Store) VersionCounts(ctx context.Context, ids []string) (map[string]int, error) {
+	out := make(map[string]int, len(ids))
+	if len(ids) == 0 {
+		return out, nil
+	}
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+	rows, err := s.r.QueryContext(ctx,
+		`SELECT snippet_id, count(*) FROM version WHERE snippet_id IN (?`+strings.Repeat(",?", len(ids)-1)+`) GROUP BY snippet_id`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id string
+		var n int
+		if err := rows.Scan(&id, &n); err != nil {
+			return nil, err
+		}
+		out[id] = n
 	}
 	return out, rows.Err()
 }

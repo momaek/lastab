@@ -43,5 +43,20 @@ func TestSnapshots(t *testing.T) {
 		save(name+"-editor", h.tt)
 		h.tt.Key(ui.Cmd, ui.KeyBackquote)
 		save(name+"-switcher", h.tt)
+		h.tt.Key(0, ui.KeyEscape)
+
+		h.tt.SetSize(1200, 760)
+		h.tt.Key(ui.Cmd, ui.KeyK)
+		h.tt.Type("staging")
+		h.tt.Frame()
+		save(name+"-library", h.tt)
+		h.tt.Click("Delete…")
+		save(name+"-library-delete", h.tt)
+		h.tt.Key(0, ui.KeyEscape)
+		h.tt.Click("Search all snippets")
+		h.tt.Type("zz")
+		h.tt.Frame()
+		save(name+"-library-empty", h.tt)
+		h.tt.SetSize(900, 600)
 	}
 }

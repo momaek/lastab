@@ -187,11 +187,12 @@ func (s *Store) GetByPrefix(ctx context.Context, prefix string) (Snippet, error)
 
 // ListOptions filters List.
 type ListOptions struct {
-	Limit    int
-	Kind     Kind      // "" for any
-	Since    time.Time // zero for any
-	Until    time.Time // zero for any
-	OpenOnly bool
+	Limit      int
+	Kind       Kind      // "" for any
+	Since      time.Time // zero for any
+	Until      time.Time // zero for any
+	OpenOnly   bool
+	ClosedOnly bool
 }
 
 func (o ListOptions) where(args *[]any) string {
@@ -210,6 +211,9 @@ func (o ListOptions) where(args *[]any) string {
 	}
 	if o.OpenOnly {
 		conds = append(conds, "EXISTS(SELECT 1 FROM workspace_tab w WHERE w.snippet_id = s.id)")
+	}
+	if o.ClosedOnly {
+		conds = append(conds, "NOT EXISTS(SELECT 1 FROM workspace_tab w WHERE w.snippet_id = s.id)")
 	}
 	if len(conds) == 0 {
 		return ""

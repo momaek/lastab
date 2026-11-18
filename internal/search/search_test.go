@@ -41,3 +41,13 @@ func TestMatches(t *testing.T) {
 		t.Error("Matches")
 	}
 }
+
+func TestHighlights(t *testing.T) {
+	hs := Highlights("Staging and staging-b", "staging")
+	if len(hs) != 2 || hs[1].Start != 12 {
+		t.Fatalf("%v", hs)
+	}
+	if Highlights("abc", " ") != nil {
+		t.Error("blank query")
+	}
+}
