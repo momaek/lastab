@@ -72,6 +72,7 @@ func (s *Shell) Menu() *mygo.Menu {
 		{Label: locales.GoMenu(), Submenu: []*mygo.MenuItem{
 			item(locales.RecentMenu(), keys.Recent),
 			item(locales.AllSnippetsMenu(), keys.AllSnippets),
+			item(locales.HistoryMenu(), keys.History),
 		}},
 		{Label: "Window", Submenu: []*mygo.MenuItem{
 			{Role: mygo.RoleMinimize},

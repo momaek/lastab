@@ -205,5 +205,84 @@
   "hideSidebar": "Hide sidebar",
   "showSidebar": "Show sidebar",
   "viewMenu": "View",
-  "toggleSidebarMenu": "Toggle Sidebar"
+  "toggleSidebarMenu": "Toggle Sidebar",
+  "historyTitle": "Version history",
+  "historySub": "Saved automatically when you pause typing, switch away, close or copy",
+  "closeHistory": "Close version history",
+  "diffMode": "Diff",
+  "fullText": "Full text",
+  "restoreVersion": "Restore this version",
+  "copyVersion": "Copy this version",
+  "restoreNote": "You can undo a restore for 5 seconds, and the current text is saved as a version first.",
+  "restoredToast": "Restored the {time} version",
+  "@restoredToast": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "undo": "Undo",
+  "undoneToast": "Restore undone — back to the latest text",
+  "singleTitle": "Only one version so far",
+  "singleBody": "A new version is saved when you pause typing for a few seconds, switch away, close the snippet or copy it.",
+  "noVersionsTitle": "No versions yet",
+  "currentAt": "Current · {time}",
+  "@currentAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "compareHead": "Compare {time} ({reason}) → Current",
+  "@compareHead": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "changesCount": "{count, plural, =0 {No changes} one {# change} other {# changes}}",
+  "@changesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reasonPaused": "Paused",
+  "reasonSwitch": "Switched away",
+  "reasonClose": "On close",
+  "reasonCopy": "On copy",
+  "reasonRestoredFrom": "Restored {time}",
+  "@reasonRestoredFrom": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonBeforeRestore": "Before restore",
+  "reasonFirst": "First content",
+  "linesChanged": "{count, plural, =0 {No changes} one {# line changed} other {# lines changed}}",
+  "@linesChanged": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "firstLines": "{count, plural, one {# line} other {# lines}}",
+  "@firstLines": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "versionsList": "Versions"
 }

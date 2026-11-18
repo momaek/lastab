@@ -105,6 +105,13 @@ type App struct {
 	copiedUntil time.Time
 	switcher    switcher
 	lib         library
+	history     history
+	toast       *toast
+	toastWidth  float32
+	// frameNow is the time of the frame being built, by the window's clock.
+	frameNow time.Time
+	// pendingHistory opens the history of this snippet once its tab opens.
+	pendingHistory string
 
 	sidebarHidden bool
 	// scrollActive brings the active tab into view in the sidebar, once.

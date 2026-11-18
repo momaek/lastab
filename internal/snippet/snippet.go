@@ -102,6 +102,21 @@ func (s *Service) Snapshot(ctx context.Context, id, body string, reason store.Re
 	return s.hist.Snapshot(ctx, id, body, reason)
 }
 
+// RecordRestore records a restore so it can be taken back: the text as it
+// was before, then the text restored from version fromID.
+func (s *Service) RecordRestore(ctx context.Context, id, before, restored, fromID string) error {
+	if _, err := s.hist.SnapshotFrom(ctx, id, before, store.ReasonRestore, ""); err != nil {
+		return err
+	}
+	_, err := s.hist.SnapshotFrom(ctx, id, restored, store.ReasonRestore, fromID)
+	return err
+}
+
+// Versions returns a snippet's versions, newest first.
+func (s *Service) Versions(ctx context.Context, id string) ([]store.Version, error) {
+	return s.Store.Versions(ctx, id)
+}
+
 // Open adds a snippet found in the list to the workspace.
 func (s *Service) Open(ctx context.Context, id string) (store.Snippet, error) {
 	if err := s.Store.OpenTab(ctx, id); err != nil {

@@ -242,8 +242,26 @@ func (a *App) openSnippet(id string) {
 			a.Resort()
 			a.focusEditor = true
 			a.persistOrder()
+			if a.pendingHistory == sn.ID {
+				a.pendingHistory = ""
+				a.OpenHistory()
+			}
 		}
 	})
+}
+
+// HistoryOfSelected opens the selected snippet with its version history.
+func (a *App) HistoryOfSelected() {
+	it := a.lib.selected()
+	if it == nil {
+		return
+	}
+	a.pendingHistory = it.ID
+	a.openSnippet(it.ID)
+	if a.pendingHistory != "" && a.Active().id == it.ID { // it was open already
+		a.pendingHistory = ""
+		a.OpenHistory()
+	}
 }
 
 // CopySelected copies the selected snippet's body exactly.
@@ -645,6 +663,9 @@ func (a *App) libraryPreview(c *ui.Context, it *libItem) {
 		if cp.Clicked() {
 			a.CopySelected(c.Now())
 			c.Announce(locales.CopiedAnnounce())
+		}
+		if a.outlineButton(c, "history", locales.HistoryTitle(), keys.Display(keys.Default(keys.History), runtime.GOOS)).Clicked() {
+			a.HistoryOfSelected()
 		}
 		if masked {
 			lbl := locales.RevealSecrets()

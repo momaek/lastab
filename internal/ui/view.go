@@ -20,6 +20,7 @@ func (a *App) View(c *ui.Context) {
 	c.SetTheme(th)
 	a.pal, a.acc = pal, acc
 
+	a.frameNow = c.Now()
 	a.tick(c)
 	a.shortcuts(c)
 	if a.lib.open {
@@ -29,18 +30,31 @@ func (a *App) View(c *ui.Context) {
 	if cur := a.Active(); cur != a.lastActive {
 		a.lastActive, a.scrollActive = cur, true
 	}
+	if a.history.open && a.history.tab != a.Active() {
+		// The history follows the active snippet.
+		a.history = history{open: true, tab: a.Active()}
+		a.loadHistory(true)
+	}
 	ui.Row(c).Fill().AlignItems(ui.Stretch).Background(pal.Bg).Children(func() {
 		if !a.sidebarHidden {
 			a.sidebar(c)
 		}
 		ui.Column(c.Key("main")).Grow(1).Shrink(1).MinWidth(0).AlignItems(ui.Stretch).Children(func() {
 			a.mainHeader(c)
+			if a.history.open {
+				a.compareView(c)
+				return
+			}
 			a.editorArea(c)
 			a.statusBar(c)
 		})
+		if a.history.open {
+			a.historyDrawer(c)
+		}
 	})
 	a.scrollActive = false
 	a.switcherView(c)
+	a.toastView(c)
 }
 
 func (a *App) shortcuts(c *ui.Context) {
@@ -53,6 +67,16 @@ func (a *App) shortcuts(c *ui.Context) {
 	c.OnWindowShortcut(ui.Cmd, ui.KeyBackslash, run(keys.ToggleSidebar))
 	if !a.switcher.open {
 		c.OnWindowShortcut(ui.Cmd, ui.KeyBackquote, run(keys.Recent))
+	}
+	if runtime.GOOS == "darwin" {
+		c.OnWindowShortcut(ui.Cmd, ui.KeyY, run(keys.History))
+	} else {
+		c.OnWindowShortcut(ui.Cmd|ui.Shift, ui.KeyY, run(keys.History))
+	}
+	if a.history.open && !a.switcher.open {
+		c.OnWindowShortcut(0, ui.KeyEscape, a.CloseHistory)
+		c.OnWindowShortcut(0, ui.KeyDown, func() { a.moveHistory(1) })
+		c.OnWindowShortcut(0, ui.KeyUp, func() { a.moveHistory(-1) })
 	}
 	if !a.lib.open || a.lib.confirm {
 		return
