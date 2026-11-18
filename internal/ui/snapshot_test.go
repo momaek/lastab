@@ -68,6 +68,19 @@ func TestSnapshots(t *testing.T) {
 		h.tt.Type("zz")
 		h.tt.Frame()
 		save(name+"-library-empty", h.tt)
+		h.tt.Key(0, ui.KeyEscape)
+		h.tt.Click("curl · POST /v2/orders/search")
+		h.tt.Key(ui.Cmd, ui.KeyY) // no-op guard: opens below
+		h.tt.Key(ui.Cmd, ui.KeyY)
+		h.tt.Key(ui.Cmd, ui.KeyY)
+		h.app.CloseHistory()
+		h.tt.Frame()
+		h.app.Active().buf().Set("curl -X POST 'https://api.staging.example.com/v2/orders/search' \\\n  -H 'Authorization: Bearer abcdefgh12345678' \\\n  -d '{\"order_id\":\"A-20391\",\"page_size\":50}'")
+		h.settle()
+		h.tt.Key(ui.Cmd, ui.KeyY)
+		save(name+"-history", h.tt)
+		h.tt.Click("Restore this version")
+		save(name+"-history-restored", h.tt)
 		h.tt.SetSize(900, 600)
 	}
 }

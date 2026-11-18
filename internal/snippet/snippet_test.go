@@ -81,3 +81,26 @@ func TestSessionCrash(t *testing.T) {
 		t.Error("crash not detected")
 	}
 }
+
+func TestRecordRestore(t *testing.T) {
+	ctx := context.Background()
+	st, err := store.Open(filepath.Join(t.TempDir(), "lastab.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	s := New(st)
+	sn, _ := s.Create(ctx, store.KindText, "v1", 0)
+	s.Snapshot(ctx, sn.ID, "v1", store.ReasonPaused)
+	s.Snapshot(ctx, sn.ID, "v2", store.ReasonPaused)
+	vs, _ := s.Versions(ctx, sn.ID)
+	old := vs[1]
+	// Current text "v2 edited" was never recorded: it is kept before the restore.
+	if err := s.RecordRestore(ctx, sn.ID, "v2 edited", "v1", old.ID); err != nil {
+		t.Fatal(err)
+	}
+	vs, _ = s.Versions(ctx, sn.ID)
+	if len(vs) != 4 || vs[0].Body != "v1" || vs[0].RestoredFrom != old.ID || vs[1].Body != "v2 edited" || vs[1].RestoredFrom != "" {
+		t.Fatalf("versions %+v", vs)
+	}
+}

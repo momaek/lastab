@@ -56,6 +56,11 @@ type Recorder struct {
 // Snapshot records body as a version of the snippet, unless it equals the
 // latest version. It reports whether it recorded one.
 func (r Recorder) Snapshot(ctx context.Context, snippetID, body string, reason store.Reason) (bool, error) {
+	return r.SnapshotFrom(ctx, snippetID, body, reason, "")
+}
+
+// SnapshotFrom is Snapshot recording the version a restore brought back.
+func (r Recorder) SnapshotFrom(ctx context.Context, snippetID, body string, reason store.Reason, restoredFrom string) (bool, error) {
 	prev := ""
 	last, err := r.Store.LatestVersion(ctx, snippetID)
 	switch {
@@ -68,6 +73,6 @@ func (r Recorder) Snapshot(ctx context.Context, snippetID, body string, reason s
 	default:
 		return false, err
 	}
-	_, err = r.Store.AddVersion(ctx, snippetID, body, reason, LinesChanged(prev, body))
+	_, err = r.Store.AddVersionFrom(ctx, snippetID, body, reason, LinesChanged(prev, body), restoredFrom)
 	return err == nil, err
 }

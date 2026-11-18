@@ -869,3 +869,275 @@ func ToggleSidebarMenu() string { return In(i18n.Locale()).ToggleSidebarMenu() }
 func (msgs Messages) ToggleSidebarMenu() string {
 	return Catalog.Format(msgs.locale, "toggleSidebarMenu", nil)
 }
+
+// HistoryTitle says "Version history"
+// in the language the app shows.
+func HistoryTitle() string { return In(i18n.Locale()).HistoryTitle() }
+
+// HistoryTitle says "Version history"
+// in the language of msgs.
+func (msgs Messages) HistoryTitle() string {
+	return Catalog.Format(msgs.locale, "historyTitle", nil)
+}
+
+// HistorySub says "Saved automatically when you pause typing, switch away, close or copy"
+// in the language the app shows.
+func HistorySub() string { return In(i18n.Locale()).HistorySub() }
+
+// HistorySub says "Saved automatically when you pause typing, switch away, close or copy"
+// in the language of msgs.
+func (msgs Messages) HistorySub() string {
+	return Catalog.Format(msgs.locale, "historySub", nil)
+}
+
+// CloseHistory says "Close version history"
+// in the language the app shows.
+func CloseHistory() string { return In(i18n.Locale()).CloseHistory() }
+
+// CloseHistory says "Close version history"
+// in the language of msgs.
+func (msgs Messages) CloseHistory() string {
+	return Catalog.Format(msgs.locale, "closeHistory", nil)
+}
+
+// DiffMode says "Diff"
+// in the language the app shows.
+func DiffMode() string { return In(i18n.Locale()).DiffMode() }
+
+// DiffMode says "Diff"
+// in the language of msgs.
+func (msgs Messages) DiffMode() string {
+	return Catalog.Format(msgs.locale, "diffMode", nil)
+}
+
+// FullText says "Full text"
+// in the language the app shows.
+func FullText() string { return In(i18n.Locale()).FullText() }
+
+// FullText says "Full text"
+// in the language of msgs.
+func (msgs Messages) FullText() string {
+	return Catalog.Format(msgs.locale, "fullText", nil)
+}
+
+// RestoreVersion says "Restore this version"
+// in the language the app shows.
+func RestoreVersion() string { return In(i18n.Locale()).RestoreVersion() }
+
+// RestoreVersion says "Restore this version"
+// in the language of msgs.
+func (msgs Messages) RestoreVersion() string {
+	return Catalog.Format(msgs.locale, "restoreVersion", nil)
+}
+
+// CopyVersion says "Copy this version"
+// in the language the app shows.
+func CopyVersion() string { return In(i18n.Locale()).CopyVersion() }
+
+// CopyVersion says "Copy this version"
+// in the language of msgs.
+func (msgs Messages) CopyVersion() string {
+	return Catalog.Format(msgs.locale, "copyVersion", nil)
+}
+
+// RestoreNote says "You can undo a restore for 5 seconds, and the current text is saved as a version first."
+// in the language the app shows.
+func RestoreNote() string { return In(i18n.Locale()).RestoreNote() }
+
+// RestoreNote says "You can undo a restore for 5 seconds, and the current text is saved as a version first."
+// in the language of msgs.
+func (msgs Messages) RestoreNote() string {
+	return Catalog.Format(msgs.locale, "restoreNote", nil)
+}
+
+// RestoredToast says "Restored the {time} version"
+// in the language the app shows.
+func RestoredToast(time_ string) string { return In(i18n.Locale()).RestoredToast(time_) }
+
+// RestoredToast says "Restored the {time} version"
+// in the language of msgs.
+func (msgs Messages) RestoredToast(time_ string) string {
+	return Catalog.Format(msgs.locale, "restoredToast", map[string]any{"time": time_})
+}
+
+// Undo says "Undo"
+// in the language the app shows.
+func Undo() string { return In(i18n.Locale()).Undo() }
+
+// Undo says "Undo"
+// in the language of msgs.
+func (msgs Messages) Undo() string {
+	return Catalog.Format(msgs.locale, "undo", nil)
+}
+
+// UndoneToast says "Restore undone — back to the latest text"
+// in the language the app shows.
+func UndoneToast() string { return In(i18n.Locale()).UndoneToast() }
+
+// UndoneToast says "Restore undone — back to the latest text"
+// in the language of msgs.
+func (msgs Messages) UndoneToast() string {
+	return Catalog.Format(msgs.locale, "undoneToast", nil)
+}
+
+// SingleTitle says "Only one version so far"
+// in the language the app shows.
+func SingleTitle() string { return In(i18n.Locale()).SingleTitle() }
+
+// SingleTitle says "Only one version so far"
+// in the language of msgs.
+func (msgs Messages) SingleTitle() string {
+	return Catalog.Format(msgs.locale, "singleTitle", nil)
+}
+
+// SingleBody says "A new version is saved when you pause typing for a few seconds, switch away, close the snippet or copy it."
+// in the language the app shows.
+func SingleBody() string { return In(i18n.Locale()).SingleBody() }
+
+// SingleBody says "A new version is saved when you pause typing for a few seconds, switch away, close the snippet or copy it."
+// in the language of msgs.
+func (msgs Messages) SingleBody() string {
+	return Catalog.Format(msgs.locale, "singleBody", nil)
+}
+
+// NoVersionsTitle says "No versions yet"
+// in the language the app shows.
+func NoVersionsTitle() string { return In(i18n.Locale()).NoVersionsTitle() }
+
+// NoVersionsTitle says "No versions yet"
+// in the language of msgs.
+func (msgs Messages) NoVersionsTitle() string {
+	return Catalog.Format(msgs.locale, "noVersionsTitle", nil)
+}
+
+// CurrentAt says "Current · {time}"
+// in the language the app shows.
+func CurrentAt(time_ string) string { return In(i18n.Locale()).CurrentAt(time_) }
+
+// CurrentAt says "Current · {time}"
+// in the language of msgs.
+func (msgs Messages) CurrentAt(time_ string) string {
+	return Catalog.Format(msgs.locale, "currentAt", map[string]any{"time": time_})
+}
+
+// CompareHead says "Compare {time} ({reason}) → Current"
+// in the language the app shows.
+func CompareHead(time_ string, reason string) string {
+	return In(i18n.Locale()).CompareHead(time_, reason)
+}
+
+// CompareHead says "Compare {time} ({reason}) → Current"
+// in the language of msgs.
+func (msgs Messages) CompareHead(time_ string, reason string) string {
+	return Catalog.Format(msgs.locale, "compareHead", map[string]any{"time": time_, "reason": reason})
+}
+
+// ChangesCount says "{count, plural, =0 {No changes} one {# change} other {# changes}}"
+// in the language the app shows.
+func ChangesCount(count int) string { return In(i18n.Locale()).ChangesCount(count) }
+
+// ChangesCount says "{count, plural, =0 {No changes} one {# change} other {# changes}}"
+// in the language of msgs.
+func (msgs Messages) ChangesCount(count int) string {
+	return Catalog.Format(msgs.locale, "changesCount", map[string]any{"count": count})
+}
+
+// ReasonPaused says "Paused"
+// in the language the app shows.
+func ReasonPaused() string { return In(i18n.Locale()).ReasonPaused() }
+
+// ReasonPaused says "Paused"
+// in the language of msgs.
+func (msgs Messages) ReasonPaused() string {
+	return Catalog.Format(msgs.locale, "reasonPaused", nil)
+}
+
+// ReasonSwitch says "Switched away"
+// in the language the app shows.
+func ReasonSwitch() string { return In(i18n.Locale()).ReasonSwitch() }
+
+// ReasonSwitch says "Switched away"
+// in the language of msgs.
+func (msgs Messages) ReasonSwitch() string {
+	return Catalog.Format(msgs.locale, "reasonSwitch", nil)
+}
+
+// ReasonClose says "On close"
+// in the language the app shows.
+func ReasonClose() string { return In(i18n.Locale()).ReasonClose() }
+
+// ReasonClose says "On close"
+// in the language of msgs.
+func (msgs Messages) ReasonClose() string {
+	return Catalog.Format(msgs.locale, "reasonClose", nil)
+}
+
+// ReasonCopy says "On copy"
+// in the language the app shows.
+func ReasonCopy() string { return In(i18n.Locale()).ReasonCopy() }
+
+// ReasonCopy says "On copy"
+// in the language of msgs.
+func (msgs Messages) ReasonCopy() string {
+	return Catalog.Format(msgs.locale, "reasonCopy", nil)
+}
+
+// ReasonRestoredFrom says "Restored {time}"
+// in the language the app shows.
+func ReasonRestoredFrom(time_ string) string { return In(i18n.Locale()).ReasonRestoredFrom(time_) }
+
+// ReasonRestoredFrom says "Restored {time}"
+// in the language of msgs.
+func (msgs Messages) ReasonRestoredFrom(time_ string) string {
+	return Catalog.Format(msgs.locale, "reasonRestoredFrom", map[string]any{"time": time_})
+}
+
+// ReasonBeforeRestore says "Before restore"
+// in the language the app shows.
+func ReasonBeforeRestore() string { return In(i18n.Locale()).ReasonBeforeRestore() }
+
+// ReasonBeforeRestore says "Before restore"
+// in the language of msgs.
+func (msgs Messages) ReasonBeforeRestore() string {
+	return Catalog.Format(msgs.locale, "reasonBeforeRestore", nil)
+}
+
+// ReasonFirst says "First content"
+// in the language the app shows.
+func ReasonFirst() string { return In(i18n.Locale()).ReasonFirst() }
+
+// ReasonFirst says "First content"
+// in the language of msgs.
+func (msgs Messages) ReasonFirst() string {
+	return Catalog.Format(msgs.locale, "reasonFirst", nil)
+}
+
+// LinesChanged says "{count, plural, =0 {No changes} one {# line changed} other {# lines changed}}"
+// in the language the app shows.
+func LinesChanged(count int) string { return In(i18n.Locale()).LinesChanged(count) }
+
+// LinesChanged says "{count, plural, =0 {No changes} one {# line changed} other {# lines changed}}"
+// in the language of msgs.
+func (msgs Messages) LinesChanged(count int) string {
+	return Catalog.Format(msgs.locale, "linesChanged", map[string]any{"count": count})
+}
+
+// FirstLines says "{count, plural, one {# line} other {# lines}}"
+// in the language the app shows.
+func FirstLines(count int) string { return In(i18n.Locale()).FirstLines(count) }
+
+// FirstLines says "{count, plural, one {# line} other {# lines}}"
+// in the language of msgs.
+func (msgs Messages) FirstLines(count int) string {
+	return Catalog.Format(msgs.locale, "firstLines", map[string]any{"count": count})
+}
+
+// VersionsList says "Versions"
+// in the language the app shows.
+func VersionsList() string { return In(i18n.Locale()).VersionsList() }
+
+// VersionsList says "Versions"
+// in the language of msgs.
+func (msgs Messages) VersionsList() string {
+	return Catalog.Format(msgs.locale, "versionsList", nil)
+}

@@ -27,6 +27,9 @@ type Version struct {
 	CreatedAt    time.Time
 	Reason       Reason
 	LinesChanged int
+	// RestoredFrom is the ID of the version a restore brought back; "" for
+	// other versions, the text saved before a restore included.
+	RestoredFrom string
 }
 
 // LatestVersion returns the newest version of a snippet, or ErrNotFound.
@@ -34,9 +37,9 @@ func (s *Store) LatestVersion(ctx context.Context, snippetID string) (Version, e
 	var v Version
 	var created int64
 	err := s.r.QueryRowContext(ctx,
-		`SELECT id, snippet_id, body, created_at, reason, lines_changed FROM version
+		`SELECT id, snippet_id, body, created_at, reason, lines_changed, restored_from FROM version
 		 WHERE snippet_id = ? ORDER BY created_at DESC, id DESC LIMIT 1`, snippetID).
-		Scan(&v.ID, &v.SnippetID, &v.Body, &created, &v.Reason, &v.LinesChanged)
+		Scan(&v.ID, &v.SnippetID, &v.Body, &created, &v.Reason, &v.LinesChanged, &v.RestoredFrom)
 	if errors.Is(err, sql.ErrNoRows) {
 		return v, ErrNotFound
 	}
@@ -46,22 +49,29 @@ func (s *Store) LatestVersion(ctx context.Context, snippetID string) (Version, e
 
 // AddVersion records a version.
 func (s *Store) AddVersion(ctx context.Context, snippetID, body string, reason Reason, linesChanged int) (Version, error) {
+	return s.AddVersionFrom(ctx, snippetID, body, reason, linesChanged, "")
+}
+
+// AddVersionFrom records a version, with the version a restore brought
+// back.
+func (s *Store) AddVersionFrom(ctx context.Context, snippetID, body string, reason Reason, linesChanged int, restoredFrom string) (Version, error) {
 	w, err := s.writer()
 	if err != nil {
 		return Version{}, err
 	}
 	now := s.now()
-	v := Version{ID: NewID(now), SnippetID: snippetID, Body: body, CreatedAt: time.UnixMilli(now.UnixMilli()), Reason: reason, LinesChanged: linesChanged}
+	v := Version{ID: NewID(now), SnippetID: snippetID, Body: body, CreatedAt: time.UnixMilli(now.UnixMilli()),
+		Reason: reason, LinesChanged: linesChanged, RestoredFrom: restoredFrom}
 	_, err = w.ExecContext(ctx,
-		`INSERT INTO version (id, snippet_id, body, created_at, reason, lines_changed) VALUES (?, ?, ?, ?, ?, ?)`,
-		v.ID, v.SnippetID, v.Body, now.UnixMilli(), v.Reason, v.LinesChanged)
+		`INSERT INTO version (id, snippet_id, body, created_at, reason, lines_changed, restored_from) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		v.ID, v.SnippetID, v.Body, now.UnixMilli(), v.Reason, v.LinesChanged, v.RestoredFrom)
 	return v, err
 }
 
 // Versions returns a snippet's versions, newest first.
 func (s *Store) Versions(ctx context.Context, snippetID string) ([]Version, error) {
 	rows, err := s.r.QueryContext(ctx,
-		`SELECT id, snippet_id, body, created_at, reason, lines_changed FROM version
+		`SELECT id, snippet_id, body, created_at, reason, lines_changed, restored_from FROM version
 		 WHERE snippet_id = ? ORDER BY created_at DESC, id DESC`, snippetID)
 	if err != nil {
 		return nil, err
@@ -71,7 +81,7 @@ func (s *Store) Versions(ctx context.Context, snippetID string) ([]Version, erro
 	for rows.Next() {
 		var v Version
 		var created int64
-		if err := rows.Scan(&v.ID, &v.SnippetID, &v.Body, &created, &v.Reason, &v.LinesChanged); err != nil {
+		if err := rows.Scan(&v.ID, &v.SnippetID, &v.Body, &created, &v.Reason, &v.LinesChanged, &v.RestoredFrom); err != nil {
 			return nil, err
 		}
 		v.CreatedAt = time.UnixMilli(created)

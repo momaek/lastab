@@ -15,6 +15,15 @@ func (a *App) Run(action keys.Action, now time.Time) {
 		a.ToggleSidebar()
 		return
 	}
+	if a.history.open {
+		switch action {
+		case keys.History, keys.CloseTab:
+			a.CloseHistory()
+			return
+		case keys.NewText, keys.NewTodo, keys.AllSnippets, keys.Recent:
+			a.CloseHistory()
+		}
+	}
 	if a.lib.open {
 		switch action {
 		case keys.NewText:
@@ -30,6 +39,8 @@ func (a *App) Run(action keys.Action, now time.Time) {
 		case keys.Recent:
 			a.CloseLibrary()
 			a.OpenSwitcher()
+		case keys.History:
+			a.HistoryOfSelected()
 		}
 		return
 	}
@@ -48,5 +59,7 @@ func (a *App) Run(action keys.Action, now time.Time) {
 		}
 	case keys.AllSnippets:
 		a.OpenLibrary()
+	case keys.History:
+		a.OpenHistory()
 	}
 }
