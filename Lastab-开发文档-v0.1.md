@@ -639,6 +639,20 @@ go run ./scripts/build -platform windows/amd64,windows/arm64  # 任意机器：L
 | 10 | 中英混排细空格、等宽数字的显示效果 | 与设计稿一致 | 调整插入规则；数字改用等宽字体 |
 | 11 | Claude Code 调用 Skill → CLI 的完整链路 | 能搜索并读到片段，访问记录正确 | — |
 
+### 12.1 M0 进展（2026-11-18）
+
+骨架已按第 3 节建好（`go.mod` 锁定 MyGo v0.10.0），业务层、命令行与 M1 主体界面可运行。已有结论：
+
+| # | 结论 | 依据 |
+| --- | --- | --- |
+| 3 | 部分通过：CRLF 文本粘贴进空白片段、复制全部，逐字节一致（在 `OnInput` 拦截 `paste` 命令，用 `Buffer.Set` 原样载入） | `internal/ui` 视图测试（`ui.NewTester`）；真实窗口与选区复制待手工确认 |
+| 6 | 通过：`modernc.org/sqlite` 支持 FTS5 trigram；应用持续写入时，只读打开的 CLI 搜索无错误、不阻塞 | `internal/store` 测试；真实应用运行时 `lastab status` / `list` 正常 |
+| 8 | 通过（无窗口）：浮层中过滤框的 `Element.Shortcut` 能接住 Tab / Shift+Tab / ↑↓ / ⌘\`，Enter 由 `Submitted` 处理 | `TestSwitcher` |
+
+开发环境补充：本机 Command Line Tools 的 SDK 与链接器不匹配时，`go test` 默认启用 cgo 会链接失败。项目不用 cgo，统一用 `CGO_ENABLED=0` 运行 `go test` / `go build`（`scripts/build` 已设置）。
+
+其余验证项（1、2、4、5、7、9、10、11）需要真实窗口、输入法或多种键盘布局，仍待手工验证。
+
 ## 13. 里程碑（建议）
 
 | 里程碑 | 内容 | 对应优先级 |

@@ -24,3 +24,9 @@ Carthage/Build/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# MyGo
+/build/
+/.mygo/
+mygo_windows_*.syso
+/resources/*/bin/
