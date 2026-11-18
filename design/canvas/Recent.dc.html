@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>「最近」切换器</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div lang="{{lang}}" style="width: 1200px; height: 760px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.bg}}; color-scheme: {{c.scheme}}; border: 1px solid {{c.frame}}; border-radius: 12px; overflow: hidden; position: relative; font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif; color: {{c.text}}; text-autospace: normal">
+
+  <div style="height: 44px; flex-shrink: 0; display: flex; align-items: flex-end; gap: 4px; padding: 0 8px 0 16px; background: {{c.chrome}}; border-bottom: 1px solid {{c.chromeLine}}">
+    <sc-if value="{{isMac}}" hint-placeholder-val="{{ true }}">
+      <div style="align-self: center; display: flex; gap: 8px; margin-right: 12px">
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FEBC2E"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #28C840"></span>
+      </div>
+    </sc-if>
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <div style="height: {{tb.h}}; margin-bottom: {{tb.mb}}; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 12px; background: {{tb.bg}}; border: 1px solid {{tb.line}}; border-bottom-color: {{tb.bottom}}; border-radius: 8px 8px 0 0; font-size: 12.5px; font-weight: {{tb.weight}}; color: {{tb.fg}}; white-space: nowrap">
+        <span style="max-width: 168px; overflow: hidden; text-overflow: ellipsis">{{tb.title}}</span>
+      </div>
+    </sc-for>
+    <div style="flex: 1"></div>
+    <sc-if value="{{isWin}}" hint-placeholder-val="{{ false }}">
+      <div aria-hidden="true" style="align-self: stretch; display: flex; margin: 0 -8px 0 8px; color: {{c.text}}">
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 5h10"></path></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 0l10 10M10 0L0 10"></path></svg></span>
+      </div>
+    </sc-if>
+  </div>
+  <div style="flex: 1; padding: 12px 0 0 56px; font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, 'PingFang SC', 'Microsoft YaHei', monospace; font-size: 13.5px; line-height: 22px; white-space: pre; color: {{c.text}}">curl -X POST 'https://api.staging.example.com/v2/orders/search' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MiJ9.x8QmT2' \
+  -d '{
+    "env": "staging-b",
+    "filters": {
+      "status": ["paid", "shipped"],
+      "created_after": "2026-11-01T00:00:00Z"
+    },
+    "page_size": 50
+  }'</div>
+
+  <sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+    <div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: {{c.scrim}}"></div>
+    <div role="dialog" aria-modal="true" aria-label="{{t.header}}" onClick="{{focusInput}}" style="position: absolute; left: 290px; top: 84px; width: 620px; display: flex; flex-direction: column; background: {{c.panel}}; border: 1px solid {{c.btnLine}}; border-radius: 12px; overflow: hidden; box-shadow: {{c.shadow}}">
+      <label style="display: flex; align-items: center; gap: 8px; padding: 0 16px; height: 48px; border-bottom: 1px solid {{c.line}}">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{c.muted}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3l2 1.5"></path></svg>
+        <input type="text" ref="{{setRef}}" role="combobox" aria-expanded="true" aria-controls="recent-list" aria-activedescendant="{{activeId}}" aria-label="{{t.filterAria}}" placeholder="{{t.placeholder}}" value="{{query}}" onChange="{{onQuery}}" onKeyDown="{{onKey}}" style="flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; font: inherit; font-size: 14px; color: {{c.text}}">
+        <span style="font-size: 12px; color: {{c.muted}}; white-space: nowrap; font-variant-numeric: tabular-nums">{{countText}}</span>
+      </label>
+
+      <div id="recent-list" role="listbox" aria-label="{{t.header}}" style="display: flex; flex-direction: column; padding: 4px">
+        <sc-for list="{{items}}" as="item" hint-placeholder-count="5">
+          <div id="{{item.id}}" role="option" aria-selected="{{item.selected}}" onClick="{{item.pick}}" style="display: flex; flex-direction: column; gap: 8px; padding: 8px 12px; border-radius: 8px; background: {{item.bg}}; cursor: default">
+            <div style="display: flex; align-items: center; gap: 8px; min-width: 0">
+              <sc-if value="{{item.todo}}" hint-placeholder-val="{{ false }}">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.muted}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5"></rect><path d="M5.5 8l1.8 1.8L10.5 6"></path></svg>
+              </sc-if>
+              <sc-if value="{{item.text}}" hint-placeholder-val="{{ true }}">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.muted}}" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 4h10M3 8h10M3 12h6"></path></svg>
+              </sc-if>
+              <span style="min-width: 0; font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{item.t.pre}}<mark style="background: {{c.mark}}; color: {{c.markText}}; border-radius: 2px">{{item.t.hit}}</mark>{{item.t.post}}</span>
+              <sc-if value="{{item.current}}" hint-placeholder-val="{{ false }}">
+                <span style="flex-shrink: 0; padding: 0 4px; border-radius: 4px; background: {{c.badge}}; font-size: 11px; line-height: 18px; color: {{c.muted}}">{{t.current}}</span>
+              </sc-if>
+              <div style="flex: 1"></div>
+              <span style="flex-shrink: 0; font-size: 12px; font-variant-numeric: tabular-nums; color: {{item.timeColor}}">{{item.time}}</span>
+            </div>
+            <sc-if value="{{item.isSel}}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 8px 12px; border-radius: 4px; background: {{c.bg}}; font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, 'PingFang SC', 'Microsoft YaHei', monospace; font-size: 12px; line-height: 18px; color: {{c.text2}}; white-space: pre; overflow: hidden">{{item.b.pre}}<mark style="background: {{c.mark}}; color: {{c.markText}}; border-radius: 2px">{{item.b.hit}}</mark>{{item.b.post}}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{none}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 24px 12px; text-align: center; font-size: 12.5px; line-height: 19px; color: {{c.muted}}">{{t.none}}</div>
+        </sc-if>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-top: 1px solid {{c.line}}; font-size: 12px; color: {{c.muted}}">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5 14 14"></path></svg>
+        <span style="flex: 1; min-width: 0">{{t.closedHint}}</span>
+        <span style="display: inline-flex; align-items: center; height: 18px; padding: 0 4px; border: 1px solid {{c.btnLine}}; border-radius: 4px; background: {{c.btn}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: {{c.text}}">{{kSearch}}</span>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 16px; background: {{c.status}}; border-top: 1px solid {{c.line}}; font-size: 12px; color: {{c.muted}}">
+        <sc-for list="{{hints}}" as="hn" hint-placeholder-count="5">
+          <span style="display: inline-flex; align-items: center; gap: 4px; white-space: nowrap">
+            <sc-for list="{{hn.parts}}" as="p" hint-placeholder-count="2">
+              <sc-if value="{{p.cap}}" hint-placeholder-val="{{ true }}">
+                <span style="display: inline-flex; align-items: center; height: 18px; padding: 0 4px; border: 1px solid {{c.btnLine}}; border-radius: 4px; background: {{c.btn}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: {{c.text}}">{{p.v}}</span>
+              </sc-if>
+              <sc-if value="{{p.word}}" hint-placeholder-val="{{ false }}">
+                <span>{{p.v}}</span>
+              </sc-if>
+            </sc-for>
+          </span>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{closed}}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position: absolute; top: 56px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 4px 4px 4px 12px; background: {{c.toast}}; border: 1px solid {{c.toastLine}}; border-radius: 8px; font-size: 12.5px; color: {{c.toastText}}; white-space: nowrap">
+      {{closedText}}
+      <button onClick="{{reopen}}" style="height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; font: inherit; font-size: 12.5px; font-weight: 600; color: {{c.toastLink}}">{{t.reopen}} {{kRecent}}</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BD3","options":["#2F5BD3","#C2410C","#0F766E","#1C1C1A"]},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"locale":{"editor":"enum","options":["zh","en"],"default":"zh"},"platform":{"editor":"enum","options":["mac","win"],"default":"mac"},"view":{"editor":"enum","options":["default","filtering"],"default":"default"},"exactTimes":{"editor":"boolean","default":false},"$preview":{"width":1200,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const filtering = props.view === 'filtering';
+    this.state = { query: filtering ? 'staging' : '', sel: filtering ? 1 : 1, open: true, opened: null };
+  }
+  tokens() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const raw = this.props.accent ?? '#2F5BD3';
+    const L = { bg: '#FFFFFF', frame: '#D9D9D4', chrome: '#EFEFEC', chromeLine: '#E0E0DB', line: '#ECECE8', lineSoft: '#F0F0EC', text: '#1C1C1A', text2: '#3F3F3B', muted: '#5E5E59', faint: '#767670', curLine: '#F6F6F3', status: '#F7F7F5', side: '#FAFAF8', sunken: '#FBFBFA', info: '#F4F4F1', btn: '#FFFFFF', btnLine: '#D5D5D0', badge: '#EFEFEC', badgeTab: '#E3E3DF', invBg: '#1C1C1A', invText: '#FFFFFF', mark: '#FFE7A3', markText: '#1C1C1A', okDot: '#2E8B57', okBg: '#E7F3EC', okText: '#1F6B42', warnBg: '#FDF0E3', warnText: '#8A3B0A', danger: '#B42318', dangerBg: '#FDECEC', link: '#2F5BD3', toast: '#1C1C1A', toastLine: '#1C1C1A', toastText: '#FFFFFF', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#FDECEC', delText: '#8A1C1C', addBg: '#E3F2E8', addText: '#14532D', scrim: 'rgba(28,28,26,0.10)', panel: '#FFFFFF', shadow: '0 16px 48px rgba(0,0,0,0.18)', pop: '0 8px 24px rgba(0,0,0,0.14)', switchOff: '#C9C9C3', dashed: '#A3A39D', dropLine: 'rgba(28,28,26,0.15)', scheme: 'light', segBg: '#EFEFEC', segOn: '#FFFFFF' };
+    const D = { bg: '#1B1B1A', frame: '#3A3A37', chrome: '#262625', chromeLine: '#343432', line: '#2E2E2C', lineSoft: '#2A2A28', text: '#ECECE8', text2: '#D0D0CA', muted: '#A6A69F', faint: '#8A8A84', curLine: '#242423', status: '#212120', side: '#20201F', sunken: '#1F1F1E', info: '#252524', btn: '#2A2A28', btnLine: '#454542', badge: '#2F2F2D', badgeTab: '#3A3A37', invBg: '#ECECE8', invText: '#1B1B1A', mark: '#6B5414', markText: '#FFF3CF', okDot: '#4CBF7F', okBg: '#1C3324', okText: '#8FD4A6', warnBg: '#3B2A1A', warnText: '#F2B98A', danger: '#F28B82', dangerBg: '#3A2020', link: '#8AA6F2', toast: '#33332F', toastLine: '#4A4A46', toastText: '#F4F4F0', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#3A2020', delText: '#F2B8B5', addBg: '#1B3324', addText: '#A8DDB5', scrim: 'rgba(0,0,0,0.25)', panel: '#232322', shadow: '0 16px 48px rgba(0,0,0,0.5)', pop: '0 8px 24px rgba(0,0,0,0.45)', switchOff: '#4A4A47', dashed: '#6B6B66', dropLine: 'rgba(236,236,232,0.15)', scheme: 'dark', segBg: '#2A2A28', segOn: '#3A3A37' };
+    const A = { '#2F5BD3': '#8AA6F2', '#C2410C': '#F4955F', '#0F766E': '#4CC3B2', '#1C1C1A': '#E6E6E1' };
+    const c = Object.assign({}, dark ? D : L);
+    const ok = /^#[0-9a-fA-F]{6}$/.test(raw);
+    const accent = ok ? (dark ? (A[raw.toUpperCase()] || raw) : raw) : (dark ? '#8AA6F2' : '#2F5BD3');
+    const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const lum = (h) => { const v = rgb(h).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+    const mix = (a, b, t) => { const p = rgb(a), q = rgb(b); return '#' + p.map((x, i) => Math.round(x * (1 - t) + q[i] * t).toString(16).padStart(2, '0')).join(''); };
+    const la = lum(accent);
+    c.accent = accent;
+    c.onAccent = 1.05 / (la + 0.05) >= (la + 0.05) / (lum('#111111') + 0.05) ? '#FFFFFF' : '#111111';
+    c.sel = mix(c.bg, accent, dark ? 0.2 : 0.1);
+    c.selLine = mix(c.bg, accent, dark ? 0.45 : 0.3);
+    return c;
+  }
+  key(combo) {
+    const win = (this.props.platform ?? 'mac') === 'win';
+    const m = win
+      ? { mod: 'Ctrl', shift: 'Shift', alt: 'Alt', ctrl: 'Ctrl', esc: 'Esc', enter: 'Enter', backspace: 'Backspace', tab: 'Tab' }
+      : { mod: '⌘', shift: '⇧', alt: '⌥', ctrl: '⌃', esc: 'esc', enter: '↵', backspace: '⌫', tab: 'Tab' };
+    const parts = combo.split('+').map((p) => m[p] || p);
+    return win ? parts.join('+') : parts.join('');
+  }
+  rows(en) {
+    const pick = (v) => (Array.isArray(v) ? v[en ? 1 : 0] : v);
+    return [
+      { title: 'curl · POST /v2/orders/search', time: ['刚刚', 'Just now'], exact: '11-18 14:36', current: true, body: "curl -X POST 'https://api.staging.example.com/v2/orders/search' \\\n  -H 'Content-Type: application/json' \\\n  -H 'Authorization: Bearer ••••••••••••' \\\n  -d '{ \"env\": \"staging-b\", … }'" },
+      { title: 'JSON · order_id A-20391', time: ['3分钟前', '3 min ago'], exact: '11-18 14:33', body: '{\n  "order_id": "A-20391",\n  "status": "refund_pending",\n  "amount": 1280\n}' },
+      { title: ['确认 staging-b 回归通过 · 3/7', 'Confirm staging-b regression passed · 3/7'], time: ['8分钟前', '8 min ago'], exact: '11-18 14:28', todo: true, body: ['- [ ] 确认 staging-b 回归通过\n- [x] 合并 order-api 发版分支\n- [ ] 退款导出改为异步，灰度10%\n- [x] 清理 feature flag：refund_v1', '- [ ] Confirm staging-b regression passed\n- [x] Merge order-api release branch\n- [ ] Make refund export async, 10% rollout\n- [x] Remove feature flag: refund_v1'] },
+      { title: 'env · staging-b', time: ['12分钟前', '12 min ago'], exact: '11-18 14:24', body: 'ENV=staging-b\nAPI_KEY=••••••••\nDB_HOST=10.0.3.12\nREGION=ap-east-1' },
+      { title: ['周会 11-18', 'Weekly sync 11-18'], time: ['38分钟前', '38 min ago'], exact: '11-18 13:58', body: ['1. 下周三前确认发布窗口\n2. 退款导出改成异步，先上 staging 验证\n3. 客服话术同步更新', '1. Confirm the release window by Wed\n2. Make refund export async; try it on staging first\n3. Update the support scripts'] }
+    ].map((r) => ({ ...r, title: pick(r.title), time: pick(r.time), body: pick(r.body) }));
+  }
+  space(obj) {
+    let ok = true;
+    try { ok = typeof CSS === 'undefined' || CSS.supports('text-autospace', 'normal'); } catch (e) { ok = true; }
+    if (ok) return obj;
+    const fix = (s) => s.replace(/([\u4e00-\u9fff])([A-Za-z0-9⌘⌥⇧⌃`])/g, '$1\u2009$2').replace(/([A-Za-z0-9`])([\u4e00-\u9fff])/g, '$1\u2009$2');
+    const out = {};
+    Object.keys(obj).forEach((k) => { out[k] = typeof obj[k] === 'string' ? fix(obj[k]) : obj[k]; });
+    return out;
+  }
+  renderVals() {
+    const c = this.tokens();
+    const en = (this.props.locale ?? 'zh') === 'en';
+    const win = (this.props.platform ?? 'mac') === 'win';
+    const k = (s) => this.key(s);
+    const exact = this.props.exactTimes === true || this.props.exactTimes === 'true';
+    const t = this.space(en
+      ? { header: 'Recent', filterAria: 'Filter open snippets', placeholder: 'Type to filter open snippets', current: 'Current', none: 'No open snippet matches. Closed snippets are in search.', closedHint: 'Only open tabs are listed. Find closed snippets in search.', reopen: 'Open again' }
+      : { header: '最近', filterAria: '过滤已打开的片段', placeholder: '输入以过滤已打开的片段', current: '当前', none: '没有匹配的已打开片段。已关闭的片段请在搜索中找。', closedHint: '这里只列出已打开的tab；已关闭的片段请用搜索找回', reopen: '重新打开' });
+    const all = this.rows(en);
+    const q = this.state.query.trim().toLowerCase();
+    const split = (s) => {
+      const i = q ? s.toLowerCase().indexOf(q) : -1;
+      return i < 0 ? { pre: s, hit: '', post: '' } : { pre: s.slice(0, i), hit: s.slice(i, i + q.length), post: s.slice(i + q.length) };
+    };
+    const list = q ? all.filter((r) => (r.title + '\n' + r.body).toLowerCase().includes(q)) : all;
+    const sel = Math.min(this.state.sel, Math.max(list.length - 1, 0));
+    const move = (d) => {
+      if (!list.length) return;
+      this.setState({ sel: (sel + d + list.length) % list.length });
+    };
+    const items = list.map((r, i) => ({
+      id: 'recent-' + i,
+      t: split(r.title),
+      b: split(r.body),
+      time: exact ? r.exact : r.time,
+      current: !!r.current,
+      todo: !!r.todo,
+      text: !r.todo,
+      isSel: i === sel,
+      selected: String(i === sel),
+      bg: i === sel ? c.sel : 'transparent',
+      timeColor: i === sel ? c.accent : c.muted,
+      pick: () => this.setState({ sel: i })
+    }));
+    const cap = (v) => ({ v, cap: true, word: false });
+    const word = (v) => ({ v, cap: false, word: true });
+    const hints = [
+      { parts: [cap(k('tab')), word('/'), cap('↓'), word(en ? 'next' : '下一项')] },
+      { parts: [cap(k('shift+tab')), word('/'), cap('↑'), word(en ? 'previous' : '上一项')] },
+      { parts: [cap(k('enter')), word(en ? 'open' : '打开')] },
+      { parts: [cap(k('esc')), word(en ? 'cancel' : '取消')] },
+      { parts: [cap(k('alt')), word(en ? 'exact times' : '具体时间')] }
+    ];
+    const tabsSrc = [all[0], all[1], all[2], all[3], all[4]];
+    const tabs = tabsSrc.map((r, i) => {
+      const active = i === 0;
+      return {
+        title: r.todo ? r.title.replace(/ · \d+\/\d+$/, '') : r.title,
+        bg: active ? c.bg : 'transparent', line: active ? c.chromeLine : 'transparent', bottom: active ? c.bg : 'transparent',
+        fg: active ? c.text : c.muted, weight: active ? '500' : '400', h: active ? '34px' : '32px', mb: active ? '-1px' : '1px'
+      };
+    });
+    const chosen = list[sel];
+    return {
+      c, t, items, hints, tabs,
+      query: this.state.query,
+      none: list.length === 0,
+      countText: q ? (en ? `${list.length} of ${all.length} open` : `${list.length}/${all.length}个已打开`) : (en ? `${all.length} open` : `已打开${all.length}个`),
+      activeId: 'recent-' + sel,
+      onQuery: (e) => {
+        const v = e.target.value;
+        const qq = v.trim().toLowerCase();
+        const next = qq ? all.filter((r) => (r.title + '\n' + r.body).toLowerCase().includes(qq)) : all;
+        const firstOther = next.findIndex((r) => !r.current);
+        this.setState({ query: v, sel: qq ? Math.max(firstOther, 0) : 1 });
+      },
+      onKey: (e) => {
+        const isShortcut = e.key === '`' && (e.metaKey || e.ctrlKey);
+        if (e.key === 'Tab') { e.preventDefault(); move(e.shiftKey ? -1 : 1); }
+        else if (e.key === 'ArrowDown' || isShortcut) { e.preventDefault(); move(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+        else if (e.key === 'Enter' && chosen) { e.preventDefault(); this.setState({ open: false, opened: chosen.title }); }
+        else if (e.key === 'Escape') { e.preventDefault(); this.setState({ open: false, opened: null }); }
+      },
+      open: this.state.open,
+      closed: !this.state.open,
+      closedText: this.state.opened ? (en ? `Switched to “${this.state.opened}”` : `已切换到「${this.state.opened}」`) : (en ? 'Switcher closed' : '已关闭切换器'),
+      reopen: () => this.setState({ open: true, opened: null, query: '', sel: 1 }),
+      kSearch: k('mod+K'), kRecent: k('mod+`'),
+      setRef: (el) => { this.inputEl = el; },
+      focusInput: () => { if (this.inputEl && document.activeElement !== this.inputEl) this.inputEl.focus(); },
+      lang: en ? 'en' : 'zh-CN', isMac: !win, isWin: win
+    };
+  }
+}
+</script>
+</body>
+</html>

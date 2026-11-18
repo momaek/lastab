@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Lastab 编辑器</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div lang="{{lang}}" style="width: 1200px; height: 760px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.bg}}; color-scheme: {{c.scheme}}; border: 1px solid {{c.frame}}; border-radius: 12px; overflow: hidden; position: relative; font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif; color: {{c.text}}; text-autospace: normal">
+
+  <div style="height: 44px; flex-shrink: 0; display: flex; align-items: flex-end; gap: 4px; padding: 0 8px 0 16px; background: {{c.chrome}}; border-bottom: 1px solid {{c.chromeLine}}">
+    <sc-if value="{{isMac}}" hint-placeholder-val="{{ true }}">
+      <div style="align-self: center; display: flex; gap: 8px; margin-right: 12px">
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FEBC2E"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #28C840"></span>
+      </div>
+    </sc-if>
+    <div role="tablist" aria-label="{{a.tabs}}" style="align-self: stretch; display: flex; align-items: flex-end; gap: 4px; min-width: 0">
+      <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+        <div style="height: {{tb.h}}; margin-bottom: {{tb.mb}}; box-sizing: border-box; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 0; background: {{tb.bg}}; border: 1px solid {{tb.line}}; border-bottom-color: {{tb.bottom}}; border-radius: 8px 8px 0 0">
+          <button role="tab" aria-selected="{{tb.sel}}" style="height: 100%; display: flex; align-items: center; gap: 8px; padding: 0 4px 0 12px; background: transparent; border: 0; font: inherit; font-size: 12.5px; font-weight: {{tb.weight}}; font-style: {{tb.fstyle}}; color: {{tb.fg}}; white-space: nowrap">
+            <sc-if value="{{tb.todo}}" hint-placeholder-val="{{ false }}">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5"></rect><path d="M5.5 8l1.8 1.8L10.5 6"></path></svg>
+            </sc-if>
+            <sc-if value="{{tb.text}}" hint-placeholder-val="{{ true }}">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M3 4h10M3 8h10M3 12h6"></path></svg>
+            </sc-if>
+            <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis">{{tb.title}}</span>
+            <sc-if value="{{tb.hasBadge}}" hint-placeholder-val="{{ false }}">
+              <span style="padding: 0 4px; border-radius: 4px; background: {{c.badgeTab}}; font-size: 11px; font-variant-numeric: tabular-nums; color: {{c.text2}}">{{tb.badge}}</span>
+            </sc-if>
+          </button>
+          <sc-if value="{{tb.active}}" hint-placeholder-val="{{ false }}">
+            <span style="position: relative; display: flex">
+              <button aria-label="{{a.close}}" style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0; background: transparent; border: 0; border-radius: 4px; color: {{c.muted}}">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l6 6M11 5l-6 6"></path></svg>
+              </button>
+              <sc-if value="{{hold}}" hint-placeholder-val="{{ false }}">
+                <span style="position: absolute; top: 26px; left: 50%; transform: translateX(-50%); padding: 2px 6px; border-radius: 4px; background: {{c.invBg}}; color: {{c.invText}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; white-space: nowrap; z-index: 2">{{h.close}}</span>
+              </sc-if>
+            </span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+    <span style="align-self: center; position: relative; display: flex">
+      <button aria-label="{{a.add}}" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: 8px; color: {{c.muted}}">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+      </button>
+      <sc-if value="{{hold}}" hint-placeholder-val="{{ false }}">
+        <span style="position: absolute; top: 34px; left: 50%; transform: translateX(-50%); padding: 2px 6px; border-radius: 4px; background: {{c.invBg}}; color: {{c.invText}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; white-space: nowrap; z-index: 2">{{h.add}}</span>
+      </sc-if>
+    </span>
+    <div style="flex: 1"></div>
+    <div style="align-self: center; display: flex; gap: 4px">
+      <sc-for list="{{tools}}" as="tl" hint-placeholder-count="3">
+        <span style="position: relative; display: flex">
+          <button aria-label="{{tl.aria}}" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: {{tl.bg}}; border: 0; border-radius: 8px; color: {{c.muted}}">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{tl.d}}"></path></svg>
+          </button>
+          <sc-if value="{{hold}}" hint-placeholder-val="{{ false }}">
+            <span style="position: absolute; top: 34px; left: 50%; transform: translateX(-50%); padding: 2px 6px; border-radius: 4px; background: {{c.invBg}}; color: {{c.invText}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; white-space: nowrap; z-index: 2">{{tl.hint}}</span>
+          </sc-if>
+          <sc-if value="{{tl.tip}}" hint-placeholder-val="{{ false }}">
+            <span role="tooltip" style="position: absolute; top: 36px; right: 0; display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; background: {{c.invBg}}; color: {{c.invText}}; font-size: 12px; white-space: nowrap; z-index: 2">{{tl.name}}<span style="opacity: 0.7; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px">{{tl.hint}}</span></span>
+          </sc-if>
+        </span>
+      </sc-for>
+    </div>
+    <sc-if value="{{isWin}}" hint-placeholder-val="{{ false }}">
+      <div style="align-self: stretch; display: flex; margin: 0 -8px 0 8px">
+        <button aria-label="{{a.min}}" style="width: 46px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; color: {{c.text}}"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" aria-hidden="true"><path d="M0 5h10"></path></svg></button>
+        <button aria-label="{{a.max}}" style="width: 46px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; color: {{c.text}}"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" aria-hidden="true"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></button>
+        <button aria-label="{{a.quit}}" style="width: 46px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; color: {{c.text}}"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" aria-hidden="true"><path d="M0 0l10 10M10 0L0 10"></path></svg></button>
+      </div>
+    </sc-if>
+  </div>
+
+  <div role="tabpanel" style="flex: 1; min-height: 0; padding-top: 12px; font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, 'PingFang SC', 'Microsoft YaHei', monospace; font-size: 13.5px; color: {{c.text}}">
+    <sc-for list="{{lines}}" as="ln" hint-placeholder-count="11">
+      <div style="display: flex; height: 22px; align-items: center; background: {{ln.bg}}">
+        <span style="width: 56px; flex-shrink: 0; box-sizing: border-box; padding-right: 20px; text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; color: {{ln.numColor}}">{{ln.n}}</span>
+        <span style="white-space: pre">{{ln.a}}</span>
+        <sc-if value="{{ln.caret}}" hint-placeholder-val="{{ false }}">
+          <span style="width: 2px; height: 18px; background: {{c.accent}}"></span>
+        </sc-if>
+        <span style="white-space: pre">{{ln.b}}</span>
+        <sc-if value="{{ln.hint}}" hint-placeholder-val="{{ false }}">
+          <span style="margin-left: 8px; font-family: Inter, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 13px; color: {{c.faint}}">{{ln.hint}}</span>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="height: 32px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 0 8px 0 16px; background: {{c.status}}; border-top: 1px solid {{c.line}}; font-size: 12px; color: {{c.muted}}; white-space: nowrap">
+    <span role="status" style="display: flex; align-items: center; gap: 8px; color: {{st.color}}">
+      <span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 50%; background: {{st.dot}}"></span>{{st.text}}
+      <sc-if value="{{st.retry}}" hint-placeholder-val="{{ false }}">
+        <button style="height: 24px; padding: 0 8px; border: 1px solid {{c.btnLine}}; border-radius: 4px; background: {{c.btn}}; font: inherit; font-size: 12px; color: {{c.text}}">{{t.retry}}</button>
+      </sc-if>
+      <sc-if value="{{st.dismiss}}" hint-placeholder-val="{{ false }}">
+        <button style="height: 24px; padding: 0 8px; border: 1px solid {{c.btnLine}}; border-radius: 4px; background: {{c.btn}}; font: inherit; font-size: 12px; color: {{c.text}}">{{t.gotIt}}</button>
+      </sc-if>
+    </span>
+    <span style="font-variant-numeric: tabular-nums">{{st.created}}</span>
+    <span style="font-variant-numeric: tabular-nums">{{st.modified}}</span>
+    <div style="flex: 1"></div>
+    <span>{{t.enc}}</span>
+    <span style="font-variant-numeric: tabular-nums">{{st.count}}</span>
+    <button aria-describedby="copy-status" style="height: 24px; min-width: {{copyMin}}; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 8px; background: {{copyBtn.bg}}; border: 1px solid {{copyBtn.line}}; border-radius: 4px; font: inherit; font-size: 12px; color: {{copyBtn.fg}}; white-space: nowrap">
+      <sc-if value="{{copied}}" hint-placeholder-val="{{ false }}">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
+        {{t.copiedBtn}}
+      </sc-if>
+      <sc-if value="{{notCopied}}" hint-placeholder-val="{{ true }}">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 3.5h-6a1 1 0 0 0-1 1v6"></path></svg>
+        {{t.copyAll}}
+        <span style="color: {{c.muted}}">{{h.copy}}</span>
+      </sc-if>
+    </button>
+    <span id="copy-status" role="status" aria-live="polite" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">{{copyAnnounce}}</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BD3","options":["#2F5BD3","#C2410C","#0F766E","#1C1C1A"]},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"locale":{"editor":"enum","options":["zh","en"],"default":"zh"},"platform":{"editor":"enum","options":["mac","win"],"default":"mac"},"view":{"editor":"enum","options":["rest","blank","copied","holdMod","tooltip","titlePending","saveFailed","recovered"],"default":"rest"},"$preview":{"width":1200,"height":760}}'>
+class Component extends DCLogic {
+  tokens() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const raw = this.props.accent ?? '#2F5BD3';
+    const L = { bg: '#FFFFFF', frame: '#D9D9D4', chrome: '#EFEFEC', chromeLine: '#E0E0DB', line: '#ECECE8', lineSoft: '#F0F0EC', text: '#1C1C1A', text2: '#3F3F3B', muted: '#5E5E59', faint: '#767670', curLine: '#F6F6F3', status: '#F7F7F5', side: '#FAFAF8', sunken: '#FBFBFA', info: '#F4F4F1', btn: '#FFFFFF', btnLine: '#D5D5D0', badge: '#EFEFEC', badgeTab: '#E3E3DF', invBg: '#1C1C1A', invText: '#FFFFFF', mark: '#FFE7A3', markText: '#1C1C1A', okDot: '#2E8B57', okBg: '#E7F3EC', okText: '#1F6B42', warnBg: '#FDF0E3', warnText: '#8A3B0A', danger: '#B42318', dangerBg: '#FDECEC', link: '#2F5BD3', toast: '#1C1C1A', toastLine: '#1C1C1A', toastText: '#FFFFFF', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#FDECEC', delText: '#8A1C1C', addBg: '#E3F2E8', addText: '#14532D', scrim: 'rgba(28,28,26,0.10)', panel: '#FFFFFF', shadow: '0 16px 48px rgba(0,0,0,0.18)', pop: '0 8px 24px rgba(0,0,0,0.14)', switchOff: '#C9C9C3', dashed: '#A3A39D', dropLine: 'rgba(28,28,26,0.15)', scheme: 'light', segBg: '#EFEFEC', segOn: '#FFFFFF' };
+    const D = { bg: '#1B1B1A', frame: '#3A3A37', chrome: '#262625', chromeLine: '#343432', line: '#2E2E2C', lineSoft: '#2A2A28', text: '#ECECE8', text2: '#D0D0CA', muted: '#A6A69F', faint: '#8A8A84', curLine: '#242423', status: '#212120', side: '#20201F', sunken: '#1F1F1E', info: '#252524', btn: '#2A2A28', btnLine: '#454542', badge: '#2F2F2D', badgeTab: '#3A3A37', invBg: '#ECECE8', invText: '#1B1B1A', mark: '#6B5414', markText: '#FFF3CF', okDot: '#4CBF7F', okBg: '#1C3324', okText: '#8FD4A6', warnBg: '#3B2A1A', warnText: '#F2B98A', danger: '#F28B82', dangerBg: '#3A2020', link: '#8AA6F2', toast: '#33332F', toastLine: '#4A4A46', toastText: '#F4F4F0', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#3A2020', delText: '#F2B8B5', addBg: '#1B3324', addText: '#A8DDB5', scrim: 'rgba(0,0,0,0.25)', panel: '#232322', shadow: '0 16px 48px rgba(0,0,0,0.5)', pop: '0 8px 24px rgba(0,0,0,0.45)', switchOff: '#4A4A47', dashed: '#6B6B66', dropLine: 'rgba(236,236,232,0.15)', scheme: 'dark', segBg: '#2A2A28', segOn: '#3A3A37' };
+    const A = { '#2F5BD3': '#8AA6F2', '#C2410C': '#F4955F', '#0F766E': '#4CC3B2', '#1C1C1A': '#E6E6E1' };
+    const c = Object.assign({}, dark ? D : L);
+    const ok = /^#[0-9a-fA-F]{6}$/.test(raw);
+    const accent = ok ? (dark ? (A[raw.toUpperCase()] || raw) : raw) : (dark ? '#8AA6F2' : '#2F5BD3');
+    const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const lum = (h) => { const v = rgb(h).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+    const mix = (a, b, t) => { const p = rgb(a), q = rgb(b); return '#' + p.map((x, i) => Math.round(x * (1 - t) + q[i] * t).toString(16).padStart(2, '0')).join(''); };
+    const la = lum(accent);
+    c.accent = accent;
+    c.onAccent = 1.05 / (la + 0.05) >= (la + 0.05) / (lum('#111111') + 0.05) ? '#FFFFFF' : '#111111';
+    c.sel = mix(c.bg, accent, dark ? 0.2 : 0.1);
+    c.selLine = mix(c.bg, accent, dark ? 0.45 : 0.3);
+    return c;
+  }
+  key(combo) {
+    const win = (this.props.platform ?? 'mac') === 'win';
+    const m = win
+      ? { mod: 'Ctrl', shift: 'Shift', alt: 'Alt', ctrl: 'Ctrl', esc: 'Esc', enter: 'Enter', backspace: 'Backspace' }
+      : { mod: '⌘', shift: '⇧', alt: '⌥', ctrl: '⌃', esc: 'esc', enter: '↵', backspace: '⌫' };
+    const parts = combo.split('+').map((p) => m[p] || p);
+    return win ? parts.join('+') : parts.join('');
+  }
+  space(obj) {
+    let ok = true;
+    try { ok = typeof CSS === 'undefined' || CSS.supports('text-autospace', 'normal'); } catch (e) { ok = true; }
+    if (ok) return obj;
+    const fix = (s) => s.replace(/([一-鿿])([A-Za-z0-9⌘⌥⇧⌃`])/g, '$1 $2').replace(/([A-Za-z0-9`])([一-鿿])/g, '$1 $2');
+    const out = {};
+    Object.keys(obj).forEach((k) => { out[k] = typeof obj[k] === 'string' ? fix(obj[k]) : obj[k]; });
+    return out;
+  }
+  renderVals() {
+    const c = this.tokens();
+    const en = (this.props.locale ?? 'zh') === 'en';
+    const win = (this.props.platform ?? 'mac') === 'win';
+    const k = (s) => this.key(s);
+    const view = this.props.view ?? 'rest';
+    const historyKey = win ? 'mod+shift+Y' : 'mod+Y';
+    const t = this.space(en
+      ? { todoTitle: 'Confirm staging-b regression passed', meeting: 'Weekly sync 11-18', untitled: 'Untitled · 14:52', saved: 'Auto-saved', saving: 'Saving…', saveFailed: 'Couldn’t save: disk is full', retry: 'Retry', emptyNote: 'Nothing typed yet · won’t be kept if you leave', blankHint: 'Paste or type. No name needed; it saves itself.', recovered: 'Lastab quit unexpectedly. Your latest edits in 3 snippets were restored.', gotIt: 'Got it', created: 'Created Nov 18, 14:32', createdNew: 'Created 14:52', modified: 'Edited just now', enc: 'Plain text · UTF-8 · LF', count: '11 lines · 412 chars', countNew: '1 line · 46 chars', countBlank: '0 chars', copyAll: 'Copy all', copiedBtn: 'Copied', search: 'All snippets and search', recent: 'Recent', history: 'Version history' }
+      : { todoTitle: '确认 staging-b 回归通过', meeting: '周会 11-18', untitled: '未命名 · 14:52', saved: '已自动留存', saving: '正在留存…', saveFailed: '未能留存：磁盘空间不足', retry: '重试', emptyNote: '未输入内容 · 离开后不保留', blankHint: '直接粘贴或输入，无需命名，会自动留存', recovered: 'Lastab上次异常退出，已恢复3个片段的最近编辑', gotIt: '知道了', created: '创建11-18 14:32', createdNew: '创建14:52', modified: '刚刚修改', enc: '纯文本 · UTF-8 · LF', count: '11行 · 412字符', countNew: '1行 · 46字符', countBlank: '0字符', copyAll: '复制全部', copiedBtn: '已复制', search: '全部片段与搜索', recent: '最近', history: '版本历史' });
+    const h = { close: k('mod+W'), add: `${k('mod+N')} / ${k('mod+T')}`, copy: k('mod+shift+C') };
+    const a = en
+      ? { tabs: 'Open snippets', close: `Close snippet ${h.close}`, add: `New: text snippet ${k('mod+N')}, todo list ${k('mod+T')}`, min: 'Minimize', max: 'Maximize', quit: 'Close window' }
+      : { tabs: '已打开的片段', close: `关闭片段 ${h.close}`, add: `新建：文本片段${k('mod+N')}，待办清单${k('mod+T')}`, min: '最小化', max: '最大化', quit: '关闭窗口' };
+    const tip = view === 'tooltip';
+    const tools = [
+      { name: t.search, hint: k('mod+K'), d: 'M7 11.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM10.5 10.5 14 14', tip },
+      { name: t.recent, hint: k('mod+`'), d: 'M8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12zM8 5v3l2 1.5', tip: false },
+      { name: t.history, hint: k(historyKey), d: 'M2.5 8a5.5 5.5 0 1 0 1.6-3.9M2.5 2.5V5H5M8 5.5V8l1.8 1.2', tip: false }
+    ].map((x) => ({ ...x, aria: `${x.name} ${x.hint}`, bg: x.tip ? c.btnLine : 'transparent' }));
+    const isNew = view === 'titlePending' || view === 'blank';
+    const base = [
+      { title: 'curl · POST /v2/orders/search' },
+      { title: 'JSON · order_id A-20391' },
+      { title: t.todoTitle, todo: true, badge: '3/7' },
+      { title: 'env · staging-b' },
+      { title: t.meeting }
+    ];
+    const list = isNew ? [...base, { title: t.untitled, pending: true }] : base;
+    const tabs = list.map((tb, i) => {
+      const active = isNew ? i === list.length - 1 : i === 0;
+      return {
+        title: tb.title, todo: !!tb.todo, text: !tb.todo, badge: tb.badge || '', hasBadge: !!tb.badge, active, sel: String(active),
+        bg: active ? c.bg : 'transparent', line: active ? c.chromeLine : 'transparent', bottom: active ? c.bg : 'transparent',
+        fg: tb.pending ? c.muted : (active ? c.text : c.muted), weight: active ? '500' : '400', fstyle: tb.pending ? 'italic' : 'normal',
+        h: active ? '34px' : '32px', mb: active ? '-1px' : '1px'
+      };
+    });
+    const curl = [
+      "curl -X POST 'https://api.staging.example.com/v2/orders/search' \\",
+      "  -H 'Content-Type: application/json' \\",
+      "  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MiJ9.x8QmT2' \\",
+      "  -d '{",
+      '    "env": "staging-b",',
+      '    "filters": {',
+      '      "status": ["paid", "shipped"],',
+      '      "created_after": "2026-11-01T00:00:00Z"',
+      '    },',
+      '    "page_size": 50',
+      "  }'"
+    ];
+    let lines;
+    if (view === 'blank') {
+      lines = [{ n: '1', a: '', b: '', caret: true, hint: t.blankHint, bg: c.curLine, numColor: c.text }];
+    } else if (view === 'titlePending') {
+      lines = [{ n: '1', a: 'kubectl get pods -n payments | grep order-api', b: '', caret: true, hint: '', bg: c.curLine, numColor: c.text }];
+    } else {
+      lines = curl.map((s, i) => {
+        const cur = i === 4;
+        return { n: String(i + 1), a: cur ? '    "env": "staging-b"' : s, b: cur ? ',' : '', caret: cur, hint: '', bg: cur ? c.curLine : 'transparent', numColor: cur ? c.text : c.faint };
+      });
+    }
+    let st = { text: t.saved, dot: c.okDot, color: c.muted, retry: false, dismiss: false, created: t.created, modified: t.modified, count: t.count };
+    if (view === 'titlePending') st = { text: t.saving, dot: c.faint, color: c.muted, retry: false, dismiss: false, created: t.createdNew, modified: '', count: t.countNew };
+    if (view === 'blank') st = { text: t.emptyNote, dot: c.faint, color: c.muted, retry: false, dismiss: false, created: '', modified: '', count: t.countBlank };
+    if (view === 'saveFailed') st = { text: t.saveFailed, dot: c.danger, color: c.danger, retry: true, dismiss: false, created: t.created, modified: '', count: t.count };
+    if (view === 'recovered') st = { text: t.recovered, dot: c.accent, color: c.text2, retry: false, dismiss: true, created: '', modified: '', count: t.count };
+    const copied = view === 'copied';
+    return {
+      c, t, a, h, tools, tabs, lines, st,
+      lang: en ? 'en' : 'zh-CN',
+      isMac: !win, isWin: win,
+      hold: view === 'holdMod',
+      copied, notCopied: !copied,
+      copyMin: win ? '184px' : '136px',
+      copyBtn: copied ? { bg: c.okBg, line: c.okBg, fg: c.okText } : { bg: c.btn, line: c.btnLine, fg: c.text },
+      copyAnnounce: copied ? (en ? 'Copied full text, 412 characters, title not included' : '已复制全部正文，412字符，不含标题') : ''
+    };
+  }
+}
+</script>
+</body>
+</html>

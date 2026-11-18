@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>片段版本历史</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div lang="{{lang}}" style="width: 1200px; height: 760px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.bg}}; color-scheme: {{c.scheme}}; border: 1px solid {{c.frame}}; border-radius: 12px; overflow: hidden; position: relative; font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif; color: {{c.text}}; text-autospace: normal">
+
+  <div style="height: 44px; flex-shrink: 0; display: flex; align-items: flex-end; gap: 4px; padding: 0 8px 0 16px; background: {{c.chrome}}; border-bottom: 1px solid {{c.chromeLine}}">
+    <sc-if value="{{isMac}}" hint-placeholder-val="{{ true }}">
+      <div style="align-self: center; display: flex; gap: 8px; margin-right: 12px">
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FEBC2E"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #28C840"></span>
+      </div>
+    </sc-if>
+    <div style="height: 34px; margin-bottom: -1px; box-sizing: border-box; display: flex; align-items: center; padding: 0 12px; background: {{c.bg}}; border: 1px solid {{c.chromeLine}}; border-bottom-color: {{c.bg}}; border-radius: 8px 8px 0 0; font-size: 12.5px; font-weight: 500; white-space: nowrap">{{tabTitle}}</div>
+    <div style="height: 32px; display: flex; align-items: center; padding: 0 12px; font-size: 12.5px; color: {{c.muted}}; white-space: nowrap">JSON · order_id A-20391</div>
+    <div style="height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 12.5px; color: {{c.muted}}; white-space: nowrap"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5"></rect><path d="M5.5 8l1.8 1.8L10.5 6"></path></svg><span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis">{{t.todoTab}}</span><span style="padding: 0 4px; border-radius: 4px; background: {{c.badgeTab}}; font-size: 11px; font-variant-numeric: tabular-nums; color: {{c.text2}}">3/7</span></div>
+    <div style="height: 32px; display: flex; align-items: center; padding: 0 12px; font-size: 12.5px; color: {{c.muted}}; white-space: nowrap">env · staging-b</div>
+    <div style="height: 32px; display: flex; align-items: center; padding: 0 12px; font-size: 12.5px; color: {{c.muted}}; white-space: nowrap">{{t.meeting}}</div>
+    <div style="flex: 1"></div>
+    <sc-if value="{{isWin}}" hint-placeholder-val="{{ false }}">
+      <div aria-hidden="true" style="align-self: stretch; display: flex; margin: 0 -8px 0 8px; color: {{c.text}}">
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 5h10"></path></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 0l10 10M10 0L0 10"></path></svg></span>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex: 1; min-height: 0; display: flex">
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+      <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 20px; border-bottom: 1px solid {{c.line}}; font-size: 12.5px; white-space: nowrap">
+        <span style="font-weight: 500">{{head.main}}</span>
+        <span style="color: {{c.muted}}; font-variant-numeric: tabular-nums">{{head.sub}}</span>
+        <div style="flex: 1"></div>
+        <sc-if value="{{hasDiff}}" hint-placeholder-val="{{ true }}">
+          <div role="group" style="display: flex; padding: 2px; border-radius: 8px; background: {{c.segBg}}">
+            <button aria-pressed="true" style="height: 24px; padding: 0 12px; border: 0; border-radius: 6px; background: {{c.segOn}}; font: inherit; font-size: 12px; color: {{c.text}}; box-shadow: 0 1px 2px rgba(0,0,0,0.08)">{{t.diff}}</button>
+            <button aria-pressed="false" style="height: 24px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; font: inherit; font-size: 12px; color: {{c.muted}}">{{t.original}}</button>
+          </div>
+        </sc-if>
+      </div>
+      <sc-if value="{{hasDiff}}" hint-placeholder-val="{{ true }}">
+        <div style="flex: 1; padding-top: 12px; font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, 'PingFang SC', 'Microsoft YaHei', monospace; font-size: 13px">
+          <sc-for list="{{lines}}" as="ln" hint-placeholder-count="14">
+            <div style="display: flex; height: 22px; align-items: center; background: {{ln.bg}}; color: {{ln.fg}}">
+              <span style="width: 44px; flex-shrink: 0; box-sizing: border-box; padding-right: 12px; text-align: right; font-size: 11.5px; font-variant-numeric: tabular-nums; color: {{ln.numColor}}">{{ln.n}}</span>
+              <span aria-hidden="true" style="width: 24px; flex-shrink: 0; text-align: center; font-weight: 600">{{ln.mark}}</span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap">{{ln.markLabel}}</span>
+              <span style="white-space: pre">{{ln.text}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{single}}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 32px; text-align: center">
+          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="{{c.faint}}" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"></path><path d="M2.5 2.5V5H5"></path><path d="M8 5.5V8l1.8 1.2"></path></svg>
+          <span style="font-size: 14px; font-weight: 600">{{t.singleTitle}}</span>
+          <span style="max-width: 360px; font-size: 12.5px; line-height: 19px; color: {{c.muted}}; text-wrap: pretty">{{t.singleBody}}</span>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="width: 340px; flex-shrink: 0; display: flex; flex-direction: column; border-left: 1px solid {{c.line}}; background: {{c.side}}">
+      <div style="display: flex; align-items: flex-start; gap: 8px; padding: 12px 16px; border-bottom: 1px solid {{c.line}}">
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13.5px; font-weight: 600">{{t.title}}</span>
+          <span style="font-size: 12px; line-height: 17px; color: {{c.muted}}; text-wrap: pretty">{{t.sub}}</span>
+        </div>
+        <button aria-label="{{t.closeAria}}" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: 8px; color: {{c.muted}}">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l6 6M11 5l-6 6"></path></svg>
+        </button>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 8px">
+        <sc-for list="{{versions}}" as="v" hint-placeholder-count="6">
+          <div style="display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; border-radius: 8px; background: {{v.bg}}; border: 1px solid {{v.border}}">
+            <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap">
+              <span style="font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums">{{v.time}}</span>
+              <span style="padding: 0 4px; border-radius: 4px; background: {{c.badge}}; font-size: 11px; line-height: 18px; color: {{c.muted}}">{{v.reason}}</span>
+              <div style="flex: 1"></div>
+              <span style="font-size: 11.5px; color: {{c.muted}}">{{v.delta}}</span>
+            </div>
+            <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: {{c.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{v.peek}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 16px; border-top: 1px solid {{c.line}}">
+        <div style="display: flex; gap: 8px">
+          <button onClick="{{restore}}" disabled="{{single}}" style="flex: 1; height: 32px; border: 0; border-radius: 8px; background: {{restoreBg}}; font: inherit; font-size: 13px; font-weight: 500; color: {{restoreFg}}; white-space: nowrap">{{t.restore}}</button>
+          <button disabled="{{single}}" style="flex: 1; height: 32px; border: 1px solid {{c.btnLine}}; border-radius: 8px; background: {{c.btn}}; font: inherit; font-size: 13px; color: {{copyFg}}; white-space: nowrap">{{t.copyV}}</button>
+        </div>
+        <span style="font-size: 11.5px; line-height: 17px; color: {{c.muted}}">{{t.note}}</span>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{showRestored}}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position: absolute; top: 56px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 4px 4px 4px 12px; background: {{c.toast}}; border: 1px solid {{c.toastLine}}; border-radius: 8px; font-size: 12.5px; color: {{c.toastText}}; white-space: nowrap; font-variant-numeric: tabular-nums">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.toastOk}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
+      {{t.restored}}
+      <button onClick="{{undo}}" style="height: 28px; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; font: inherit; font-size: 12.5px; font-weight: 600; color: {{c.toastLink}}">{{t.undo}}<span style="width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid {{c.toastMuted}}; border-radius: 50%; font-size: 10.5px; font-weight: 500; color: {{c.toastMuted}}">{{left}}</span></button>
+    </div>
+  </sc-if>
+  <sc-if value="{{showUndone}}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position: absolute; top: 56px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: {{c.toast}}; border: 1px solid {{c.toastLine}}; border-radius: 8px; font-size: 12.5px; color: {{c.toastText}}; white-space: nowrap">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.toastOk}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
+      {{t.undone}}
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BD3","options":["#2F5BD3","#C2410C","#0F766E","#1C1C1A"]},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"locale":{"editor":"enum","options":["zh","en"],"default":"zh"},"platform":{"editor":"enum","options":["mac","win"],"default":"mac"},"view":{"editor":"enum","options":["compare","restored","single"],"default":"compare"},"$preview":{"width":1200,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { phase: props.view === 'restored' ? 'restored' : null, left: 5 };
+  }
+  componentWillUnmount() {
+    clearInterval(this.tick);
+    clearTimeout(this.after);
+  }
+  tokens() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const raw = this.props.accent ?? '#2F5BD3';
+    const L = { bg: '#FFFFFF', frame: '#D9D9D4', chrome: '#EFEFEC', chromeLine: '#E0E0DB', line: '#ECECE8', lineSoft: '#F0F0EC', text: '#1C1C1A', text2: '#3F3F3B', muted: '#5E5E59', faint: '#767670', curLine: '#F6F6F3', status: '#F7F7F5', side: '#FAFAF8', sunken: '#FBFBFA', info: '#F4F4F1', btn: '#FFFFFF', btnLine: '#D5D5D0', badge: '#EFEFEC', badgeTab: '#E3E3DF', invBg: '#1C1C1A', invText: '#FFFFFF', mark: '#FFE7A3', markText: '#1C1C1A', okDot: '#2E8B57', okBg: '#E7F3EC', okText: '#1F6B42', warnBg: '#FDF0E3', warnText: '#8A3B0A', danger: '#B42318', dangerBg: '#FDECEC', link: '#2F5BD3', toast: '#1C1C1A', toastLine: '#1C1C1A', toastText: '#FFFFFF', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#FDECEC', delText: '#8A1C1C', addBg: '#E3F2E8', addText: '#14532D', scrim: 'rgba(28,28,26,0.10)', panel: '#FFFFFF', shadow: '0 16px 48px rgba(0,0,0,0.18)', pop: '0 8px 24px rgba(0,0,0,0.14)', switchOff: '#C9C9C3', dashed: '#A3A39D', dropLine: 'rgba(28,28,26,0.15)', scheme: 'light', segBg: '#EFEFEC', segOn: '#FFFFFF' };
+    const D = { bg: '#1B1B1A', frame: '#3A3A37', chrome: '#262625', chromeLine: '#343432', line: '#2E2E2C', lineSoft: '#2A2A28', text: '#ECECE8', text2: '#D0D0CA', muted: '#A6A69F', faint: '#8A8A84', curLine: '#242423', status: '#212120', side: '#20201F', sunken: '#1F1F1E', info: '#252524', btn: '#2A2A28', btnLine: '#454542', badge: '#2F2F2D', badgeTab: '#3A3A37', invBg: '#ECECE8', invText: '#1B1B1A', mark: '#6B5414', markText: '#FFF3CF', okDot: '#4CBF7F', okBg: '#1C3324', okText: '#8FD4A6', warnBg: '#3B2A1A', warnText: '#F2B98A', danger: '#F28B82', dangerBg: '#3A2020', link: '#8AA6F2', toast: '#33332F', toastLine: '#4A4A46', toastText: '#F4F4F0', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#3A2020', delText: '#F2B8B5', addBg: '#1B3324', addText: '#A8DDB5', scrim: 'rgba(0,0,0,0.25)', panel: '#232322', shadow: '0 16px 48px rgba(0,0,0,0.5)', pop: '0 8px 24px rgba(0,0,0,0.45)', switchOff: '#4A4A47', dashed: '#6B6B66', dropLine: 'rgba(236,236,232,0.15)', scheme: 'dark', segBg: '#2A2A28', segOn: '#3A3A37' };
+    const A = { '#2F5BD3': '#8AA6F2', '#C2410C': '#F4955F', '#0F766E': '#4CC3B2', '#1C1C1A': '#E6E6E1' };
+    const c = Object.assign({}, dark ? D : L);
+    const ok = /^#[0-9a-fA-F]{6}$/.test(raw);
+    const accent = ok ? (dark ? (A[raw.toUpperCase()] || raw) : raw) : (dark ? '#8AA6F2' : '#2F5BD3');
+    const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const lum = (h) => { const v = rgb(h).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+    const mix = (a, b, t) => { const p = rgb(a), q = rgb(b); return '#' + p.map((x, i) => Math.round(x * (1 - t) + q[i] * t).toString(16).padStart(2, '0')).join(''); };
+    const la = lum(accent);
+    c.accent = accent;
+    c.onAccent = 1.05 / (la + 0.05) >= (la + 0.05) / (lum('#111111') + 0.05) ? '#FFFFFF' : '#111111';
+    c.sel = mix(c.bg, accent, dark ? 0.2 : 0.1);
+    c.selLine = mix(c.bg, accent, dark ? 0.45 : 0.3);
+    return c;
+  }
+  space(obj) {
+    let ok = true;
+    try { ok = typeof CSS === 'undefined' || CSS.supports('text-autospace', 'normal'); } catch (e) { ok = true; }
+    if (ok) return obj;
+    const fix = (s) => s.replace(/([\u4e00-\u9fff])([A-Za-z0-9⌘⌥⇧⌃`])/g, '$1\u2009$2').replace(/([A-Za-z0-9`])([\u4e00-\u9fff])/g, '$1\u2009$2');
+    const out = {};
+    Object.keys(obj).forEach((k) => { out[k] = typeof obj[k] === 'string' ? fix(obj[k]) : obj[k]; });
+    return out;
+  }
+  renderVals() {
+    const c = this.tokens();
+    const en = (this.props.locale ?? 'zh') === 'en';
+    const win = (this.props.platform ?? 'mac') === 'win';
+    const view = this.props.view ?? 'compare';
+    const single = view === 'single';
+    const pick = (v) => (Array.isArray(v) ? v[en ? 1 : 0] : v);
+    const phase = single ? null : this.state.phase;
+    const t = this.space(en
+      ? { meeting: 'Weekly sync 11-18', todoTab: 'Confirm staging-b regression passed', diff: 'Diff', original: 'Full text', title: 'Version history', sub: 'Saved automatically when you pause typing, switch away, close or copy', closeAria: 'Close version history', restore: 'Restore this version', copyV: 'Copy this version', note: 'You can undo a restore for 5 seconds, and the current text is saved as a version first.', restored: 'Restored the 14:34 version', undo: 'Undo', undone: 'Restore undone — back to the latest text', singleTitle: 'Only one version so far', singleBody: 'A new version is saved when you pause typing for a few seconds, switch away, close the snippet or copy it.' }
+      : { meeting: '周会 11-18', todoTab: '确认 staging-b 回归通过', diff: '差异', original: '原文', title: '版本历史', sub: '停止输入数秒、切换或关闭、复制时自动记录', closeAria: '关闭版本历史', restore: '恢复此版本', copyV: '复制此版本', note: '恢复后5秒内可撤销；当前内容也会先存为一个版本。', restored: '已恢复到14:34的版本', undo: '撤销', undone: '已撤销恢复，回到最新内容', singleTitle: '目前只有一个版本', singleBody: '停止输入几秒、切换或关闭片段、复制时，会自动记下新版本。' });
+    const ctx = (n, text) => ({ n, text, mark: '', markLabel: '', bg: 'transparent', fg: c.text, numColor: c.faint });
+    const del = (n, text) => ({ n, text, mark: '−', markLabel: pick(['删除', 'removed']), bg: c.delBg, fg: c.delText, numColor: c.delText });
+    const add = (n, text) => ({ n, text, mark: '+', markLabel: pick(['新增', 'added']), bg: c.addBg, fg: c.addText, numColor: c.addText });
+    const head0 = [
+      ctx('1', "curl -X POST 'https://api.staging.example.com/v2/orders/search' \\"),
+      ctx('2', "  -H 'Content-Type: application/json' \\"),
+      ctx('3', "  -H 'Authorization: Bearer ••••••••••••' \\"),
+      ctx('4', "  -d '{")
+    ];
+    const lines = phase === 'restored'
+      ? [...head0, ctx('5', '    "env": "staging-a",'), ctx('6', '    "filters": {'), ctx('7', '      "status": ["paid"],'), ctx('8', '      "created_after": "2026-11-01T00:00:00Z"'), ctx('9', '    },'), ctx('10', '    "page_size": 20'), ctx('11', "  }'")]
+      : [...head0,
+          del('5', '    "env": "staging-a",'), add('5', '    "env": "staging-b",'),
+          ctx('6', '    "filters": {'),
+          del('7', '      "status": ["paid"],'), add('7', '      "status": ["paid", "shipped"],'),
+          ctx('8', '      "created_after": "2026-11-01T00:00:00Z"'),
+          ctx('9', '    },'),
+          del('10', '    "page_size": 20'), add('10', '    "page_size": 50'),
+          ctx('11', "  }'")];
+    const paused = ['停止输入', 'Paused'];
+    let rows = [
+      { time: ['当前 · 14:36', 'Current · 14:36'], reason: paused, delta: ['改动1行', '1 line changed'], peek: '"page_size": 50' },
+      { time: '14:35', reason: paused, delta: ['改动1行', '1 line changed'], peek: '"status": ["paid", "shipped"],' },
+      { time: '14:34', reason: ['复制时', 'On copy'], delta: ['改动1行', '1 line changed'], peek: '"env": "staging-a",' },
+      { time: '14:33', reason: ['切换片段时', 'Switched away'], delta: ['改动2行', '2 lines changed'], peek: '"created_after": "2026-11-01T00:00:00Z"' },
+      { time: '14:32', reason: paused, delta: ['改动3行', '3 lines changed'], peek: "-H 'Authorization: Bearer ••••••••••••' \\" },
+      { time: '14:32', reason: ['首次内容', 'First content'], delta: ['粘贴11行', 'Pasted 11 lines'], peek: "curl -X POST 'https://api.staging.example.com/v2/…" }
+    ];
+    let sel = 2;
+    if (phase === 'restored') {
+      rows = [{ time: ['当前 · 14:37', 'Current · 14:37'], reason: ['恢复自14:34', 'Restored 14:34'], delta: ['改动3行', '3 lines changed'], peek: '"env": "staging-a",' }, ...rows.map((r, i) => (i === 0 ? { ...r, time: '14:36' } : r))].slice(0, 6);
+      sel = 0;
+    }
+    if (single) {
+      rows = [{ time: ['当前 · 14:52', 'Current · 14:52'], reason: ['首次内容', 'First content'], delta: ['粘贴1行', 'Pasted 1 line'], peek: 'kubectl get pods -n payments | grep order-api' }];
+      sel = 0;
+    }
+    const versions = rows.map((r, i) => ({
+      time: pick(r.time), reason: pick(r.reason), delta: pick(r.delta), peek: r.peek,
+      bg: i === sel ? c.bg : 'transparent',
+      border: i === sel ? c.selLine : 'transparent'
+    }));
+    const head = single
+      ? { main: pick(['当前 · 14:52', 'Current · 14:52']), sub: '' }
+      : phase === 'restored'
+        ? { main: pick(['当前内容已恢复为14:34的版本', 'Current text restored to the 14:34 version']), sub: '' }
+        : { main: pick(['对比 14:34（复制时）→ 当前', 'Compare 14:34 (on copy) → Current']), sub: pick(['3处改动', '3 changes']) };
+    return {
+      c, t, lines, versions, head,
+      tabTitle: single ? pick(['kubectl get pods', 'kubectl get pods']) : 'curl · POST /v2/orders/search',
+      hasDiff: !single, single,
+      restoreBg: single ? c.badge : c.accent,
+      restoreFg: single ? c.faint : c.onAccent,
+      copyFg: single ? c.faint : c.text,
+      showRestored: phase === 'restored',
+      showUndone: phase === 'undone',
+      left: String(this.state.left),
+      restore: () => {
+        if (single) return;
+        clearInterval(this.tick);
+        clearTimeout(this.after);
+        this.setState({ phase: 'restored', left: 5 });
+        this.tick = setInterval(() => {
+          const n = this.state.left - 1;
+          if (n <= 0) { clearInterval(this.tick); this.setState({ phase: null, left: 5 }); }
+          else this.setState({ left: n });
+        }, 1000);
+      },
+      undo: () => {
+        clearInterval(this.tick);
+        this.setState({ phase: 'undone', left: 5 });
+        this.after = setTimeout(() => this.setState({ phase: null }), 3000);
+      },
+      lang: en ? 'en' : 'zh-CN', isMac: !win, isWin: win
+    };
+  }
+}
+</script>
+</body>
+</html>

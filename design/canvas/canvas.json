@@ -1,0 +1,505 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-18T10:00:00Z"
+  },
+  "title": "Lastab UI Design",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [
+    {
+      "id": "light-zh",
+      "name": "浅色 · 中文"
+    },
+    {
+      "id": "states",
+      "name": "状态 · States"
+    },
+    {
+      "id": "dark-en",
+      "name": "Dark · English"
+    },
+    {
+      "id": "windows",
+      "name": "Windows"
+    }
+  ],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "1 · 编辑器（静止状态）",
+      "radius": 12,
+      "page": "light-zh"
+    },
+    "Recent.dc.html": {
+      "x": 1280,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "2 · 「最近」切换器 ⌘`（可点：先点输入框，再用 Tab / 方向键 / 输入过滤）",
+      "radius": 12,
+      "page": "light-zh",
+      "is_interactive": true
+    },
+    "Todo.dc.html": {
+      "x": 2560,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "6 · 待办清单 ⌘T（可点）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "light-zh"
+    },
+    "Library.dc.html": {
+      "x": 0,
+      "y": 880,
+      "w": 1200,
+      "h": 760,
+      "title": "3 · 全部片段与搜索 ⌘K",
+      "radius": 12,
+      "page": "light-zh"
+    },
+    "History.dc.html": {
+      "x": 1280,
+      "y": 880,
+      "w": 1200,
+      "h": 760,
+      "title": "4 · 版本历史 ⌘Y（可点恢复与撤销）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "light-zh"
+    },
+    "Settings.dc.html": {
+      "x": 0,
+      "y": 1760,
+      "w": 960,
+      "h": 1000,
+      "title": "5 · 设置：通用、快捷键与文本保真（可点）",
+      "radius": 12,
+      "page": "light-zh",
+      "is_interactive": true
+    },
+    "Agent.dc.html": {
+      "x": 1580,
+      "y": 1760,
+      "w": 960,
+      "h": 880,
+      "title": "7 · 设置：Agent 访问（可点）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "light-zh"
+    },
+    "MainHold.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "按住 ⌘ 约0.5秒：显示快捷键",
+      "radius": 12,
+      "page": "states"
+    },
+    "MainTooltip.dc.html": {
+      "x": 1280,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "图标按钮：悬停或聚焦显示名称与快捷键",
+      "radius": 12,
+      "page": "states"
+    },
+    "MainPending.dc.html": {
+      "x": 2560,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "新片段：标题未生成 + 正在留存",
+      "radius": 12,
+      "page": "states"
+    },
+    "MainSaveFailed.dc.html": {
+      "x": 0,
+      "y": 880,
+      "w": 1200,
+      "h": 760,
+      "title": "留存失败：常驻在状态栏，可重试",
+      "radius": 12,
+      "page": "states"
+    },
+    "RecentExact.dc.html": {
+      "x": 1280,
+      "y": 880,
+      "w": 1200,
+      "h": 760,
+      "title": "按住 ⌥：显示具体时间",
+      "radius": 12,
+      "page": "states",
+      "is_interactive": true
+    },
+    "LibraryEmpty.dc.html": {
+      "x": 2560,
+      "y": 880,
+      "w": 1200,
+      "h": 760,
+      "title": "搜索无结果：说明原因 + 下一步",
+      "radius": 12,
+      "page": "states"
+    },
+    "LibraryDelete.dc.html": {
+      "x": 0,
+      "y": 1760,
+      "w": 1200,
+      "h": 760,
+      "title": "删除：锚定在按钮上的确认气泡",
+      "radius": 12,
+      "page": "states"
+    },
+    "HistoryRestored.dc.html": {
+      "x": 1280,
+      "y": 1760,
+      "w": 1200,
+      "h": 760,
+      "title": "恢复后：撤销提示 + 倒计时（可点）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "states"
+    },
+    "HistorySingle.dc.html": {
+      "x": 2560,
+      "y": 1760,
+      "w": 1200,
+      "h": 760,
+      "title": "只有一个版本",
+      "radius": 12,
+      "page": "states"
+    },
+    "TodoDragging.dc.html": {
+      "x": 0,
+      "y": 2640,
+      "w": 1200,
+      "h": 760,
+      "title": "待办拖动排序：落点线 + 邻项让位",
+      "radius": 12,
+      "page": "states"
+    },
+    "AgentInstalling.dc.html": {
+      "x": 1280,
+      "y": 2640,
+      "w": 960,
+      "h": 880,
+      "title": "安装 Skill：进行中（按钮宽度不变）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "states"
+    },
+    "AgentFailed.dc.html": {
+      "x": 2320,
+      "y": 2640,
+      "w": 960,
+      "h": 880,
+      "title": "安装 Skill：失败留在原处，可重试（可点）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "states"
+    },
+    "MainDarkEn.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "1 · Editor (at rest)",
+      "radius": 12,
+      "page": "dark-en"
+    },
+    "RecentDarkEn.dc.html": {
+      "x": 1280,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "2 · Recent switcher ⌘` (clickable: click the field first, then Tab / arrows / type)",
+      "radius": 12,
+      "page": "dark-en",
+      "is_interactive": true
+    },
+    "TodoDarkEn.dc.html": {
+      "x": 2560,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "6 · Todo list ⌘T (clickable)",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "dark-en"
+    },
+    "LibraryDarkEn.dc.html": {
+      "x": 0,
+      "y": 880,
+      "w": 1200,
+      "h": 760,
+      "title": "3 · All snippets and search ⌘K",
+      "radius": 12,
+      "page": "dark-en"
+    },
+    "HistoryDarkEn.dc.html": {
+      "x": 1280,
+      "y": 880,
+      "w": 1200,
+      "h": 760,
+      "title": "4 · Version history ⌘Y (clickable)",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "dark-en"
+    },
+    "SettingsDarkEn.dc.html": {
+      "x": 0,
+      "y": 1760,
+      "w": 960,
+      "h": 1000,
+      "title": "5 · Settings: general, shortcuts, fidelity (clickable)",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "dark-en"
+    },
+    "AgentDarkEn.dc.html": {
+      "x": 1580,
+      "y": 1760,
+      "w": 960,
+      "h": 880,
+      "title": "7 · Settings: Agent access (clickable)",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "dark-en"
+    },
+    "MainWin.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "1 · 编辑器（静止）· Windows",
+      "radius": 12,
+      "page": "windows"
+    },
+    "RecentWin.dc.html": {
+      "x": 1280,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "2 · 「最近」切换器 Ctrl+`（可点：先点输入框）",
+      "radius": 12,
+      "page": "windows",
+      "is_interactive": true
+    },
+    "TodoWin.dc.html": {
+      "x": 2560,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "6 · 待办清单 Ctrl+T（可点）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "windows"
+    },
+    "LibraryWin.dc.html": {
+      "x": 0,
+      "y": 880,
+      "w": 1200,
+      "h": 760,
+      "title": "3 · 全部片段与搜索 Ctrl+K",
+      "radius": 12,
+      "page": "windows"
+    },
+    "HistoryWin.dc.html": {
+      "x": 1280,
+      "y": 880,
+      "w": 1200,
+      "h": 760,
+      "title": "4 · 版本历史 Ctrl+Shift+Y（可点）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "windows"
+    },
+    "SettingsWin.dc.html": {
+      "x": 0,
+      "y": 1760,
+      "w": 960,
+      "h": 1000,
+      "title": "5 · 设置 · Windows（可点）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "windows"
+    },
+    "AgentWin.dc.html": {
+      "x": 1580,
+      "y": 1760,
+      "w": 960,
+      "h": 880,
+      "title": "7 · 设置：Agent 访问 · Windows（可点）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "windows"
+    },
+    "RecentFilter.dc.html": {
+      "x": 0,
+      "y": 3640,
+      "w": 1200,
+      "h": 760,
+      "title": "切换器：输入即过滤（只在已打开的 tab 中）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "states"
+    },
+    "MainBlank.dc.html": {
+      "x": 3840,
+      "y": 0,
+      "w": 1200,
+      "h": 760,
+      "title": "0 · 新建空白片段 ⌘N（核心路径第一步）",
+      "radius": 12,
+      "page": "light-zh"
+    },
+    "MainCopied.dc.html": {
+      "x": 1280,
+      "y": 3640,
+      "w": 1200,
+      "h": 760,
+      "title": "复制全部：按钮原地变为「已复制」约2秒，不用轻提示",
+      "radius": 12,
+      "page": "states"
+    },
+    "MainRecovered.dc.html": {
+      "x": 2560,
+      "y": 3640,
+      "w": 1200,
+      "h": 760,
+      "title": "异常退出后重新打开：状态栏安静提示已恢复",
+      "radius": 12,
+      "page": "states"
+    },
+    "TodoPasted.dc.html": {
+      "x": 0,
+      "y": 4520,
+      "w": 1200,
+      "h": 760,
+      "title": "待办：粘贴多行拆成多项，可撤销（可点）",
+      "radius": 12,
+      "is_interactive": true,
+      "page": "states"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "MainBlank.dc.html",
+    "Recent.dc.html",
+    "Todo.dc.html",
+    "Library.dc.html",
+    "History.dc.html",
+    "Settings.dc.html",
+    "Agent.dc.html",
+    "MainHold.dc.html",
+    "MainTooltip.dc.html",
+    "MainPending.dc.html",
+    "MainSaveFailed.dc.html",
+    "MainCopied.dc.html",
+    "MainRecovered.dc.html",
+    "RecentExact.dc.html",
+    "RecentFilter.dc.html",
+    "LibraryEmpty.dc.html",
+    "LibraryDelete.dc.html",
+    "HistoryRestored.dc.html",
+    "HistorySingle.dc.html",
+    "TodoDragging.dc.html",
+    "TodoPasted.dc.html",
+    "AgentInstalling.dc.html",
+    "AgentFailed.dc.html",
+    "MainDarkEn.dc.html",
+    "RecentDarkEn.dc.html",
+    "TodoDarkEn.dc.html",
+    "LibraryDarkEn.dc.html",
+    "HistoryDarkEn.dc.html",
+    "SettingsDarkEn.dc.html",
+    "AgentDarkEn.dc.html",
+    "MainWin.dc.html",
+    "RecentWin.dc.html",
+    "TodoWin.dc.html",
+    "LibraryWin.dc.html",
+    "HistoryWin.dc.html",
+    "SettingsWin.dc.html",
+    "AgentWin.dc.html"
+  ],
+  "notes": {
+    "title": {
+      "x": 0,
+      "y": -300,
+      "text": "Lastab — 桌面端 UI 设计 v0.6（需求 v0.5 · 第二轮评审修订）",
+      "kind": "title1",
+      "maxW": 3760,
+      "page": "light-zh"
+    },
+    "assume": {
+      "x": 1040,
+      "y": 1760,
+      "w": 460,
+      "fill": "orange",
+      "size": "m",
+      "page": "light-zh",
+      "text": "设计中先采用的建议（待确认）\n\n① ⌘N / ⌘T 只在应用内；另设全局呼出热键 ⌃⌥N / Ctrl+Alt+N。\n② 「最近」切换器（需求已定）：按 ⌘` 弹出并保持打开，Tab / ↓ 下一项、⇧Tab / ↑ 上一项、↵ 打开、esc 取消；再按 ⌘` 也是下一项。只列已打开的 tab，默认选中上一条；输入即过滤；选中项展开正文预览。\n③ 新增建议快捷键：⌘K 搜索；⌘Y 版本历史（Windows 用 Ctrl+Shift+Y，Ctrl+Y 留给「重做」）；⌘⇧⌫ 删除待办项，空项按 ⌫ 直接删除——不用 ⌘⌫ / Ctrl+Backspace，它们在输入框里是删行首 / 删词。\n④ 可撤销的操作立即执行并给撤销（清除已完成、删除待办项、恢复版本、粘贴拆分）；永久删除片段用锚定确认气泡；复制全部只在按钮原地确认，不弹轻提示，避免挡住刚复制的正文。\n⑤ 待办：点文字是编辑，只有勾选框切换完成；勾选后原位划线约0.9秒再沉到「已完成」。\n⑥ Agent 访问：只读；遮蔽密钥默认开；开关默认值仍待定。\n⑦ 外观与语言默认「跟随系统」；语言只改界面文字，不翻译片段内容。\n⑧ 每张画板的 Tweaks：theme、locale、platform（mac / win），部分还有 view（状态）。\n⑨ 中英文之间的空隙交给 text-autospace；不支持它的 WebView（如 macOS 15.4 以前的 WKWebView）在渲染界面文字时自动补细空格。语言资源文件里不手打空格。\n⑩ 所有画板的 tab 一致：已打开的 5 个片段（curl、JSON、待办、env、周会）。"
+    },
+    "titleStates": {
+      "x": 0,
+      "y": -300,
+      "text": "状态与交互细节",
+      "kind": "title1",
+      "maxW": 3760,
+      "page": "states"
+    },
+    "motion": {
+      "x": 3840,
+      "y": 0,
+      "w": 480,
+      "fill": "blue",
+      "size": "m",
+      "page": "states",
+      "text": "动效与反馈规格\n\n· 轻提示：只用于可撤销的操作；顶部居中、标题栏下 12px；一次只显示一条，新的替换旧的；状态类 3–5 秒，可撤销类 ≥5 秒并显示倒计时；悬停或聚焦时暂停计时；polite 播报，不抢焦点。复制全部改为按钮原地变「已复制」约 2 秒，并以 polite 播报。\n· 「最近」切换器：键盘触发，无进出场动画，浅遮罩（10%）；松开 ⌘ 后列表仍保持打开，避免与系统 ⌘Tab 冲突。\n· 列表行 → 编辑：选中行的标题移动到 tab 位置（只用 transform），其余内容在后半程淡入；Esc 沿原路返回。\n· 版本历史：从右侧抽屉滑入，编辑区保持可见；关闭后焦点回到触发按钮。\n· 待办勾选：原位划线停留 0.9 秒，再用 transform 移入「已完成」。拖动：行缩至 90%，落点线为文字色 15%，邻项按 8px×0.7ⁿ 让位、每级延迟 24ms，Esc 取消。\n· 删除：淡出 220ms + 收缩 4%，再用 spring 合拢空位；焦点移到下一条。\n· 按住 ⌘ 约 0.5 秒显示快捷键，松开即隐藏；切换器打开时不显示。按住 ⌥ 显示具体时间。\n· 时长取桌面值（约为移动端 ⅔）；「减少动态效果」时只保留状态变化与约 150ms 淡入淡出。"
+    },
+    "titleDark": {
+      "x": 0,
+      "y": -300,
+      "text": "Lastab — Dark · English",
+      "kind": "title1",
+      "maxW": 3760,
+      "page": "dark-en"
+    },
+    "darkNote": {
+      "x": 1040,
+      "y": 1760,
+      "w": 460,
+      "fill": "blue",
+      "size": "m",
+      "page": "dark-en",
+      "text": "These screens are the same files as the 浅色 · 中文 page, shown with theme = dark and locale = en. Edit a screen on the first page and it changes here too.\n\nDark palette: warm near-black grounds (#1B1B1A editor, #262625 chrome), text #ECECE8, secondary #A6A69F. The accent is lifted to #8AA6F2, and text on accent-colored buttons is picked automatically from the accent's brightness."
+    },
+    "titleWin": {
+      "x": 0,
+      "y": -300,
+      "text": "Lastab — Windows",
+      "kind": "title1",
+      "maxW": 3760,
+      "page": "windows"
+    },
+    "winNote": {
+      "x": 1040,
+      "y": 1760,
+      "w": 460,
+      "fill": "teal",
+      "size": "m",
+      "page": "windows",
+      "text": "同一批画板，platform = win：\n\n· 窗口按钮在右上（最小化 / 最大化 / 关闭），左侧不再留红黄绿。\n· 快捷键写成文字：Ctrl+Shift+C、Esc、Enter、Alt，而不是 ⌘⇧⌥ 符号。\n· 版本历史用 Ctrl+Shift+Y，Ctrl+Y 留给「重做」。\n· 命令行路径改为 %LOCALAPPDATA%\\Lastab\\bin\\lastab.exe。\n· 「最近」切换器同样弹出后用 Tab 切换；Windows 上没有 ⌘` 那样的系统冲突，所以设置里的说明不同。"
+    }
+  },
+  "designSystems": []
+}

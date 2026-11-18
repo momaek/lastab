@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>设置：Agent 访问</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div lang="{{lang}}" style="width: 960px; height: 880px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.bg}}; color-scheme: {{c.scheme}}; border: 1px solid {{c.frame}}; border-radius: 12px; overflow: hidden; font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif; color: {{c.text}}; text-autospace: normal">
+
+  <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 0 8px 0 16px; background: {{c.chrome}}; border-bottom: 1px solid {{c.chromeLine}}">
+    <sc-if value="{{isMac}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; gap: 8px">
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FEBC2E"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #28C840"></span>
+      </div>
+    </sc-if>
+    <span style="font-size: 13px; font-weight: 600">{{t.settings}}</span>
+    <div style="flex: 1"></div>
+    <sc-if value="{{isWin}}" hint-placeholder-val="{{ false }}">
+      <div aria-hidden="true" style="align-self: stretch; display: flex; margin: 0 -8px 0 0; color: {{c.text}}">
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 5h10"></path></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 0l10 10M10 0L0 10"></path></svg></span>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex: 1; min-height: 0; display: flex">
+    <nav aria-label="{{t.navAria}}" style="width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; padding: 12px 8px; background: {{c.side}}; border-right: 1px solid {{c.line}}; box-sizing: border-box">
+      <sc-for list="{{nav}}" as="n" hint-placeholder-count="6">
+        <a href="{{n.href}}" aria-current="{{n.current}}" style="height: 32px; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; background: {{n.bg}}; font-size: 13px; font-weight: {{n.weight}}; color: {{n.fg}}; text-decoration: none; white-space: nowrap">{{n.label}}</a>
+      </sc-for>
+    </nav>
+
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; padding: 20px 28px; box-sizing: border-box">
+      <div id="agent" style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 16px; font-weight: 600">{{t.title}}</span>
+        <span style="font-size: 12.5px; line-height: 18px; color: {{c.muted}}; text-wrap: pretty">{{t.sub}}</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; border: 1px solid {{c.line}}; border-radius: 12px">
+        <sc-for list="{{switches}}" as="s" hint-placeholder-count="2">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid {{s.divider}}">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 13.5px; font-weight: 500">{{s.label}}</span>
+              <span style="font-size: 12px; line-height: 17px; color: {{c.muted}}; text-wrap: pretty">{{s.desc}}</span>
+            </div>
+            <button role="switch" aria-checked="{{s.on}}" aria-label="{{s.label}}" onClick="{{s.toggle}}" style="width: 40px; height: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: {{s.align}}; padding: 2px; box-sizing: border-box; border: 0; border-radius: 12px; background: {{s.bg}}">
+              <span style="width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.2)"></span>
+            </button>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; align-items: flex-start; gap: 8px; padding: 12px 16px; border-radius: 8px; background: {{c.info}}; font-size: 12.5px; line-height: 19px; color: {{c.text2}}">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.5V11M8 5h0"></path></svg>
+        <span style="text-wrap: pretty">{{t.info}}</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 600">{{t.install}}</span>
+        <div style="display: flex; flex-direction: column; border: 1px solid {{c.line}}; border-radius: 12px">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid {{c.lineSoft}}">
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 13px; font-weight: 500; white-space: nowrap">{{t.cli}} <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 400">lastab</span></span>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: {{c.muted}}">{{cliPath}} · v0.1.0</span>
+            </div>
+            <span style="padding: 0 8px; border-radius: 4px; background: {{c.okBg}}; font-size: 11.5px; line-height: 20px; color: {{c.okText}}; white-space: nowrap">{{t.installed}}</span>
+            <button style="height: 28px; padding: 0 12px; border: 1px solid {{c.btnLine}}; border-radius: 8px; background: {{c.btn}}; font: inherit; font-size: 12px; color: {{c.text}}; white-space: nowrap">{{t.reinstall}}</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 16px">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 13px; font-weight: 500">Claude Code Skill</span>
+                <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; color: {{c.muted}}">~/.claude/skills/lastab/SKILL.md</span>
+              </div>
+              <sc-if value="{{skillDone}}" hint-placeholder-val="{{ false }}">
+                <span role="status" style="padding: 0 8px; border-radius: 4px; background: {{c.okBg}}; font-size: 11.5px; line-height: 20px; color: {{c.okText}}; white-space: nowrap">{{t.installed}}</span>
+              </sc-if>
+              <sc-if value="{{skillIdle}}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{install}}" aria-busy="{{busy}}" disabled="{{installing}}" style="min-width: 120px; height: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 12px; border: 0; border-radius: 8px; background: {{c.accent}}; font: inherit; font-size: 12px; font-weight: 500; color: {{c.onAccent}}; white-space: nowrap; opacity: {{btnOpacity}}">
+                  <sc-if value="{{installing}}" hint-placeholder-val="{{ false }}">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 2a6 6 0 1 1-6 6"><animateTransform attributeName="transform" type="rotate" from="0 8 8" to="360 8 8" dur="0.9s" repeatCount="indefinite"></animateTransform></path></svg>
+                  </sc-if>
+                  {{installLabel}}
+                </button>
+              </sc-if>
+            </div>
+            <sc-if value="{{failed}}" hint-placeholder-val="{{ false }}">
+              <div role="alert" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 4px; background: {{c.dangerBg}}; font-size: 12.5px; color: {{c.danger}}">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3.5M8 11h0"></path></svg>
+                <span style="flex: 1; min-width: 0; text-wrap: pretty">{{t.failed}}</span>
+                <button onClick="{{install}}" style="height: 28px; padding: 0 12px; border: 1px solid {{c.btnLine}}; border-radius: 8px; background: {{c.btn}}; font: inherit; font-size: 12px; color: {{c.text}}; white-space: nowrap">{{t.retry}}</button>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        <span style="font-size: 12px; line-height: 18px; color: {{c.muted}}">{{t.other}}<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; color: {{c.text}}">lastab search "curl staging" --since 1d --json</span><br>{{t.jsonNote}}</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center">
+          <span style="font-size: 13px; font-weight: 600">{{t.log}}</span>
+          <div style="flex: 1"></div>
+          <button style="height: 28px; padding: 0 4px; border: 0; background: transparent; font: inherit; font-size: 12px; color: {{c.link}}; white-space: nowrap">{{t.viewAll}}</button>
+        </div>
+        <div role="table" aria-label="{{t.log}}" style="display: flex; flex-direction: column; border: 1px solid {{c.line}}; border-radius: 12px; font-size: 12.5px">
+          <div role="row" style="display: grid; grid-template-columns: 112px 104px 208px minmax(0, 1fr); gap: 12px; padding: 8px 16px; border-bottom: 1px solid {{c.lineSoft}}; font-size: 11.5px; font-weight: 600; color: {{c.muted}}">
+            <span role="columnheader">{{t.colTime}}</span><span role="columnheader">{{t.colSource}}</span><span role="columnheader">{{t.colAction}}</span><span role="columnheader">{{t.colSnippet}}</span>
+          </div>
+          <sc-for list="{{log}}" as="row" hint-placeholder-count="4">
+            <div role="row" style="display: grid; grid-template-columns: 112px 104px 208px minmax(0, 1fr); gap: 12px; align-items: center; padding: 8px 16px; border-bottom: 1px solid {{c.lineSoft}}">
+              <span role="cell" style="color: {{c.muted}}; font-variant-numeric: tabular-nums; white-space: nowrap">{{row.time}}</span>
+              <span role="cell" style="white-space: nowrap">{{row.agent}}</span>
+              <span role="cell" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{row.op}}</span>
+              <span role="cell" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{row.target}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BD3","options":["#2F5BD3","#C2410C","#0F766E","#1C1C1A"]},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"locale":{"editor":"enum","options":["zh","en"],"default":"zh"},"platform":{"editor":"enum","options":["mac","win"],"default":"mac"},"view":{"editor":"enum","options":["default","installing","failed"],"default":"default"},"$preview":{"width":960,"height":880}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const v = props.view ?? 'default';
+    this.state = { access: true, mask: true, skill: v === 'installing' ? 'installing' : v === 'failed' ? 'failed' : 'idle' };
+  }
+  componentWillUnmount() {
+    clearTimeout(this.timer);
+  }
+  tokens() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const raw = this.props.accent ?? '#2F5BD3';
+    const L = { bg: '#FFFFFF', frame: '#D9D9D4', chrome: '#EFEFEC', chromeLine: '#E0E0DB', line: '#ECECE8', lineSoft: '#F0F0EC', text: '#1C1C1A', text2: '#3F3F3B', muted: '#5E5E59', faint: '#767670', curLine: '#F6F6F3', status: '#F7F7F5', side: '#FAFAF8', sunken: '#FBFBFA', info: '#F4F4F1', btn: '#FFFFFF', btnLine: '#D5D5D0', badge: '#EFEFEC', badgeTab: '#E3E3DF', invBg: '#1C1C1A', invText: '#FFFFFF', mark: '#FFE7A3', markText: '#1C1C1A', okDot: '#2E8B57', okBg: '#E7F3EC', okText: '#1F6B42', warnBg: '#FDF0E3', warnText: '#8A3B0A', danger: '#B42318', dangerBg: '#FDECEC', link: '#2F5BD3', toast: '#1C1C1A', toastLine: '#1C1C1A', toastText: '#FFFFFF', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#FDECEC', delText: '#8A1C1C', addBg: '#E3F2E8', addText: '#14532D', scrim: 'rgba(28,28,26,0.10)', panel: '#FFFFFF', shadow: '0 16px 48px rgba(0,0,0,0.18)', pop: '0 8px 24px rgba(0,0,0,0.14)', switchOff: '#C9C9C3', dashed: '#A3A39D', dropLine: 'rgba(28,28,26,0.15)', scheme: 'light', segBg: '#EFEFEC', segOn: '#FFFFFF' };
+    const D = { bg: '#1B1B1A', frame: '#3A3A37', chrome: '#262625', chromeLine: '#343432', line: '#2E2E2C', lineSoft: '#2A2A28', text: '#ECECE8', text2: '#D0D0CA', muted: '#A6A69F', faint: '#8A8A84', curLine: '#242423', status: '#212120', side: '#20201F', sunken: '#1F1F1E', info: '#252524', btn: '#2A2A28', btnLine: '#454542', badge: '#2F2F2D', badgeTab: '#3A3A37', invBg: '#ECECE8', invText: '#1B1B1A', mark: '#6B5414', markText: '#FFF3CF', okDot: '#4CBF7F', okBg: '#1C3324', okText: '#8FD4A6', warnBg: '#3B2A1A', warnText: '#F2B98A', danger: '#F28B82', dangerBg: '#3A2020', link: '#8AA6F2', toast: '#33332F', toastLine: '#4A4A46', toastText: '#F4F4F0', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#3A2020', delText: '#F2B8B5', addBg: '#1B3324', addText: '#A8DDB5', scrim: 'rgba(0,0,0,0.25)', panel: '#232322', shadow: '0 16px 48px rgba(0,0,0,0.5)', pop: '0 8px 24px rgba(0,0,0,0.45)', switchOff: '#4A4A47', dashed: '#6B6B66', dropLine: 'rgba(236,236,232,0.15)', scheme: 'dark', segBg: '#2A2A28', segOn: '#3A3A37' };
+    const A = { '#2F5BD3': '#8AA6F2', '#C2410C': '#F4955F', '#0F766E': '#4CC3B2', '#1C1C1A': '#E6E6E1' };
+    const c = Object.assign({}, dark ? D : L);
+    const ok = /^#[0-9a-fA-F]{6}$/.test(raw);
+    const accent = ok ? (dark ? (A[raw.toUpperCase()] || raw) : raw) : (dark ? '#8AA6F2' : '#2F5BD3');
+    const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const lum = (h) => { const v = rgb(h).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+    const mix = (a, b, t) => { const p = rgb(a), q = rgb(b); return '#' + p.map((x, i) => Math.round(x * (1 - t) + q[i] * t).toString(16).padStart(2, '0')).join(''); };
+    const la = lum(accent);
+    c.accent = accent;
+    c.onAccent = 1.05 / (la + 0.05) >= (la + 0.05) / (lum('#111111') + 0.05) ? '#FFFFFF' : '#111111';
+    c.sel = mix(c.bg, accent, dark ? 0.2 : 0.1);
+    c.selLine = mix(c.bg, accent, dark ? 0.45 : 0.3);
+    return c;
+  }
+  space(obj) {
+    let ok = true;
+    try { ok = typeof CSS === 'undefined' || CSS.supports('text-autospace', 'normal'); } catch (e) { ok = true; }
+    if (ok) return obj;
+    const fix = (s) => s.replace(/([\u4e00-\u9fff])([A-Za-z0-9⌘⌥⇧⌃`])/g, '$1\u2009$2').replace(/([A-Za-z0-9`])([\u4e00-\u9fff])/g, '$1\u2009$2');
+    const out = {};
+    Object.keys(obj).forEach((k) => { out[k] = typeof obj[k] === 'string' ? fix(obj[k]) : obj[k]; });
+    return out;
+  }
+  renderVals() {
+    const c = this.tokens();
+    const en = (this.props.locale ?? 'zh') === 'en';
+    const win = (this.props.platform ?? 'mac') === 'win';
+    const pick = (v) => (Array.isArray(v) ? v[en ? 1 : 0] : v);
+    const t = this.space(en
+      ? { settings: 'Settings', navAria: 'Settings sections', title: 'Agent access', sub: 'Let agents like Claude Code search and read all your snippets and todo lists through a local command-line tool. Read-only.', info: 'Whatever an agent reads is sent to the model service that agent uses. Lastab itself still uploads nothing, and every read is logged below.', install: 'Install', cli: 'Command-line tool', installed: 'Installed', reinstall: 'Reinstall', installSkill: 'Install skill', failed: 'Couldn’t install: no permission to write to ~/.claude/skills. Check the folder’s permissions, then try again.', retry: 'Retry', other: 'Other agents can call it directly: ', jsonNote: 'JSON field names are always English, whatever the interface language.', log: 'Access log', viewAll: 'View all', colTime: 'Time', colSource: 'Source', colAction: 'Action', colSnippet: 'Snippet' }
+      : { settings: '设置', navAria: '设置分类', title: 'Agent访问', sub: '让Claude Code等Agent通过本地命令行搜索和读取你的全部片段与待办。只读。', info: 'Agent读到的内容，会随Agent发送到它所用的模型服务。Lastab自己仍不上传任何内容；所有读取都记录在下方。', install: '安装', cli: '命令行工具', installed: '已安装', reinstall: '重新安装', installSkill: '安装Skill', failed: '安装失败：没有写入~/.claude/skills的权限。检查该文件夹的权限后重试。', retry: '重试', other: '其他Agent可直接调用：', jsonNote: '输出的JSON字段名固定为英文，不随界面语言变化。', log: '访问记录', viewAll: '查看全部', colTime: '时间', colSource: '来源', colAction: '操作', colSnippet: '片段' });
+    const navItems = [
+      ['#general', ['通用', 'General'], false],
+      ['#keys', ['快捷键', 'Shortcuts'], false],
+      ['#fidelity', ['编辑与文本保真', 'Editing & fidelity'], false],
+      ['#agent', ['Agent访问', 'Agent access'], true],
+      ['#storage', ['存储与清理', 'Storage & cleanup'], false],
+      ['#about', ['关于', 'About'], false]
+    ];
+    const nav = navItems.map(([href, label, on]) => ({ href, label: pick(label), current: on ? 'page' : 'false', bg: on ? c.sel : 'transparent', fg: on ? c.text : c.text2, weight: on ? '500' : '400' }));
+    const sw = (key, label, desc, divider) => {
+      const on = this.state[key];
+      return { label, desc, divider, on: String(on), bg: on ? c.accent : c.switchOff, align: on ? 'flex-end' : 'flex-start', toggle: () => this.setState({ [key]: !this.state[key] }) };
+    };
+    const switches = [
+      sw('access', pick(['允许Agent访问', 'Allow agent access']), pick(['关闭后，命令行拒绝任何读取', 'When off, the command-line tool refuses every read']), c.lineSoft),
+      sw('mask', pick(['遮蔽疑似密钥（推荐）', 'Mask likely secrets (recommended)']), pick(['Authorization、Bearer、api_key等输出为••••。只在这里改，Agent无法用参数绕过。', 'Authorization, Bearer, api_key and similar come out as ••••. Only changeable here; agents can’t bypass it with a flag.']), 'transparent')
+    ];
+    const log = [
+      { time: pick(['今天14:41', 'Today 14:41']), agent: 'Claude Code', op: 'search "curl staging" --since 1d', target: pick(['3条结果', '3 results']) },
+      { time: pick(['今天14:41', 'Today 14:41']), agent: 'Claude Code', op: 'read 2f9c…', target: 'curl · POST /v2/orders/search' },
+      { time: pick(['今天13:05', 'Today 13:05']), agent: 'Claude Code', op: 'list --recent 10', target: pick(['10条（含1份待办）', '10 items (1 todo list)']) },
+      { time: pick(['昨天18:52', 'Yesterday 18:52']), agent: pick(['lastab命令行', 'lastab CLI']), op: 'read 81ad…', target: pick(['周会 11-17', 'Weekly sync 11-17']) }
+    ];
+    const skill = this.state.skill;
+    const installing = skill === 'installing';
+    return {
+      c, t, nav, switches, log,
+      cliPath: win ? '%LOCALAPPDATA%\\Lastab\\bin\\lastab.exe' : '/usr/local/bin/lastab',
+      skillDone: skill === 'done',
+      skillIdle: skill !== 'done' && skill !== 'failed',
+      failed: skill === 'failed',
+      installing,
+      busy: String(installing),
+      btnOpacity: installing ? '0.8' : '1',
+      installLabel: t.installSkill,
+      install: () => {
+        if (this.state.skill === 'installing') return;
+        this.setState({ skill: 'installing' });
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => this.setState({ skill: 'done' }), 1600);
+      },
+      lang: en ? 'en' : 'zh-CN', isMac: !win, isWin: win
+    };
+  }
+}
+</script>
+</body>
+</html>

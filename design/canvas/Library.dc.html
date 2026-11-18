@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>全部片段与搜索</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div lang="{{lang}}" style="width: 1200px; height: 760px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.bg}}; color-scheme: {{c.scheme}}; border: 1px solid {{c.frame}}; border-radius: 12px; overflow: hidden; position: relative; font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif; color: {{c.text}}; text-autospace: normal">
+
+  <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 0 8px 0 16px; background: {{c.chrome}}; border-bottom: 1px solid {{c.chromeLine}}">
+    <sc-if value="{{isMac}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; gap: 8px">
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FEBC2E"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #28C840"></span>
+      </div>
+    </sc-if>
+    <span style="font-size: 13px; font-weight: 600; white-space: nowrap">{{t.allSnippets}}</span>
+    <div style="flex: 1"></div>
+    <button style="height: 28px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; background: transparent; border: 1px solid {{c.btnLine}}; border-radius: 8px; font: inherit; font-size: 12px; color: {{c.text}}; white-space: nowrap">{{t.back}} <span style="color: {{c.muted}}">{{kEsc}}</span></button>
+    <sc-if value="{{isWin}}" hint-placeholder-val="{{ false }}">
+      <div aria-hidden="true" style="align-self: stretch; display: flex; margin: 0 -8px 0 0; color: {{c.text}}">
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 5h10"></path></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 0l10 10M10 0L0 10"></path></svg></span>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid {{c.line}}">
+    <label style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1.5px solid {{c.accent}}; border-radius: 8px; background: {{c.bg}}">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="{{c.muted}}" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5 14 14"></path></svg>
+      <input type="search" role="combobox" aria-expanded="true" aria-controls="results" aria-activedescendant="{{activeId}}" aria-label="{{t.searchAria}}" placeholder="{{t.placeholder}}" value="{{query}}" onChange="{{noop}}" style="flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent; font-family: 'JetBrains Mono', ui-monospace, 'PingFang SC', 'Microsoft YaHei', monospace; font-size: 14px; color: {{c.text}}">
+      <span role="status" style="font-size: 12px; color: {{c.muted}}; white-space: nowrap; font-variant-numeric: tabular-nums">{{matches}}</span>
+    </label>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; font-size: 12.5px">
+      <sc-for list="{{filters}}" as="g" hint-placeholder-count="3">
+        <div role="group" aria-label="{{g.label}}" style="display: flex; align-items: center; gap: 4px">
+          <span style="color: {{c.muted}}; margin-right: 4px; white-space: nowrap">{{g.label}}</span>
+          <sc-for list="{{g.opts}}" as="o" hint-placeholder-count="3">
+            <button aria-pressed="{{o.pressed}}" style="height: 28px; padding: 0 12px; border: 1px solid {{o.line}}; border-radius: 14px; background: {{o.bg}}; color: {{o.fg}}; font: inherit; white-space: nowrap">{{o.label}}</button>
+          </sc-for>
+        </div>
+      </sc-for>
+      <div style="flex: 1"></div>
+      <span style="color: {{c.muted}}; white-space: nowrap">{{t.sort}}</span>
+    </div>
+  </div>
+
+  <div style="flex: 1; min-height: 0; display: flex">
+    <div id="results" role="listbox" aria-label="{{t.allSnippets}}" style="width: 472px; flex-shrink: 0; display: flex; flex-direction: column; gap: 0; padding: 8px; border-right: 1px solid {{c.line}}; box-sizing: border-box">
+      <sc-if value="{{hasResults}}" hint-placeholder-val="{{ true }}">
+        <sc-for list="{{groups}}" as="grp" hint-placeholder-count="2">
+          <span aria-hidden="true" style="padding: 8px 12px 4px; font-size: 11.5px; font-weight: 600; color: {{c.muted}}">{{grp.label}}</span>
+          <sc-for list="{{grp.items}}" as="item" hint-placeholder-count="3">
+            <div id="{{item.id}}" role="option" aria-selected="{{item.sel}}" style="display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; border-radius: 8px; background: {{item.bg}}">
+              <div style="display: flex; align-items: center; gap: 8px; min-width: 0">
+                <sc-if value="{{item.todo}}" hint-placeholder-val="{{ false }}">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.muted}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5"></rect><path d="M5.5 8l1.8 1.8L10.5 6"></path></svg>
+                </sc-if>
+                <sc-if value="{{item.text}}" hint-placeholder-val="{{ true }}">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="{{c.muted}}" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 4h10M3 8h10M3 12h6"></path></svg>
+                </sc-if>
+                <span style="min-width: 0; font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{item.title}}</span>
+                <sc-if value="{{item.closed}}" hint-placeholder-val="{{ false }}">
+                  <span style="flex-shrink: 0; padding: 0 4px; border-radius: 4px; background: {{c.badge}}; font-size: 11px; line-height: 18px; color: {{c.muted}}">{{t.closed}}</span>
+                </sc-if>
+                <div style="flex: 1"></div>
+                <span style="flex-shrink: 0; font-size: 12px; color: {{c.muted}}; font-variant-numeric: tabular-nums">{{item.modified}}</span>
+              </div>
+              <span style="font-family: 'JetBrains Mono', ui-monospace, 'PingFang SC', 'Microsoft YaHei', monospace; font-size: 12px; line-height: 18px; color: {{c.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{item.pre}}<mark style="background: {{c.mark}}; color: {{c.markText}}; border-radius: 2px">{{item.hit}}</mark>{{item.post}}</span>
+              <span style="font-size: 11.5px; color: {{c.muted}}; font-variant-numeric: tabular-nums">{{item.created}}</span>
+            </div>
+          </sc-for>
+        </sc-for>
+        <span style="margin-top: auto; padding: 8px 12px; font-size: 11.5px; color: {{c.muted}}; white-space: nowrap">{{exactHint}}</span>
+      </sc-if>
+      <sc-if value="{{isEmpty}}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 32px; text-align: center">
+          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="{{c.faint}}" stroke-width="1.2" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5 14 14"></path></svg>
+          <span style="font-size: 14px; font-weight: 600">{{t.emptyTitle}}</span>
+          <span style="max-width: 320px; font-size: 12.5px; line-height: 19px; color: {{c.muted}}; text-wrap: pretty">{{t.emptyBody}}</span>
+          <div style="display: flex; gap: 8px">
+            <button style="height: 32px; padding: 0 12px; border: 1px solid {{c.btnLine}}; border-radius: 8px; background: {{c.btn}}; font: inherit; font-size: 13px; color: {{c.text}}; white-space: nowrap">{{t.clearFilters}}</button>
+            <button style="height: 32px; padding: 0 12px; border: 1px solid {{c.btnLine}}; border-radius: 8px; background: {{c.btn}}; font: inherit; font-size: 13px; color: {{c.text}}; white-space: nowrap; font-family: Inter, 'PingFang SC', sans-serif">{{t.didYouMean}}</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative">
+      <sc-if value="{{isEmpty}}" hint-placeholder-val="{{ false }}">
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center; background: {{c.sunken}}; font-size: 12.5px; color: {{c.muted}}">{{t.noPreview}}</div>
+      </sc-if>
+      <sc-if value="{{hasResults}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px 24px; border-bottom: 1px solid {{c.line}}">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span style="font-size: 17px; font-weight: 600; text-wrap: balance">curl · POST /v2/orders/search</span>
+            <button aria-label="{{t.rename}}" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: 8px; color: {{c.muted}}">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3.5l2 2L6 12H4v-2z"></path></svg>
+            </button>
+            <div style="flex: 1"></div>
+            <span style="padding: 0 8px; border-radius: 4px; background: {{c.okBg}}; font-size: 11.5px; line-height: 20px; color: {{c.okText}}; white-space: nowrap">{{t.openBadge}}</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 12px; color: {{c.muted}}; font-variant-numeric: tabular-nums">
+            <span>{{t.mCreated}}</span>
+            <span>{{t.mModified}}</span>
+            <span>{{t.mVersions}}</span>
+            <span>{{t.mCount}}</span>
+          </div>
+        </div>
+        <div style="flex: 1; min-height: 0; padding: 16px 24px; font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, 'PingFang SC', 'Microsoft YaHei', monospace; font-size: 12.5px; line-height: 20px; color: {{c.text}}; background: {{c.sunken}}">
+          <div style="white-space: pre">curl -X POST 'https://api.<mark style="background: {{c.mark}}; color: {{c.markText}}; border-radius: 2px">staging</mark>.example.com/v2/orders/search' \</div>
+          <div style="white-space: pre">  -H 'Content-Type: application/json' \</div>
+          <div style="display: flex; align-items: center; gap: 8px"><span style="white-space: pre">  -H 'Authorization: Bearer ••••••••••••' \</span><button style="height: 20px; padding: 0 4px; border: 1px solid {{c.btnLine}}; border-radius: 4px; background: {{c.btn}}; font-family: Inter, 'PingFang SC', sans-serif; font-size: 11px; color: {{c.text}}; white-space: nowrap">{{t.reveal}}</button></div>
+          <div style="white-space: pre">  -d '{</div>
+          <div style="white-space: pre">    "env": "<mark style="background: {{c.mark}}; color: {{c.markText}}; border-radius: 2px">staging</mark>-b",</div>
+          <div style="white-space: pre">    "filters": {</div>
+          <div style="white-space: pre">      "status": ["paid", "shipped"],</div>
+          <div style="white-space: pre">      "created_after": "2026-11-01T00:00:00Z"</div>
+          <div style="white-space: pre">    },</div>
+          <div style="white-space: pre">    "page_size": 50</div>
+          <div style="white-space: pre">  }'</div>
+        </div>
+        <div style="flex-shrink: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 24px; border-top: 1px solid {{c.line}}">
+          <button style="height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border: 0; border-radius: 8px; background: {{c.accent}}; font: inherit; font-size: 13px; font-weight: 500; color: {{c.onAccent}}; white-space: nowrap">{{t.openEdit}} <span style="opacity: 0.8">{{kEnter}}</span></button>
+          <button style="height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid {{c.btnLine}}; border-radius: 8px; background: {{c.btn}}; font: inherit; font-size: 13px; color: {{c.text}}; white-space: nowrap">{{t.copyAll}} <span style="color: {{c.muted}}">{{kCopy}}</span></button>
+          <button style="height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid {{c.btnLine}}; border-radius: 8px; background: {{c.btn}}; font: inherit; font-size: 13px; color: {{c.text}}; white-space: nowrap">{{t.history}}</button>
+          <div style="flex: 1"></div>
+          <button aria-expanded="{{confirmOpen}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: {{delBg}}; font: inherit; font-size: 13px; color: {{c.danger}}; white-space: nowrap">{{t.del}}</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{confirm}}" hint-placeholder-val="{{ false }}">
+        <div role="alertdialog" aria-label="{{t.confirmTitle}}" style="position: absolute; right: 16px; bottom: 56px; width: 320px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; padding: 16px; background: {{c.panel}}; border: 1px solid {{c.btnLine}}; border-radius: 12px; box-shadow: {{c.pop}}">
+          <span style="font-size: 13.5px; font-weight: 600">{{t.confirmTitle}}</span>
+          <span style="font-size: 12.5px; line-height: 19px; color: {{c.muted}}; text-wrap: pretty">{{t.confirmBody}}</span>
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px">
+            <button style="height: 32px; padding: 0 12px; border: 1px solid {{c.btnLine}}; border-radius: 8px; background: {{c.btn}}; font: inherit; font-size: 13px; color: {{c.text}}; white-space: nowrap">{{t.cancel}}</button>
+            <button style="height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: {{c.danger}}; font: inherit; font-size: 13px; font-weight: 500; color: {{onDanger}}; white-space: nowrap">{{t.confirmDel}}</button>
+          </div>
+          <span aria-hidden="true" style="position: absolute; right: 36px; bottom: -6px; width: 10px; height: 10px; background: {{c.panel}}; border-right: 1px solid {{c.btnLine}}; border-bottom: 1px solid {{c.btnLine}}; transform: rotate(45deg)"></span>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BD3","options":["#2F5BD3","#C2410C","#0F766E","#1C1C1A"]},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"locale":{"editor":"enum","options":["zh","en"],"default":"zh"},"platform":{"editor":"enum","options":["mac","win"],"default":"mac"},"view":{"editor":"enum","options":["results","empty","confirmDelete"],"default":"results"},"exactTimes":{"editor":"boolean","default":false},"$preview":{"width":1200,"height":760}}'>
+class Component extends DCLogic {
+  tokens() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const raw = this.props.accent ?? '#2F5BD3';
+    const L = { bg: '#FFFFFF', frame: '#D9D9D4', chrome: '#EFEFEC', chromeLine: '#E0E0DB', line: '#ECECE8', lineSoft: '#F0F0EC', text: '#1C1C1A', text2: '#3F3F3B', muted: '#5E5E59', faint: '#767670', curLine: '#F6F6F3', status: '#F7F7F5', side: '#FAFAF8', sunken: '#FBFBFA', info: '#F4F4F1', btn: '#FFFFFF', btnLine: '#D5D5D0', badge: '#EFEFEC', badgeTab: '#E3E3DF', invBg: '#1C1C1A', invText: '#FFFFFF', mark: '#FFE7A3', markText: '#1C1C1A', okDot: '#2E8B57', okBg: '#E7F3EC', okText: '#1F6B42', warnBg: '#FDF0E3', warnText: '#8A3B0A', danger: '#B42318', dangerBg: '#FDECEC', link: '#2F5BD3', toast: '#1C1C1A', toastLine: '#1C1C1A', toastText: '#FFFFFF', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#FDECEC', delText: '#8A1C1C', addBg: '#E3F2E8', addText: '#14532D', scrim: 'rgba(28,28,26,0.10)', panel: '#FFFFFF', shadow: '0 16px 48px rgba(0,0,0,0.18)', pop: '0 8px 24px rgba(0,0,0,0.14)', switchOff: '#C9C9C3', dashed: '#A3A39D', dropLine: 'rgba(28,28,26,0.15)', scheme: 'light', segBg: '#EFEFEC', segOn: '#FFFFFF' };
+    const D = { bg: '#1B1B1A', frame: '#3A3A37', chrome: '#262625', chromeLine: '#343432', line: '#2E2E2C', lineSoft: '#2A2A28', text: '#ECECE8', text2: '#D0D0CA', muted: '#A6A69F', faint: '#8A8A84', curLine: '#242423', status: '#212120', side: '#20201F', sunken: '#1F1F1E', info: '#252524', btn: '#2A2A28', btnLine: '#454542', badge: '#2F2F2D', badgeTab: '#3A3A37', invBg: '#ECECE8', invText: '#1B1B1A', mark: '#6B5414', markText: '#FFF3CF', okDot: '#4CBF7F', okBg: '#1C3324', okText: '#8FD4A6', warnBg: '#3B2A1A', warnText: '#F2B98A', danger: '#F28B82', dangerBg: '#3A2020', link: '#8AA6F2', toast: '#33332F', toastLine: '#4A4A46', toastText: '#F4F4F0', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#3A2020', delText: '#F2B8B5', addBg: '#1B3324', addText: '#A8DDB5', scrim: 'rgba(0,0,0,0.25)', panel: '#232322', shadow: '0 16px 48px rgba(0,0,0,0.5)', pop: '0 8px 24px rgba(0,0,0,0.45)', switchOff: '#4A4A47', dashed: '#6B6B66', dropLine: 'rgba(236,236,232,0.15)', scheme: 'dark', segBg: '#2A2A28', segOn: '#3A3A37' };
+    const A = { '#2F5BD3': '#8AA6F2', '#C2410C': '#F4955F', '#0F766E': '#4CC3B2', '#1C1C1A': '#E6E6E1' };
+    const c = Object.assign({}, dark ? D : L);
+    const ok = /^#[0-9a-fA-F]{6}$/.test(raw);
+    const accent = ok ? (dark ? (A[raw.toUpperCase()] || raw) : raw) : (dark ? '#8AA6F2' : '#2F5BD3');
+    const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const lum = (h) => { const v = rgb(h).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+    const mix = (a, b, t) => { const p = rgb(a), q = rgb(b); return '#' + p.map((x, i) => Math.round(x * (1 - t) + q[i] * t).toString(16).padStart(2, '0')).join(''); };
+    const la = lum(accent);
+    c.accent = accent;
+    c.onAccent = 1.05 / (la + 0.05) >= (la + 0.05) / (lum('#111111') + 0.05) ? '#FFFFFF' : '#111111';
+    c.sel = mix(c.bg, accent, dark ? 0.2 : 0.1);
+    c.selLine = mix(c.bg, accent, dark ? 0.45 : 0.3);
+    return c;
+  }
+  key(combo) {
+    const win = (this.props.platform ?? 'mac') === 'win';
+    const m = win
+      ? { mod: 'Ctrl', shift: 'Shift', alt: 'Alt', ctrl: 'Ctrl', esc: 'Esc', enter: 'Enter', backspace: 'Backspace' }
+      : { mod: '⌘', shift: '⇧', alt: '⌥', ctrl: '⌃', esc: 'esc', enter: '↵', backspace: '⌫' };
+    const parts = combo.split('+').map((p) => m[p] || p);
+    return win ? parts.join('+') : parts.join('');
+  }
+  space(obj) {
+    let ok = true;
+    try { ok = typeof CSS === 'undefined' || CSS.supports('text-autospace', 'normal'); } catch (e) { ok = true; }
+    if (ok) return obj;
+    const fix = (s) => s.replace(/([\u4e00-\u9fff])([A-Za-z0-9⌘⌥⇧⌃`])/g, '$1\u2009$2').replace(/([A-Za-z0-9`])([\u4e00-\u9fff])/g, '$1\u2009$2');
+    const out = {};
+    Object.keys(obj).forEach((k) => { out[k] = typeof obj[k] === 'string' ? fix(obj[k]) : obj[k]; });
+    return out;
+  }
+  renderVals() {
+    const c = this.tokens();
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const en = (this.props.locale ?? 'zh') === 'en';
+    const win = (this.props.platform ?? 'mac') === 'win';
+    const k = (s) => this.key(s);
+    const view = this.props.view ?? 'results';
+    const empty = view === 'empty';
+    const exact = this.props.exactTimes === true || this.props.exactTimes === 'true';
+    const pick = (v) => (Array.isArray(v) ? v[en ? 1 : 0] : v);
+    const t = this.space(en
+      ? { allSnippets: 'All snippets', back: 'Back to editor', searchAria: 'Search all snippets', placeholder: 'Search titles and text — any language or code symbols', sort: 'Sorted by last edit', closed: 'Closed', rename: 'Rename title', openBadge: 'Open in workspace', mCreated: 'Created 2026-11-18 14:32', mModified: 'Edited 14:36 (4 min ago)', mVersions: '6 versions', mCount: '11 lines · 412 chars', reveal: 'Reveal secret', openEdit: 'Open', copyAll: 'Copy all', history: 'Version history', del: 'Delete…', emptyTitle: 'Nothing matches “stagign”', emptyBody: 'Only snippets edited today are shown. Clear the filter to search everything, including closed snippets.', clearFilters: 'Clear filters', didYouMean: 'Search “staging”', noPreview: 'Pick a snippet to preview it here', confirmTitle: 'Delete this snippet?', confirmBody: '“curl · POST /v2/orders/search” and its 6 versions will be gone for good. It won’t show up in the list or search.', cancel: 'Cancel', confirmDel: 'Delete snippet' }
+      : { allSnippets: '全部片段', back: '返回编辑', searchAria: '搜索全部片段', placeholder: '搜索标题与正文：中文、英文、代码符号均可', sort: '按最近修改排序', closed: '已关闭', rename: '重命名标题', openBadge: '工作区中已打开', mCreated: '创建2026-11-18 14:32', mModified: '修改14:36（4分钟前）', mVersions: '6个版本', mCount: '11行 · 412字符', reveal: '显示密钥', openEdit: '打开编辑', copyAll: '复制全部', history: '版本历史', del: '删除…', emptyTitle: '没有找到「stagign」', emptyBody: '当前只显示今天修改过的片段。清除筛选后会搜索全部片段，包括已关闭的。', clearFilters: '清除筛选', didYouMean: '改搜「staging」', noPreview: '选择一条片段，在这里预览', confirmTitle: '删除这条片段？', confirmBody: '「curl · POST /v2/orders/search」及其6个版本将被永久删除，之后无法从列表或搜索中找回。', cancel: '取消', confirmDel: '删除片段' });
+    const chip = (label, on) => ({ label, pressed: String(on), bg: on ? c.invBg : c.btn, fg: on ? c.invText : c.text, line: on ? c.invBg : c.btnLine });
+    const filters = [
+      { label: pick(['时间', 'Time']), opts: [chip(pick(['全部', 'All']), !empty), chip(pick(['今天', 'Today']), empty), chip(pick(['7天内', '7 days']), false), chip(pick(['30天内', '30 days']), false), chip(pick(['自定义…', 'Custom…']), false)] },
+      { label: pick(['范围', 'Scope']), opts: [chip(pick(['全部', 'All']), true), chip(pick(['工作区', 'Open']), false), chip(pick(['已关闭', 'Closed']), false)] },
+      { label: pick(['类型', 'Type']), opts: [chip(pick(['全部', 'All']), true), chip(pick(['文本', 'Text']), false), chip(pick(['待办', 'Todo']), false)] }
+    ];
+    const row = (r) => ({
+      title: pick(r.title), modified: exact ? r.exact : pick(r.modified), created: pick(r.created),
+      pre: pick(r.pre), hit: 'staging', post: pick(r.post),
+      closed: !!r.closed, todo: !!r.todo, text: !r.todo,
+      sel: String(!!r.selected),
+      bg: r.selected ? c.sel : 'transparent'
+    });
+    const today = [
+      { title: 'curl · POST /v2/orders/search', modified: ['4分钟前', '4 min ago'], exact: '11-18 14:36', created: ['创建11-18 14:32 · 6个版本', 'Created Nov 18, 14:32 · 6 versions'], pre: "curl -X POST 'https://api.", post: ".example.com/v2/orders/search' \\", selected: true },
+      { title: ['确认 staging-b 回归通过 · 3/7', 'Confirm staging-b regression passed · 3/7'], modified: ['12分钟前', '12 min ago'], exact: '11-18 14:28', created: ['创建11-18 13:10 · 待办 · 4个版本', 'Created Nov 18, 13:10 · Todo · 4 versions'], pre: ['- [ ] 确认 ', '- [ ] Confirm '], post: ['-b 回归通过', '-b regression passed'], todo: true },
+      { title: 'env · staging-b', modified: ['16分钟前', '16 min ago'], exact: '11-18 14:24', created: ['创建11-18 14:20 · 2个版本', 'Created Nov 18, 14:20 · 2 versions'], pre: 'API_KEY=••••••••  DB_HOST=10.0.3.12  ENV=', post: '-b' },
+      { title: ['周会 11-18', 'Weekly sync 11-18'], modified: ['42分钟前', '42 min ago'], exact: '11-18 13:58', created: ['创建11-18 09:40 · 9个版本', 'Created Nov 18, 09:40 · 9 versions'], pre: ['…退款导出先上 ', '…ship refund export to '], post: [' 验证，周三前确认发布窗口', ' first, confirm release window by Wed'] }
+    ];
+    const older = [
+      { title: 'curl · POST /v2/refunds', modified: ['11-12 16:05', 'Nov 12, 16:05'], exact: '11-12 16:05', created: ['创建11-12 15:51 · 3个版本', 'Created Nov 12, 15:51 · 3 versions'], pre: "curl -X POST 'https://api.", post: ".example.com/v2/refunds' -H 'Authorization: Bearer ••••••••'", closed: true }
+    ];
+    const groups = [
+      { label: pick(['今天', 'Today']), items: today.map((r, i) => ({ ...row(r), id: 'res-0-' + i })) },
+      { label: pick(['11月12日', 'Nov 12']), items: older.map((r, i) => ({ ...row(r), id: 'res-1-' + i })) }
+    ];
+    const confirm = view === 'confirmDelete';
+    return {
+      c, t, filters, groups,
+      query: empty ? 'stagign' : 'staging',
+      matches: empty ? pick(['0条匹配 · 共236条', '0 matches · 236 total']) : pick(['5条匹配 · 共236条', '5 matches · 236 total']),
+      exactHint: exact
+        ? pick([`↑↓选择 · ${k('enter')}打开 · 松开${k('alt')}恢复相对时间`, `↑↓ select · ${k('enter')} open · release ${k('alt')} for relative times`])
+        : pick([`↑↓选择 · ${k('enter')}打开 · 按住${k('alt')}显示具体时间`, `↑↓ select · ${k('enter')} open · hold ${k('alt')} for exact times`]),
+      activeId: 'res-0-0',
+      hasResults: !empty, isEmpty: empty, confirm, confirmOpen: String(confirm),
+      delBg: confirm ? c.dangerBg : 'transparent',
+      onDanger: dark ? '#1B1B1A' : '#FFFFFF',
+      kEsc: k('esc'), kEnter: k('enter'), kCopy: k('mod+shift+C'),
+      noop: () => {}, lang: en ? 'en' : 'zh-CN', isMac: !win, isWin: win
+    };
+  }
+}
+</script>
+</body>
+</html>

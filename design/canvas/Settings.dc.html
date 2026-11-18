@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Lastab 设置</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div lang="{{lang}}" style="width: 960px; height: 1000px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.bg}}; color-scheme: {{c.scheme}}; border: 1px solid {{c.frame}}; border-radius: 12px; overflow: hidden; font-family: Inter, 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif; color: {{c.text}}; text-autospace: normal">
+
+  <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 0 8px 0 16px; background: {{c.chrome}}; border-bottom: 1px solid {{c.chromeLine}}">
+    <sc-if value="{{isMac}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; gap: 8px">
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #FEBC2E"></span>
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: #28C840"></span>
+      </div>
+    </sc-if>
+    <span style="font-size: 13px; font-weight: 600">{{t.settings}}</span>
+    <div style="flex: 1"></div>
+    <sc-if value="{{isWin}}" hint-placeholder-val="{{ false }}">
+      <div aria-hidden="true" style="align-self: stretch; display: flex; margin: 0 -8px 0 0; color: {{c.text}}">
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 5h10"></path></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></span>
+        <span style="width: 46px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor"><path d="M0 0l10 10M10 0L0 10"></path></svg></span>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex: 1; min-height: 0; display: flex">
+    <nav aria-label="{{t.navAria}}" style="width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; padding: 12px 8px; background: {{c.side}}; border-right: 1px solid {{c.line}}; box-sizing: border-box">
+      <sc-for list="{{nav}}" as="n" hint-placeholder-count="6">
+        <a href="{{n.href}}" aria-current="{{n.current}}" style="height: 32px; display: flex; align-items: center; padding: 0 12px; border-radius: 8px; background: {{n.bg}}; font-size: 13px; font-weight: {{n.weight}}; color: {{n.fg}}; text-decoration: none; white-space: nowrap">{{n.label}}</a>
+      </sc-for>
+    </nav>
+
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 20px 28px; box-sizing: border-box">
+      <span id="general" style="font-size: 16px; font-weight: 600; margin-bottom: 4px">{{t.general}}</span>
+      <sc-for list="{{prefs}}" as="p" hint-placeholder-count="2">
+        <div style="min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 4px 0; border-bottom: 1px solid {{c.lineSoft}}">
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 13.5px; font-weight: 500">{{p.label}}</span>
+            <span style="font-size: 12px; color: {{c.muted}}; text-wrap: pretty">{{p.desc}}</span>
+          </div>
+          <div role="group" aria-label="{{p.label}}" style="display: flex; padding: 2px; border-radius: 8px; background: {{c.segBg}}">
+            <sc-for list="{{p.opts}}" as="o" hint-placeholder-count="3">
+              <button aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="height: 28px; padding: 0 12px; border: 0; border-radius: 6px; background: {{o.bg}}; font: inherit; font-size: 12px; color: {{o.fg}}; box-shadow: {{o.shadow}}; white-space: nowrap">{{o.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+      <div style="min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 4px 0; border-bottom: 1px solid {{c.lineSoft}}">
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 13.5px; font-weight: 500">{{t.holdHint}}</span>
+          <span style="font-size: 12px; color: {{c.muted}}; text-wrap: pretty">{{t.holdHintDesc}}</span>
+        </div>
+        <button role="switch" aria-checked="{{holdOn}}" aria-label="{{t.holdHint}}" onClick="{{toggleHold}}" style="width: 40px; height: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: {{holdAlign}}; padding: 2px; box-sizing: border-box; border: 0; border-radius: 12px; background: {{holdBg}}">
+          <span style="width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.2)"></span>
+        </button>
+      </div>
+
+      <div id="keys" style="display: flex; align-items: center; gap: 12px; margin: 20px 0 4px">
+        <span style="font-size: 16px; font-weight: 600">{{t.keys}}</span>
+        <div style="flex: 1"></div>
+        <div role="group" aria-label="{{t.platform}}" style="display: flex; padding: 2px; border-radius: 8px; background: {{c.segBg}}">
+          <sc-for list="{{plats}}" as="o" hint-placeholder-count="2">
+            <button aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="height: 24px; padding: 0 12px; border: 0; border-radius: 6px; background: {{o.bg}}; font: inherit; font-size: 12px; color: {{o.fg}}; box-shadow: {{o.shadow}}; white-space: nowrap">{{o.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column">
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+          <div style="min-height: 48px; display: flex; align-items: center; gap: 12px; padding: 4px 0; border-bottom: 1px solid {{c.lineSoft}}">
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="font-size: 13.5px; font-weight: 500; white-space: nowrap">{{r.label}}</span>
+                <sc-if value="{{r.global}}" hint-placeholder-val="{{ false }}">
+                  <span style="padding: 0 4px; border-radius: 4px; background: {{c.warnBg}}; font-size: 11px; line-height: 18px; color: {{c.warnText}}">{{t.global}}</span>
+                </sc-if>
+              </div>
+              <span style="font-size: 12px; color: {{c.muted}}; text-wrap: pretty">{{r.desc}}</span>
+            </div>
+            <sc-if value="{{r.recording}}" hint-placeholder-val="{{ false }}">
+              <span role="status" style="height: 28px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border: 1.5px solid {{c.accent}}; border-radius: 8px; background: {{c.sel}}; font-size: 12px; color: {{c.text}}; white-space: nowrap">{{t.recording}} <span style="color: {{c.muted}}">{{escCancel}}</span></span>
+            </sc-if>
+            <sc-if value="{{r.idle}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; gap: 4px">
+                <sc-for list="{{r.keys}}" as="k" hint-placeholder-count="2">
+                  <span style="min-width: 28px; height: 28px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; border: 1px solid {{c.btnLine}}; border-bottom-width: 2px; border-radius: 4px; background: {{c.btn}}; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; white-space: nowrap">{{k}}</span>
+                </sc-for>
+              </div>
+            </sc-if>
+            <button style="height: 28px; padding: 0 12px; border: 1px solid {{c.btnLine}}; border-radius: 8px; background: {{c.btn}}; font: inherit; font-size: 12px; color: {{c.text}}; white-space: nowrap">{{t.change}}</button>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; justify-content: flex-end; padding-top: 8px">
+        <button style="height: 28px; padding: 0 4px; border: 0; background: transparent; font: inherit; font-size: 12px; color: {{c.link}}; white-space: nowrap">{{t.reset}}</button>
+      </div>
+
+      <span id="fidelity" style="font-size: 16px; font-weight: 600; margin: 8px 0 12px">{{t.fidelity}}</span>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; font-size: 13px">
+        <sc-for list="{{checks}}" as="ck" hint-placeholder-count="4">
+          <label style="display: flex; align-items: center; gap: 8px"><input type="checkbox" checked="{{ true }}" onChange="{{noop}}" style="width: 16px; height: 16px; margin: 0; accent-color: {{c.accent}}">{{ck}}</label>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-top: 16px; font-size: 13px">
+        <span>{{t.font}}</span>
+        <span style="height: 28px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid {{c.btnLine}}; border-radius: 8px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px">JetBrains Mono · 14</span>
+        <span style="font-size: 12px; color: {{c.muted}}">{{t.monoOnly}}</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2F5BD3","options":["#2F5BD3","#C2410C","#0F766E","#1C1C1A"]},"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"locale":{"editor":"enum","options":["zh","en"],"default":"zh"},"platform":{"editor":"enum","options":["mac","win"],"default":"mac"},"$preview":{"width":960,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { appearance: 'system', language: 'system', platform: null, hold: true };
+  }
+  tokens(themeName) {
+    const dark = themeName === 'dark';
+    const raw = this.props.accent ?? '#2F5BD3';
+    const L = { bg: '#FFFFFF', frame: '#D9D9D4', chrome: '#EFEFEC', chromeLine: '#E0E0DB', line: '#ECECE8', lineSoft: '#F0F0EC', text: '#1C1C1A', text2: '#3F3F3B', muted: '#5E5E59', faint: '#767670', curLine: '#F6F6F3', status: '#F7F7F5', side: '#FAFAF8', sunken: '#FBFBFA', info: '#F4F4F1', btn: '#FFFFFF', btnLine: '#D5D5D0', badge: '#EFEFEC', badgeTab: '#E3E3DF', invBg: '#1C1C1A', invText: '#FFFFFF', mark: '#FFE7A3', markText: '#1C1C1A', okDot: '#2E8B57', okBg: '#E7F3EC', okText: '#1F6B42', warnBg: '#FDF0E3', warnText: '#8A3B0A', danger: '#B42318', dangerBg: '#FDECEC', link: '#2F5BD3', toast: '#1C1C1A', toastLine: '#1C1C1A', toastText: '#FFFFFF', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#FDECEC', delText: '#8A1C1C', addBg: '#E3F2E8', addText: '#14532D', scrim: 'rgba(28,28,26,0.10)', panel: '#FFFFFF', shadow: '0 16px 48px rgba(0,0,0,0.18)', pop: '0 8px 24px rgba(0,0,0,0.14)', switchOff: '#C9C9C3', dashed: '#A3A39D', dropLine: 'rgba(28,28,26,0.15)', scheme: 'light', segBg: '#EFEFEC', segOn: '#FFFFFF' };
+    const D = { bg: '#1B1B1A', frame: '#3A3A37', chrome: '#262625', chromeLine: '#343432', line: '#2E2E2C', lineSoft: '#2A2A28', text: '#ECECE8', text2: '#D0D0CA', muted: '#A6A69F', faint: '#8A8A84', curLine: '#242423', status: '#212120', side: '#20201F', sunken: '#1F1F1E', info: '#252524', btn: '#2A2A28', btnLine: '#454542', badge: '#2F2F2D', badgeTab: '#3A3A37', invBg: '#ECECE8', invText: '#1B1B1A', mark: '#6B5414', markText: '#FFF3CF', okDot: '#4CBF7F', okBg: '#1C3324', okText: '#8FD4A6', warnBg: '#3B2A1A', warnText: '#F2B98A', danger: '#F28B82', dangerBg: '#3A2020', link: '#8AA6F2', toast: '#33332F', toastLine: '#4A4A46', toastText: '#F4F4F0', toastMuted: '#B5B5AE', toastOk: '#7FD49B', toastLink: '#A9C0FF', delBg: '#3A2020', delText: '#F2B8B5', addBg: '#1B3324', addText: '#A8DDB5', scrim: 'rgba(0,0,0,0.25)', panel: '#232322', shadow: '0 16px 48px rgba(0,0,0,0.5)', pop: '0 8px 24px rgba(0,0,0,0.45)', switchOff: '#4A4A47', dashed: '#6B6B66', dropLine: 'rgba(236,236,232,0.15)', scheme: 'dark', segBg: '#2A2A28', segOn: '#3A3A37' };
+    const A = { '#2F5BD3': '#8AA6F2', '#C2410C': '#F4955F', '#0F766E': '#4CC3B2', '#1C1C1A': '#E6E6E1' };
+    const c = Object.assign({}, dark ? D : L);
+    const ok = /^#[0-9a-fA-F]{6}$/.test(raw);
+    const accent = ok ? (dark ? (A[raw.toUpperCase()] || raw) : raw) : (dark ? '#8AA6F2' : '#2F5BD3');
+    const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const lum = (h) => { const v = rgb(h).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+    const mix = (a, b, t) => { const p = rgb(a), q = rgb(b); return '#' + p.map((x, i) => Math.round(x * (1 - t) + q[i] * t).toString(16).padStart(2, '0')).join(''); };
+    const la = lum(accent);
+    c.accent = accent;
+    c.onAccent = 1.05 / (la + 0.05) >= (la + 0.05) / (lum('#111111') + 0.05) ? '#FFFFFF' : '#111111';
+    c.sel = mix(c.bg, accent, dark ? 0.2 : 0.1);
+    c.selLine = mix(c.bg, accent, dark ? 0.45 : 0.3);
+    return c;
+  }
+  space(obj) {
+    let ok = true;
+    try { ok = typeof CSS === 'undefined' || CSS.supports('text-autospace', 'normal'); } catch (e) { ok = true; }
+    if (ok) return obj;
+    const fix = (s) => s.replace(/([\u4e00-\u9fff])([A-Za-z0-9⌘⌥⇧⌃`])/g, '$1\u2009$2').replace(/([A-Za-z0-9`])([\u4e00-\u9fff])/g, '$1\u2009$2');
+    const out = {};
+    Object.keys(obj).forEach((k) => { out[k] = typeof obj[k] === 'string' ? fix(obj[k]) : obj[k]; });
+    return out;
+  }
+  renderVals() {
+    const { appearance, language } = this.state;
+    const themeName = appearance === 'system' ? (this.props.theme ?? 'light') : appearance;
+    const localeName = language === 'system' ? (this.props.locale ?? 'zh') : language;
+    const plat = this.state.platform ?? ((this.props.platform ?? 'mac') === 'win' ? 'win' : 'mac');
+    const win = plat === 'win';
+    const c = this.tokens(themeName);
+    const en = localeName === 'en';
+    const pick = (v) => (Array.isArray(v) ? v[en ? 1 : 0] : v);
+    const m = win
+      ? { mod: 'Ctrl', shift: 'Shift', alt: 'Alt', ctrl: 'Ctrl', esc: 'Esc' }
+      : { mod: '⌘', shift: '⇧', alt: '⌥', ctrl: '⌃', esc: 'esc' };
+    const caps = (combo) => combo.split('+').map((p) => m[p] || p);
+    const k = (combo) => (win ? caps(combo).join('+') : caps(combo).join(''));
+    const t = this.space(en
+      ? { settings: 'Settings', navAria: 'Settings sections', general: 'General', keys: 'Shortcuts', platform: 'Shortcut style', global: 'Global', recording: 'Press a new shortcut…', change: 'Change', reset: 'Reset all to defaults', fidelity: 'Text fidelity', font: 'Editor font', monoOnly: 'Monospaced fonts only', holdHint: `Hold ${k('mod')} to show shortcuts`, holdHintDesc: 'Shortcut labels appear on buttons after about half a second, and hide when you let go' }
+      : { settings: '设置', navAria: '设置分类', general: '通用', keys: '快捷键', platform: '快捷键样式', global: '全局', recording: '请按下新的组合键…', change: '修改', reset: '全部恢复默认', fidelity: '文本保真', font: '编辑字体', monoOnly: '仅可选等宽字体', holdHint: `按住${k('mod')}显示快捷键`, holdHintDesc: '按住约半秒后，按钮旁显示对应快捷键；松开即隐藏' });
+    const navItems = [
+      ['#general', ['通用', 'General'], true],
+      ['#keys', ['快捷键', 'Shortcuts'], false],
+      ['#fidelity', ['编辑与文本保真', 'Editing & fidelity'], false],
+      ['#agent', ['Agent访问', 'Agent access'], false],
+      ['#storage', ['存储与清理', 'Storage & cleanup'], false],
+      ['#about', ['关于', 'About'], false]
+    ];
+    const nav = navItems.map(([href, label, on]) => ({ href, label: pick(label), current: on ? 'page' : 'false', bg: on ? c.sel : 'transparent', fg: on ? c.text : c.text2, weight: on ? '500' : '400' }));
+    const seg = (value, current, label, setter) => {
+      const on = value === current;
+      return { label, pressed: String(on), bg: on ? c.segOn : 'transparent', fg: on ? c.text : c.muted, shadow: on ? '0 1px 2px rgba(0,0,0,0.12)' : 'none', pick: () => setter(value) };
+    };
+    const setA = (v) => this.setState({ appearance: v });
+    const setL = (v) => this.setState({ language: v });
+    const setP = (v) => this.setState({ platform: v });
+    const prefs = [
+      { label: pick(['外观', 'Appearance']), desc: pick(['「跟随系统」时随系统即时切换，无需重启', '“System” switches with macOS / Windows right away, no restart']), opts: [
+        seg('system', appearance, pick(['跟随系统', 'System']), setA),
+        seg('light', appearance, pick(['浅色', 'Light']), setA),
+        seg('dark', appearance, pick(['深色', 'Dark']), setA)
+      ] },
+      { label: pick(['界面语言', 'Language']), desc: pick(['系统语言不支持时用英文；只改界面文字，不改片段内容', 'Falls back to English if your system language isn’t supported. Changes interface text only, never your snippets']), opts: [
+        seg('system', language, pick(['跟随系统', 'System']), setL),
+        seg('zh', language, '简体中文', setL),
+        seg('en', language, 'English', setL)
+      ] }
+    ];
+    const plats = [seg('mac', plat, 'macOS', setP), seg('win', plat, 'Windows', setP)];
+    const rows = [
+      { label: ['新建文本片段', 'New text snippet'], desc: ['应用内，直接进入空白编辑', 'In app; opens a blank editor'], combo: 'mod+N' },
+      { label: ['新建待办清单', 'New todo list'], desc: ['应用内，直接开始输入第一项', 'In app; start typing the first item'], combo: 'mod+T' },
+      { label: ['呼出Lastab并新建', 'Show Lastab and create new'], desc: [`在任何应用中可用 · 默认${k('ctrl+alt+N')}`, `Works from any app · default ${k('ctrl+alt+N')}`], combo: 'ctrl+alt+N', global: true, recording: true },
+      { label: ['「最近」切换器', 'Recent switcher'], desc: win ? ['只列已打开的tab；弹出后用Tab切换，回车打开', 'Lists open tabs only; press Tab to move, Enter to open'] : ['只列已打开的tab；弹出后用Tab切换。若与系统「切换窗口」冲突，改为⌃`', 'Open tabs only; press Tab to move. If it clashes with the system window switcher, use ⌃`'], combo: 'mod+`' },
+      { label: ['全部片段与搜索', 'All snippets and search'], desc: ['含已关闭的片段', 'Includes closed snippets'], combo: 'mod+K' },
+      { label: ['复制全部', 'Copy all'], desc: ['复制整条正文，不含标题', 'Copies the whole text, not the title'], combo: 'mod+shift+C' },
+      { label: ['版本历史', 'Version history'], desc: win ? ['查看并恢复旧版本；Ctrl+Y留给「重做」', 'View and restore earlier versions; Ctrl+Y stays Redo'] : ['查看并恢复当前片段的旧版本', 'View and restore earlier versions'], combo: win ? 'mod+shift+Y' : 'mod+Y' },
+      { label: ['关闭当前片段', 'Close snippet'], desc: ['关闭不等于删除，可从列表或搜索找回', 'Closing isn’t deleting; find it again in the list or search'], combo: 'mod+W' }
+    ].map((r) => ({ label: pick(r.label), desc: pick(r.desc), keys: caps(r.combo), global: !!r.global, recording: !!r.recording, idle: !r.recording }));
+    const checks = en
+      ? ['Always paste as plain text', 'No smart quotes or dash substitution', 'No autocorrect or auto-capitalization', 'Keep tabs, spaces and line breaks as typed']
+      : ['粘贴一律为纯文本', '关闭智能引号与破折号替换', '关闭自动纠错与自动大写', '保留Tab、空格与换行原样'];
+    const hold = this.state.hold;
+    return {
+      c, t, nav, prefs, plats, rows, checks,
+      escCancel: en ? `${k('esc')} to cancel` : `${k('esc')}取消`,
+      holdOn: String(hold), holdBg: hold ? c.accent : c.switchOff, holdAlign: hold ? 'flex-end' : 'flex-start',
+      toggleHold: () => this.setState({ hold: !this.state.hold }),
+      noop: () => {}, lang: en ? 'en' : 'zh-CN', isMac: !win, isWin: win
+    };
+  }
+}
+</script>
+</body>
+</html>
