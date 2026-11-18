@@ -201,5 +201,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "hideSidebar": "Hide sidebar",
+  "showSidebar": "Show sidebar",
+  "viewMenu": "View",
+  "toggleSidebarMenu": "Toggle Sidebar"
 }

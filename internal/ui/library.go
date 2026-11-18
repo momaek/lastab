@@ -146,6 +146,7 @@ func (a *App) CloseLibrary() {
 		l.cancel = nil
 	}
 	a.lib.open = false
+	a.Resort()
 	a.focusEditor = true
 }
 
@@ -234,8 +235,11 @@ func (a *App) openSnippet(id string) {
 			if cur := a.Active(); cur.id == "" && cur.buf().Len() == 0 && len(a.tabs) == 1 {
 				a.tabs = a.tabs[:0]
 			}
-			a.tabs = append(a.tabs, a.tabFor(sn))
+			t := a.tabFor(sn)
+			t.touchedAt = time.Now()
+			a.tabs = append(a.tabs, t)
 			a.active = len(a.tabs) - 1
+			a.Resort()
 			a.focusEditor = true
 			a.persistOrder()
 		}

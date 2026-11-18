@@ -11,6 +11,10 @@ import (
 // window shortcuts both come here, so a key means the same either way
 // (menus take keys before the window does).
 func (a *App) Run(action keys.Action, now time.Time) {
+	if action == keys.ToggleSidebar {
+		a.ToggleSidebar()
+		return
+	}
 	if a.lib.open {
 		switch action {
 		case keys.NewText:

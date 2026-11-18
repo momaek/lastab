@@ -25,8 +25,8 @@ type switcher struct {
 // OpenSwitcher shows the switcher, the snippet edited before the current
 // one selected.
 func (a *App) OpenSwitcher() {
-	items := slices.Clone(a.tabs)
-	slices.SortStableFunc(items, func(x, y *Tab) int { return y.modifiedAt.Compare(x.modifiedAt) })
+	a.Resort()
+	items := slices.Clone(a.tabs) // the sidebar's order
 	// The current tab first, so the default is the one before it.
 	cur := a.Active()
 	if i := slices.Index(items, cur); i > 0 {

@@ -21,19 +21,22 @@ const (
 	CopyAll     Action = "copyAll"
 	History     Action = "history"
 	CloseTab    Action = "closeTab"
+	// ToggleSidebar shows or hides the list of open snippets.
+	ToggleSidebar Action = "toggleSidebar"
 )
 
 // Defaults returns the default accelerators for goos.
 func Defaults(goos string) map[Action]string {
 	m := map[Action]string{
-		NewText:     "CmdOrCtrl+N",
-		NewTodo:     "CmdOrCtrl+T",
-		Summon:      "Ctrl+Alt+N",
-		Recent:      "CmdOrCtrl+`",
-		AllSnippets: "CmdOrCtrl+K",
-		CopyAll:     "CmdOrCtrl+Shift+C",
-		History:     "Cmd+Y",
-		CloseTab:    "CmdOrCtrl+W",
+		NewText:       "CmdOrCtrl+N",
+		NewTodo:       "CmdOrCtrl+T",
+		Summon:        "Ctrl+Alt+N",
+		Recent:        "CmdOrCtrl+`",
+		AllSnippets:   "CmdOrCtrl+K",
+		CopyAll:       "CmdOrCtrl+Shift+C",
+		History:       "Cmd+Y",
+		CloseTab:      "CmdOrCtrl+W",
+		ToggleSidebar: "CmdOrCtrl+\\",
 	}
 	if goos != "darwin" {
 		// Ctrl+Y is the editor's Redo on Windows.

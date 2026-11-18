@@ -82,7 +82,7 @@ func main() {
 			Title:         "Lastab",
 			Width:         960,
 			Height:        640,
-			MinWidth:      520,
+			MinWidth:      640,
 			MinHeight:     320,
 			StateKey:      "main",
 			TitleBarStyle: mygo.TitleBarHidden,

@@ -61,6 +61,9 @@ type Tab struct {
 	titleSource store.TitleSource
 	createdAt   time.Time
 	modifiedAt  time.Time
+	// touchedAt is the last activity, an edit or opening the snippet: the
+	// sidebar and the switcher list tabs by it, newest first.
+	touchedAt time.Time
 
 	seenVer   uint64    // buffer version last seen by tick
 	editedAt  time.Time // frame time of the last edit
@@ -103,6 +106,11 @@ type App struct {
 	switcher    switcher
 	lib         library
 
+	sidebarHidden bool
+	// scrollActive brings the active tab into view in the sidebar, once.
+	scrollActive bool
+	lastActive   *Tab
+
 	// focusEditor asks the next frame to focus the active editor.
 	focusEditor bool
 	// pal and acc are the frame's palette and accent shades.
@@ -128,7 +136,8 @@ func (a *App) blankTab(kind store.Kind) *Tab {
 	if kind == store.KindTodo {
 		body = "- [ ] "
 	}
-	t := &Tab{key: a.nextKey, kind: kind, titleSource: store.TitlePending, createdAt: time.Now(), modifiedAt: time.Now()}
+	now := time.Now()
+	t := &Tab{key: a.nextKey, kind: kind, titleSource: store.TitlePending, createdAt: now, modifiedAt: now, touchedAt: now}
 	t.ed = a.newEditor(body)
 	t.seenVer = t.buf().Version()
 	t.savedVer = t.seenVer
@@ -141,7 +150,7 @@ func (a *App) tabFor(sn store.Snippet) *Tab {
 	t := &Tab{
 		key: a.nextKey, id: sn.ID, kind: sn.Kind, rev: sn.Rev,
 		title: sn.Title, titleSource: sn.TitleSource,
-		createdAt: sn.CreatedAt, modifiedAt: sn.ModifiedAt,
+		createdAt: sn.CreatedAt, modifiedAt: sn.ModifiedAt, touchedAt: sn.ModifiedAt,
 	}
 	t.ed = a.newEditor(sn.Body)
 	v := t.buf().Version()
@@ -175,7 +184,7 @@ func appBindings() []editor.Binding {
 		k ui.Key
 	}{
 		{ui.Cmd, ui.KeyK}, {ui.Cmd, ui.KeyN}, {ui.Cmd, ui.KeyT}, {ui.Cmd, ui.KeyW},
-		{ui.Cmd, ui.KeyBackquote}, {ui.Cmd | ui.Shift, ui.KeyC}, {ui.Cmd, ui.KeyY}, {ui.Cmd | ui.Shift, ui.KeyY},
+		{ui.Cmd, ui.KeyBackquote}, {ui.Cmd | ui.Shift, ui.KeyC}, {ui.Cmd, ui.KeyBackslash}, {ui.Cmd, ui.KeyY}, {ui.Cmd | ui.Shift, ui.KeyY},
 	} {
 		bs = append(bs, editor.Binding{Mods: k.m, Key: k.k, Command: editor.NoCommand})
 	}
@@ -218,6 +227,7 @@ func (a *App) Load() error {
 			a.active = i
 		}
 	}
+	a.Resort()
 	a.focusEditor = true
 	return nil
 }
@@ -228,13 +238,26 @@ func (a *App) Tabs() []*Tab { return a.tabs }
 // Active returns the active tab.
 func (a *App) Active() *Tab { return a.tabs[a.active] }
 
-// NewTab opens a blank tab after the active one and focuses it.
+// NewTab opens a blank tab, at the top as the newest, and focuses it.
 func (a *App) NewTab(kind store.Kind) {
 	a.leave(a.Active())
-	t := a.blankTab(kind)
-	a.active++
-	a.tabs = slices.Insert(a.tabs, a.active, t)
+	a.tabs = append(a.tabs, a.blankTab(kind))
+	a.active = len(a.tabs) - 1
+	a.Resort()
 	a.focusEditor = true
+}
+
+// Resort orders the tabs by last activity. It runs at settle points, as
+// the user switches, opens or closes a snippet or comes back to the
+// window, never while typing: the snippet being edited stays where it is
+// until the user leaves it.
+func (a *App) Resort() {
+	if len(a.tabs) == 0 {
+		return
+	}
+	cur := a.Active()
+	slices.SortStableFunc(a.tabs, func(x, y *Tab) int { return y.touchedAt.Compare(x.touchedAt) })
+	a.active = slices.Index(a.tabs, cur)
 }
 
 // Activate switches to tab i.
@@ -244,6 +267,7 @@ func (a *App) Activate(i int) {
 	}
 	a.leave(a.Active())
 	a.active = i
+	a.Resort()
 	a.focusEditor = true
 	a.persistOrder()
 }
@@ -272,14 +296,21 @@ func (a *App) CloseTab(i int) {
 		return
 	}
 	t := a.tabs[i]
+	wasActive := i == a.active
+	cur := a.Active()
 	a.tabs = slices.Delete(a.tabs, i, i+1)
 	if len(a.tabs) == 0 {
 		a.tabs = []*Tab{a.blankTab(store.KindText)}
 	}
-	if a.active >= i && a.active > 0 {
-		a.active--
+	if wasActive {
+		// Back to the most recent of the others.
+		a.active = 0
+		a.Resort()
+		a.active = 0
+	} else {
+		a.active = max(slices.Index(a.tabs, cur), 0)
+		a.Resort()
 	}
-	a.active = min(a.active, len(a.tabs)-1)
 	a.focusEditor = true
 
 	body := t.Body()
@@ -367,6 +398,7 @@ func (a *App) tick(c *ui.Context) {
 			t.seenVer = v
 			t.editedAt = now
 			t.modifiedAt = time.Now()
+			t.touchedAt = t.modifiedAt
 		}
 		if v != t.savedVer && !t.saving && v != t.failedVer {
 			if wait := SaveDelay - now.Sub(t.editedAt); wait <= 0 || t.flushNow {

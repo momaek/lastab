@@ -133,7 +133,8 @@ func TestCloseIsNotDeleteAndRestore(t *testing.T) {
 	h.tt.Key(ui.Cmd, ui.KeyN)
 	h.tt.Type("second")
 	h.settle()
-	if len(h.app.Tabs()) != 2 || h.app.active != 1 {
+	// The newest is at the top of the sidebar, and active.
+	if len(h.app.Tabs()) != 2 || h.app.active != 0 || h.app.Active().Body() != "second" {
 		t.Fatalf("tabs %d active %d", len(h.app.Tabs()), h.app.active)
 	}
 	h.tt.Key(ui.Cmd, ui.KeyN)
@@ -149,10 +150,11 @@ func TestCloseIsNotDeleteAndRestore(t *testing.T) {
 		t.Fatalf("open %d", len(open))
 	}
 
-	// A new window over the same database restores the tabs in order.
+	// A new window over the same database restores the tabs, the most
+	// recently edited first.
 	h2 := newHarness(t, path)
 	tabs := h2.app.Tabs()
-	if len(tabs) != 2 || tabs[0].Body() != "first" || tabs[1].Body() != "second" {
+	if len(tabs) != 2 || tabs[0].Body() != "second" || tabs[1].Body() != "first" {
 		var bodies []string
 		for _, t := range tabs {
 			bodies = append(bodies, t.Body())

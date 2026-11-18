@@ -829,3 +829,43 @@ func Deleted(title string) string { return In(i18n.Locale()).Deleted(title) }
 func (msgs Messages) Deleted(title string) string {
 	return Catalog.Format(msgs.locale, "deleted", map[string]any{"title": title})
 }
+
+// HideSidebar says "Hide sidebar"
+// in the language the app shows.
+func HideSidebar() string { return In(i18n.Locale()).HideSidebar() }
+
+// HideSidebar says "Hide sidebar"
+// in the language of msgs.
+func (msgs Messages) HideSidebar() string {
+	return Catalog.Format(msgs.locale, "hideSidebar", nil)
+}
+
+// ShowSidebar says "Show sidebar"
+// in the language the app shows.
+func ShowSidebar() string { return In(i18n.Locale()).ShowSidebar() }
+
+// ShowSidebar says "Show sidebar"
+// in the language of msgs.
+func (msgs Messages) ShowSidebar() string {
+	return Catalog.Format(msgs.locale, "showSidebar", nil)
+}
+
+// ViewMenu says "View"
+// in the language the app shows.
+func ViewMenu() string { return In(i18n.Locale()).ViewMenu() }
+
+// ViewMenu says "View"
+// in the language of msgs.
+func (msgs Messages) ViewMenu() string {
+	return Catalog.Format(msgs.locale, "viewMenu", nil)
+}
+
+// ToggleSidebarMenu says "Toggle Sidebar"
+// in the language the app shows.
+func ToggleSidebarMenu() string { return In(i18n.Locale()).ToggleSidebarMenu() }
+
+// ToggleSidebarMenu says "Toggle Sidebar"
+// in the language of msgs.
+func (msgs Messages) ToggleSidebarMenu() string {
+	return Catalog.Format(msgs.locale, "toggleSidebarMenu", nil)
+}

@@ -77,5 +77,9 @@
   "noPreview": "选择一条片段，在这里预览",
   "libraryHint": "↑↓ 选择 · {enter} 打开 · 按住 {alt} 显示具体时间",
   "libraryHintExact": "↑↓ 选择 · {enter} 打开 · 松开 {alt} 恢复相对时间",
-  "deleted": "已删除「{title}」"
+  "deleted": "已删除「{title}」",
+  "hideSidebar": "隐藏侧栏",
+  "showSidebar": "显示侧栏",
+  "viewMenu": "显示",
+  "toggleSidebarMenu": "显示或隐藏侧栏"
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
 
-	"github.com/momaek/lastab/internal/store"
 	"github.com/momaek/lastab/internal/theme"
 	"github.com/momaek/lastab/internal/ui/keys"
 	"github.com/momaek/lastab/locales"
@@ -27,11 +26,20 @@ func (a *App) View(c *ui.Context) {
 		a.libraryView(c)
 		return
 	}
-	ui.Column(c).Fill().AlignItems(ui.Stretch).Background(pal.Bg).Children(func() {
-		a.titleBar(c)
-		a.editorArea(c)
-		a.statusBar(c)
+	if cur := a.Active(); cur != a.lastActive {
+		a.lastActive, a.scrollActive = cur, true
+	}
+	ui.Row(c).Fill().AlignItems(ui.Stretch).Background(pal.Bg).Children(func() {
+		if !a.sidebarHidden {
+			a.sidebar(c)
+		}
+		ui.Column(c.Key("main")).Grow(1).Shrink(1).MinWidth(0).AlignItems(ui.Stretch).Children(func() {
+			a.mainHeader(c)
+			a.editorArea(c)
+			a.statusBar(c)
+		})
 	})
+	a.scrollActive = false
 	a.switcherView(c)
 }
 
@@ -42,6 +50,7 @@ func (a *App) shortcuts(c *ui.Context) {
 	c.OnWindowShortcut(ui.Cmd, ui.KeyW, run(keys.CloseTab))
 	c.OnWindowShortcut(ui.Cmd, ui.KeyK, run(keys.AllSnippets))
 	c.OnWindowShortcut(ui.Cmd|ui.Shift, ui.KeyC, run(keys.CopyAll))
+	c.OnWindowShortcut(ui.Cmd, ui.KeyBackslash, run(keys.ToggleSidebar))
 	if !a.switcher.open {
 		c.OnWindowShortcut(ui.Cmd, ui.KeyBackquote, run(keys.Recent))
 	}
@@ -62,77 +71,6 @@ func tabTitle(t *Tab) string {
 		return locales.NewTab()
 	default:
 		return locales.Untitled(t.createdAt.Local().Format("15:04"))
-	}
-}
-
-func (a *App) titleBar(c *ui.Context) {
-	p := a.pal
-	bar := c.TitleBar()
-	left := bar.Left + 8
-	if bar.Left == 0 && runtime.GOOS == "darwin" {
-		left = 8
-	}
-	ui.Row(c).Height(max(bar.Height, theme.TitleBarHeight)).
-		Padding(0, bar.Right+8, 0, left).
-		Background(p.Chrome).BorderWidth(0, 0, 1, 0).BorderColor(p.ChromeLine).
-		AlignItems(ui.End).Gap(2).DragWindow().
-		Role(ui.RoleTabList).Label(locales.TabsLabel()).
-		Children(func() {
-			for i, t := range a.tabs {
-				a.tabView(c, i, t)
-			}
-			plus := ui.ButtonBase(c.Key("new")).Size(28, 28).Radius(6).Margin(0, 0, 6, 4).
-				Label(locales.NewSnippetMenu()).Tooltip(locales.NewSnippetMenu() + "  " + keys.Display(keys.Default(keys.NewText), runtime.GOOS))
-			if plus.Hovered() {
-				plus.Background(p.BadgeTab)
-			}
-			plus.Children(func() {
-				ui.Text(c, "+").FontSize(16).TextColor(p.Muted).Fill().TextAlign(ui.Center)
-			})
-			if plus.Clicked() {
-				a.NewTab(store.KindText)
-			}
-		})
-}
-
-func (a *App) tabView(c *ui.Context, i int, t *Tab) {
-	p := a.pal
-	active := i == a.active
-	tab := ui.ButtonBase(c.Key(t.key)).Row().AlignItems(ui.Center).Gap(6).
-		Height(34).MinWidth(96).MaxWidth(220).Padding(0, 6, 0, 12).
-		Radius(8, 8, 0, 0).
-		Role(ui.RoleTab).Selected(active).Label(tabTitle(t))
-	hovered := tab.Hovered()
-	switch {
-	case active:
-		tab.Background(p.Bg).BorderWidth(1, 1, 0, 1).BorderColor(p.ChromeLine).Margin(0, 0, -1, 0)
-	case hovered:
-		tab.Background(p.BadgeTab)
-	}
-	tab.Children(func() {
-		col := p.Muted
-		if active {
-			col = p.Text
-		}
-		if t.kind == store.KindTodo {
-			ui.Text(c, "☐").FontSize(12).TextColor(p.Faint)
-		}
-		ui.Text(c, tabTitle(t)).FontSize(theme.UIFontSize).TextColor(col).SingleLine().Grow(1).Shrink(1)
-		show := active || hovered
-		cl := ui.ButtonBase(c.Key("close")).Size(18, 18).Radius(4).Label(locales.CloseTab()).
-			IgnoreInput(!show).Opacity(map[bool]float32{true: 1, false: 0}[show])
-		if cl.Hovered() {
-			cl.Background(p.BadgeTab)
-		}
-		cl.Children(func() {
-			ui.Text(c, "×").FontSize(13).TextColor(p.Faint).Fill().TextAlign(ui.Center)
-		})
-		if cl.Clicked() {
-			a.CloseTab(i)
-		}
-	})
-	if tab.Clicked() {
-		a.Activate(i)
 	}
 }
 

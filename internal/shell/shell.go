@@ -66,6 +66,9 @@ func (s *Shell) Menu() *mygo.Menu {
 			item(locales.CloseSnippetMenu(), keys.CloseTab),
 		}},
 		{Role: mygo.RoleEditMenu},
+		{Label: locales.ViewMenu(), Submenu: []*mygo.MenuItem{
+			item(locales.ToggleSidebarMenu(), keys.ToggleSidebar),
+		}},
 		{Label: locales.GoMenu(), Submenu: []*mygo.MenuItem{
 			item(locales.RecentMenu(), keys.Recent),
 			item(locales.AllSnippetsMenu(), keys.AllSnippets),
