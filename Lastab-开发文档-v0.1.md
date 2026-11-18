@@ -90,7 +90,7 @@ MyGo 很新：仓库创建于 2026-09，当前是 v0.10.0，1.0 之前 API 可�
 │                                                                                          │
 │  internal/ui（MyGo 原生 UI，主线程）              业务层（不依赖 MyGo）                     │
 │  ┌──────────────────────────────┐  直接调用   ┌─────────────────────────────────┐         │
-│  │ 标题栏 + tab 栏                │ ─────────▶ │ snippet   片段与工作区            │         │
+│  │ 左侧栏（已打开的片段）         │ ─────────▶ │ snippet   片段与工作区            │         │
 │  │ 编辑器（ui/editor）             │            │ store     SQLite 读写与迁移       │         │
 │  │ 待办清单                       │ ◀───────── │ search    全文搜索               │         │
 │  │ 「最近」切换器（窗口内浮层）     │ Window.    │ history   版本快照与差异统计      │         │
@@ -148,7 +148,7 @@ lastab/
 │   ├── shell/                  # 菜单、托盘、全局快捷键、单实例、登录时启动、CLI/Skill 安装
 │   └── ui/                     # 原生 UI：视图、组件、快捷键表
 │       ├── app.go              # 应用状态与根视图
-│       ├── titlebar.go  tabs.go  statusbar.go
+│       ├── sidebar.go  view.go     # 左侧栏、编辑区标题栏、状态栏
 │       ├── editor.go           # ui/editor 的配置与包装
 │       ├── todo.go  switcher.go  library.go  history.go  settings.go  agent.go
 │       ├── toast.go  confirm.go  # 按设计自绘的轻提示与确认气泡
@@ -204,7 +204,7 @@ CREATE INDEX snippet_modified ON snippet(modified_at DESC);
 -- 工作区：已打开的 tab（「最近」切换器只看这里）
 CREATE TABLE workspace_tab (
   snippet_id  TEXT PRIMARY KEY REFERENCES snippet(id) ON DELETE CASCADE,
-  position    INTEGER NOT NULL,            -- tab 栏顺序
+  position    INTEGER NOT NULL,            -- 侧栏顺序（按最近活动排好后写入，重启时恢复）
   opened_at   INTEGER NOT NULL,
   is_active   INTEGER NOT NULL DEFAULT 0
 );
@@ -323,7 +323,7 @@ func (s *Service) Rename(ctx context.Context, id, title string) error           
 
 ### 5.6 「最近」切换器（P0）
 
-纯界面实现，数据来自工作区（只含已打开的 tab），按 `modified_at` 倒序排列。
+纯界面实现，数据来自工作区（只含已打开的 tab），顺序与左侧栏相同：按最近活动倒序（见 6.1.1）。
 
 | 行为 | 实现 |
 | --- | --- |
@@ -377,7 +377,7 @@ macOS 上 ⌘\` 是系统「在同一应用的窗口之间切换」的快捷键�
 
 | 视图（`internal/ui`） | 设计画板 | 主要用到的 MyGo 组件 | 主要状态 |
 | --- | --- | --- | --- |
-| `titlebar.go` / `tabs.go` | 所有画板 | `TitleBarHidden` + `c.TitleBar()` + `DragWindow`；tab 用自定义行（tablist / tab 角色） | macOS 红黄绿 / Windows 系统窗口按钮；tab 拖动排序 |
+| `sidebar.go` | 所有画板（待改，见 6.1.1） | `TitleBarHidden` + `c.TitleBar()` + `DragWindow`；侧栏用自定义列（纵向 tablist / tab 角色） | macOS 红黄绿压在侧栏顶部 / Windows 系统窗口按钮在右上角；按最近活动排序；可收起 |
 | `editor.go` | 0 新建空白片段、1 编辑器 | `editor.View` | `blank` / `rest` / `pending`（标题未生成）/ `saveFailed` / `copied` / `recovered` / 按住 ⌘ 提示 / 图标提示（`Tooltip`） |
 | `statusbar.go` | 编辑器 | 自定义行 | 留存状态、创建 / 修改时间、`纯文本 · UTF-8 · LF`（按实际行尾显示）、字数、复制全部 |
 | `switcher.go` | 2「最近」切换器 | `Overlay` + `TextInput` + 自定义列表 | 默认、输入过滤、无结果 |
@@ -389,7 +389,24 @@ macOS 上 ⌘\` 是系统「在同一应用的窗口之间切换」的快捷键�
 | `toast.go` | 状态页 | 自绘（MyGo 的 toast 在窗口底部，设计要求顶部居中） | 一次一条、标题栏下 12px、悬停暂停、可撤销倒计时 |
 | `confirm.go` | 删除确认 | `Popover`（锚定在按钮上） | 写明删除对象与后果 |
 
-### 6.2 编辑器与文本保真（P0，部分 **验证**）
+### 6.1.1 左侧栏（2026-11-18 调整，替代顶部 tab 栏）
+
+已打开的片段从顶部横排 tab 改为左侧竖排列表。原因：开到 20 条左右时横排 tab 只剩几个字，认不出；竖排能显示完整标题与时间，直接服务「找不回刚编辑的那条」。
+
+| 项 | 做法（**定**） |
+| --- | --- |
+| 宽度与收起 | 232px；⌘\\ / Ctrl+\\ 或侧栏顶部按钮收起，收起后编辑区标题栏左侧出现「显示侧栏」与「新建」按钮。窗口最小宽度 640 |
+| 每一项 | 标题（当前项加粗）+ 最近活动的相对时间（按住 ⌥ 显示具体时间）；待办带图标；悬停或当前项显示关闭按钮 |
+| 排序 | 按最近活动倒序。最近活动 = 最后一次编辑或打开（从 ⌘K 打开已关闭的片段也算），单纯点击切换不算 |
+| 何时重排 | 只在「落定」时重排：切换到别的片段、新建、关闭、从 ⌘K 打开或返回、打开切换器、启动恢复时。**输入过程中不重排**，正在编辑的那条原地不动，离开它后才移到顶部 |
+| 关闭当前项后 | 切到其余片段中最近活动的那条（列表顶部） |
+| 新建 | 新片段出现在顶部 |
+| 与切换器 | ⌘\` 切换器的顺序与侧栏相同（当前项置顶，默认选第 2 项） |
+| 不再需要 | tab 拖动排序 |
+
+设计画布中 38 张画板仍是顶部 tab 栏，需要按此更新（至少主屏幕）。
+
+（P0，部分 **验证**）
 
 `editor.State` 配置（**定**）：
 
@@ -443,7 +460,7 @@ macOS 上 ⌘\` 是系统「在同一应用的窗口之间切换」的快捷键�
 
 ### 6.5 无障碍与动效
 
-- MyGo 的原生 UI 会向屏幕阅读器公开元素：tab 栏用 tablist / tab 角色；切换器与搜索用组合框 + 列表；图标按钮设置 `Label`；复制成功、留存失败等用播报（对应设计中的 polite 播报）。
+- MyGo 的原生 UI 会向屏幕阅读器公开元素：左侧栏用纵向 tablist / tab 角色；切换器与搜索用组合框 + 列表；图标按钮设置 `Label`；复制成功、留存失败等用播报（对应设计中的 polite 播报）。
 - 只在悬停时出现的控件，用 `IgnoreInput(!hovered)` + 透明保持构建，键盘聚焦与辅助技术仍能到达（设计约定）。
 - 文字对比度满足 WCAG AA（设计变量已按此取值）；系统开启「增强对比度」时，主题自动加深边框与次要文字。
 - 动效按 `tokens.json` 的 `motion` 时长实现，用 MyGo 的弹簧、过渡与变换；系统开启「减弱动态效果」时，`Animate` 直接到达目标，只保留约 150ms 的淡入淡出。
@@ -459,6 +476,7 @@ macOS 上 ⌘\` 是系统「在同一应用的窗口之间切换」的快捷键�
 | 新建待办清单 | ⌘T | Ctrl+T | 应用内 | 菜单项 `CmdOrCtrl+T` |
 | 呼出 Lastab 并新建 | ⌃⌥N | Ctrl+Alt+N | 全局（**待确认**） | `mygo.GlobalShortcut.Register("Ctrl+Alt+N", …)`（macOS 上 Ctrl+Alt 即 ⌃⌥） |
 | 「最近」切换器 | ⌘\` | Ctrl+\` | 应用内 | 菜单项（macOS，见 7.2）/ 视图中的 `c.Shortcut` |
+| 显示 / 隐藏侧栏 | ⌘\\ | Ctrl+\\ | 应用内 | 菜单项「显示」/ 视图中的 `c.Shortcut` |
 | 全部片段与搜索 | ⌘K | Ctrl+K | 应用内 | 菜单项；编辑器中解除 ⌘K 绑定 |
 | 复制全部 | ⌘⇧C | Ctrl+Shift+C | 应用内 | 菜单项 |
 | 版本历史 | ⌘Y | Ctrl+Shift+Y | 应用内 | 菜单项（Windows 上 Ctrl+Y 留给编辑器的「重做」） |
@@ -551,7 +569,7 @@ lastab version
 | --- | --- | --- |
 | 最低系统版本 | macOS 12（MyGo 的下限；**待确认**是否提高） | Windows 10 / 11，x64 与 arm64 |
 | 运行依赖 | 无（Metal 绘制） | 无（Direct3D 11 绘制，不需要 WebView2） |
-| 窗口外观 | `TitleBarHidden`，保留红黄绿按钮，tab 栏放在按钮右侧（用 `c.TitleBar()` 让位） | `TitleBarHidden`，系统窗口按钮在右上角，tab 栏在左侧 |
+| 窗口外观 | `TitleBarHidden`，保留红黄绿按钮，压在左侧栏顶部（侧栏标题行用 `c.TitleBar()` 让位） | `TitleBarHidden`，系统窗口按钮在编辑区标题栏右上角 |
 | 常驻 | 关闭窗口后应用保留；Dock 图标 + 可选托盘图标 | 关闭窗口后隐藏到托盘 |
 | 快捷键显示 | ⌘ ⌥ ⇧ ⌃ 符号 | Ctrl、Alt、Shift 文字 |
 | 版本历史 | ⌘Y | Ctrl+Shift+Y（Ctrl+Y 是「重做」） |
@@ -638,6 +656,20 @@ go run ./scripts/build -platform windows/amd64,windows/arm64  # 任意机器：L
 | 9 | 运行时切换界面语言、外观即时生效 | 无需重启 | 切换后重建主窗口视图 |
 | 10 | 中英混排细空格、等宽数字的显示效果 | 与设计稿一致 | 调整插入规则；数字改用等宽字体 |
 | 11 | Claude Code 调用 Skill → CLI 的完整链路 | 能搜索并读到片段，访问记录正确 | — |
+
+### 12.1 M0 进展（2026-11-18）
+
+骨架已按第 3 节建好（`go.mod` 锁定 MyGo v0.10.0），业务层、命令行与 M1 主体界面可运行。已有结论：
+
+| # | 结论 | 依据 |
+| --- | --- | --- |
+| 3 | 部分通过：CRLF 文本粘贴进空白片段、复制全部，逐字节一致（在 `OnInput` 拦截 `paste` 命令，用 `Buffer.Set` 原样载入） | `internal/ui` 视图测试（`ui.NewTester`）；真实窗口与选区复制待手工确认 |
+| 6 | 通过：`modernc.org/sqlite` 支持 FTS5 trigram；应用持续写入时，只读打开的 CLI 搜索无错误、不阻塞 | `internal/store` 测试；真实应用运行时 `lastab status` / `list` 正常 |
+| 8 | 通过（无窗口）：浮层中过滤框的 `Element.Shortcut` 能接住 Tab / Shift+Tab / ↑↓ / ⌘\`，Enter 由 `Submitted` 处理 | `TestSwitcher` |
+
+开发环境补充：本机 Command Line Tools 的 SDK 与链接器不匹配时，`go test` 默认启用 cgo 会链接失败。项目不用 cgo，统一用 `CGO_ENABLED=0` 运行 `go test` / `go build`（`scripts/build` 已设置）。
+
+其余验证项（1、2、4、5、7、9、10、11）需要真实窗口、输入法或多种键盘布局，仍待手工验证。
 
 ## 13. 里程碑（建议）
 

@@ -1,0 +1,4 @@
+- [ ] 发版前检查
+- [x] 跑完整测试
+- [ ] 更新 CHANGELOG
+- [ ] curl -X POST /v2/orders --data '{"a":1}'
