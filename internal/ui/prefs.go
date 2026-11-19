@@ -45,6 +45,10 @@ type prefsPage struct {
 	logLoaded bool
 	storage   storageInfo
 	fonts     []string
+
+	// The lastab command and the Claude Code skill.
+	cli, skill    installRow
+	installLoaded bool
 }
 
 type logRow struct {
@@ -518,9 +522,7 @@ func (a *App) prefsAgent(c *ui.Context) {
 		ui.Text(c, "ⓘ").FontSize(14).TextColor(p.Muted)
 		ui.Text(c, locales.AgentInfo()).FontSize(12.5).LineHeight(1.5).TextColor(p.Text2).Shrink(1)
 	})
-	ui.Text(c, locales.AgentCLIHint()).FontSize(12).LineHeight(1.5).TextColor(p.Muted)
-	ui.Text(c, `lastab search "curl staging" --since 1d`).Font(monoFont).FontSize(12).TextColor(p.Text).
-		Padding(6, 10).Radius(6).Background(p.Sunken).Border(1, p.Line).Selectable()
+	a.agentInstall(c)
 
 	// Access log.
 	if !pg.logLoaded {

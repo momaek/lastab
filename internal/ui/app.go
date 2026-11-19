@@ -18,6 +18,7 @@ import (
 	"github.com/momaek/lastab/internal/snippet"
 	"github.com/momaek/lastab/internal/store"
 	"github.com/momaek/lastab/internal/theme"
+	"github.com/momaek/lastab/internal/todo"
 )
 
 // Timing of automatic keeping.
@@ -61,6 +62,9 @@ type Tab struct {
 	id   string
 	kind store.Kind
 	ed   *editor.State
+	// todo is the list a to-do tab shows in place of the editor; ed's
+	// buffer stays its body, the list's plain text (todo.go).
+	todo *todoList
 
 	rev         int
 	title       string
@@ -109,13 +113,13 @@ type App struct {
 
 	recovered   bool
 	copiedUntil time.Time
+	copiedItems int // items of the to-do list copied, for the announcement
 	switcher    switcher
 	lib         library
 	settings    Settings
 	prefs       prefsPage
 	history     history
 	toast       *toast
-	toastWidth  float32
 	// frameNow is the time of the frame being built, by the window's clock.
 	frameNow time.Time
 	// pendingHistory opens the history of this snippet once its tab opens.
@@ -147,10 +151,7 @@ func (a *App) ctx() context.Context { return context.Background() }
 
 func (a *App) blankTab(kind store.Kind) *Tab {
 	a.nextKey++
-	body := ""
-	if kind == store.KindTodo {
-		body = "- [ ] "
-	}
+	body := "" // a to-do list starts with no items, its add row focused
 	now := time.Now()
 	t := &Tab{key: a.nextKey, kind: kind, titleSource: store.TitlePending, createdAt: now, modifiedAt: now, touchedAt: now}
 	t.ed = a.newEditor(body)
@@ -387,6 +388,9 @@ func (a *App) CopyAll(now time.Time) {
 		a.d.Clipboard.WriteText(body)
 	}
 	a.copiedUntil = now.Add(CopiedFor)
+	if t.kind == store.KindTodo {
+		a.copiedItems = len(todo.Parse(body))
+	}
 	if t.id != "" {
 		id := t.id
 		a.d.Async(func() func() {

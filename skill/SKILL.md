@@ -3,6 +3,8 @@ name: lastab
 description: Read the user's Lastab snippets (plain-text notes, commands, JSON, to-do lists they pasted or typed in the Lastab app). Use when the user refers to something they wrote, pasted or edited earlier ("the curl I had", "my release checklist", "what I noted this morning").
 ---
 
+<!-- lastab-skill-version: 1 (Lastab offers "Reinstall" when the version it ships is higher) -->
+
 # Lastab
 
 Lastab keeps every snippet the user types or pastes, with titles made on the device. The `lastab` command reads them, read-only, as JSON. Read a snippet's full text only when the user asks for it.

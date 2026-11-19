@@ -1684,14 +1684,204 @@ func (msgs Messages) AgentInfo() string {
 	return Catalog.Format(msgs.locale, "agentInfo", nil)
 }
 
-// AgentCLIHint says "Agents call the lastab command. Its JSON field names are always English, whatever the interface language:"
+// InstallHeading says "Install"
 // in the language the app shows.
-func AgentCLIHint() string { return In(i18n.Locale()).AgentCLIHint() }
+func InstallHeading() string { return In(i18n.Locale()).InstallHeading() }
 
-// AgentCLIHint says "Agents call the lastab command. Its JSON field names are always English, whatever the interface language:"
+// InstallHeading says "Install"
 // in the language of msgs.
-func (msgs Messages) AgentCLIHint() string {
-	return Catalog.Format(msgs.locale, "agentCLIHint", nil)
+func (msgs Messages) InstallHeading() string {
+	return Catalog.Format(msgs.locale, "installHeading", nil)
+}
+
+// CliTool says "Command-line tool"
+// in the language the app shows.
+func CliTool() string { return In(i18n.Locale()).CliTool() }
+
+// CliTool says "Command-line tool"
+// in the language of msgs.
+func (msgs Messages) CliTool() string {
+	return Catalog.Format(msgs.locale, "cliTool", nil)
+}
+
+// Installed says "Installed"
+// in the language the app shows.
+func Installed() string { return In(i18n.Locale()).Installed() }
+
+// Installed says "Installed"
+// in the language of msgs.
+func (msgs Messages) Installed() string {
+	return Catalog.Format(msgs.locale, "installed", nil)
+}
+
+// Reinstall says "Reinstall"
+// in the language the app shows.
+func Reinstall() string { return In(i18n.Locale()).Reinstall() }
+
+// Reinstall says "Reinstall"
+// in the language of msgs.
+func (msgs Messages) Reinstall() string {
+	return Catalog.Format(msgs.locale, "reinstall", nil)
+}
+
+// InstallCLI says "Install"
+// in the language the app shows.
+func InstallCLI() string { return In(i18n.Locale()).InstallCLI() }
+
+// InstallCLI says "Install"
+// in the language of msgs.
+func (msgs Messages) InstallCLI() string {
+	return Catalog.Format(msgs.locale, "installCLI", nil)
+}
+
+// InstallSkill says "Install skill"
+// in the language the app shows.
+func InstallSkill() string { return In(i18n.Locale()).InstallSkill() }
+
+// InstallSkill says "Install skill"
+// in the language of msgs.
+func (msgs Messages) InstallSkill() string {
+	return Catalog.Format(msgs.locale, "installSkill", nil)
+}
+
+// Installing says "Installing…"
+// in the language the app shows.
+func Installing() string { return In(i18n.Locale()).Installing() }
+
+// Installing says "Installing…"
+// in the language of msgs.
+func (msgs Messages) Installing() string {
+	return Catalog.Format(msgs.locale, "installing", nil)
+}
+
+// InstallNoPermission says "Couldn’t install: no permission to write to {dir}. Check the folder’s permissions, then try again."
+// in the language the app shows.
+func InstallNoPermission(dir string) string { return In(i18n.Locale()).InstallNoPermission(dir) }
+
+// InstallNoPermission says "Couldn’t install: no permission to write to {dir}. Check the folder’s permissions, then try again."
+// in the language of msgs.
+func (msgs Messages) InstallNoPermission(dir string) string {
+	return Catalog.Format(msgs.locale, "installNoPermission", map[string]any{"dir": dir})
+}
+
+// InstallExists says "Couldn’t install: {path} already exists and isn’t Lastab’s. Remove or rename it, then try again."
+// in the language the app shows.
+func InstallExists(path string) string { return In(i18n.Locale()).InstallExists(path) }
+
+// InstallExists says "Couldn’t install: {path} already exists and isn’t Lastab’s. Remove or rename it, then try again."
+// in the language of msgs.
+func (msgs Messages) InstallExists(path string) string {
+	return Catalog.Format(msgs.locale, "installExists", map[string]any{"path": path})
+}
+
+// InstallNoCLI says "Couldn’t install: this copy of Lastab has no lastab command inside. Download Lastab again, then try again."
+// in the language the app shows.
+func InstallNoCLI() string { return In(i18n.Locale()).InstallNoCLI() }
+
+// InstallNoCLI says "Couldn’t install: this copy of Lastab has no lastab command inside. Download Lastab again, then try again."
+// in the language of msgs.
+func (msgs Messages) InstallNoCLI() string {
+	return Catalog.Format(msgs.locale, "installNoCLI", nil)
+}
+
+// InstallMoveApp says "Couldn’t install: Lastab is running from its disk image. Move it to Applications, open it from there, then try again."
+// in the language the app shows.
+func InstallMoveApp() string { return In(i18n.Locale()).InstallMoveApp() }
+
+// InstallMoveApp says "Couldn’t install: Lastab is running from its disk image. Move it to Applications, open it from there, then try again."
+// in the language of msgs.
+func (msgs Messages) InstallMoveApp() string {
+	return Catalog.Format(msgs.locale, "installMoveApp", nil)
+}
+
+// InstallFailed says "Couldn’t install: {reason}"
+// in the language the app shows.
+func InstallFailed(reason string) string { return In(i18n.Locale()).InstallFailed(reason) }
+
+// InstallFailed says "Couldn’t install: {reason}"
+// in the language of msgs.
+func (msgs Messages) InstallFailed(reason string) string {
+	return Catalog.Format(msgs.locale, "installFailed", map[string]any{"reason": reason})
+}
+
+// CliNeedsPath says "Installed in {dir}, which your shell may not search. Add it to PATH in your shell profile, or install in /usr/local/b…"
+// in the language the app shows.
+func CliNeedsPath(dir string) string { return In(i18n.Locale()).CliNeedsPath(dir) }
+
+// CliNeedsPath says "Installed in {dir}, which your shell may not search. Add it to PATH in your shell profile, or install in /usr/local/b…"
+// in the language of msgs.
+func (msgs Messages) CliNeedsPath(dir string) string {
+	return Catalog.Format(msgs.locale, "cliNeedsPath", map[string]any{"dir": dir})
+}
+
+// InstallAsAdmin says "Install in /usr/local/bin…"
+// in the language the app shows.
+func InstallAsAdmin() string { return In(i18n.Locale()).InstallAsAdmin() }
+
+// InstallAsAdmin says "Install in /usr/local/bin…"
+// in the language of msgs.
+func (msgs Messages) InstallAsAdmin() string {
+	return Catalog.Format(msgs.locale, "installAsAdmin", nil)
+}
+
+// CliNewTerminal says "Terminals opened from now on find lastab."
+// in the language the app shows.
+func CliNewTerminal() string { return In(i18n.Locale()).CliNewTerminal() }
+
+// CliNewTerminal says "Terminals opened from now on find lastab."
+// in the language of msgs.
+func (msgs Messages) CliNewTerminal() string {
+	return Catalog.Format(msgs.locale, "cliNewTerminal", nil)
+}
+
+// CliOutdated says "The installed link points to another copy of Lastab."
+// in the language the app shows.
+func CliOutdated() string { return In(i18n.Locale()).CliOutdated() }
+
+// CliOutdated says "The installed link points to another copy of Lastab."
+// in the language of msgs.
+func (msgs Messages) CliOutdated() string {
+	return Catalog.Format(msgs.locale, "cliOutdated", nil)
+}
+
+// SkillOutdated says "This version of Lastab comes with a newer skill."
+// in the language the app shows.
+func SkillOutdated() string { return In(i18n.Locale()).SkillOutdated() }
+
+// SkillOutdated says "This version of Lastab comes with a newer skill."
+// in the language of msgs.
+func (msgs Messages) SkillOutdated() string {
+	return Catalog.Format(msgs.locale, "skillOutdated", nil)
+}
+
+// InstallCLIPrompt says "Lastab wants to add the lastab command to /usr/local/bin."
+// in the language the app shows.
+func InstallCLIPrompt() string { return In(i18n.Locale()).InstallCLIPrompt() }
+
+// InstallCLIPrompt says "Lastab wants to add the lastab command to /usr/local/bin."
+// in the language of msgs.
+func (msgs Messages) InstallCLIPrompt() string {
+	return Catalog.Format(msgs.locale, "installCLIPrompt", nil)
+}
+
+// AgentOther says "Other agents can call it directly:"
+// in the language the app shows.
+func AgentOther() string { return In(i18n.Locale()).AgentOther() }
+
+// AgentOther says "Other agents can call it directly:"
+// in the language of msgs.
+func (msgs Messages) AgentOther() string {
+	return Catalog.Format(msgs.locale, "agentOther", nil)
+}
+
+// AgentJSONNote says "JSON field names are always English, whatever the interface language."
+// in the language the app shows.
+func AgentJSONNote() string { return In(i18n.Locale()).AgentJSONNote() }
+
+// AgentJSONNote says "JSON field names are always English, whatever the interface language."
+// in the language of msgs.
+func (msgs Messages) AgentJSONNote() string {
+	return Catalog.Format(msgs.locale, "agentJSONNote", nil)
 }
 
 // AccessLog says "Access log"
@@ -1854,4 +2044,172 @@ func WindowMenu() string { return In(i18n.Locale()).WindowMenu() }
 // in the language of msgs.
 func (msgs Messages) WindowMenu() string {
 	return Catalog.Format(msgs.locale, "windowMenu", nil)
+}
+
+// TodoListLabel says "To-do items"
+// in the language the app shows.
+func TodoListLabel() string { return In(i18n.Locale()).TodoListLabel() }
+
+// TodoListLabel says "To-do items"
+// in the language of msgs.
+func (msgs Messages) TodoListLabel() string {
+	return Catalog.Format(msgs.locale, "todoListLabel", nil)
+}
+
+// TodoItemLabel says "Item text"
+// in the language the app shows.
+func TodoItemLabel() string { return In(i18n.Locale()).TodoItemLabel() }
+
+// TodoItemLabel says "Item text"
+// in the language of msgs.
+func (msgs Messages) TodoItemLabel() string {
+	return Catalog.Format(msgs.locale, "todoItemLabel", nil)
+}
+
+// TodoAddLabel says "Add an item"
+// in the language the app shows.
+func TodoAddLabel() string { return In(i18n.Locale()).TodoAddLabel() }
+
+// TodoAddLabel says "Add an item"
+// in the language of msgs.
+func (msgs Messages) TodoAddLabel() string {
+	return Catalog.Format(msgs.locale, "todoAddLabel", nil)
+}
+
+// TodoAddPlaceholder says "Add an item, press Enter. Paste several lines to add several items"
+// in the language the app shows.
+func TodoAddPlaceholder() string { return In(i18n.Locale()).TodoAddPlaceholder() }
+
+// TodoAddPlaceholder says "Add an item, press Enter. Paste several lines to add several items"
+// in the language of msgs.
+func (msgs Messages) TodoAddPlaceholder() string {
+	return Catalog.Format(msgs.locale, "todoAddPlaceholder", nil)
+}
+
+// TodoCheckLabel says "Done: {text}"
+// in the language the app shows.
+//
+// Name of an item's check box for assistive technology.
+func TodoCheckLabel(text string) string { return In(i18n.Locale()).TodoCheckLabel(text) }
+
+// TodoCheckLabel says "Done: {text}"
+// in the language of msgs.
+//
+// Name of an item's check box for assistive technology.
+func (msgs Messages) TodoCheckLabel(text string) string {
+	return Catalog.Format(msgs.locale, "todoCheckLabel", map[string]any{"text": text})
+}
+
+// TodoDeleteItem says "Delete item"
+// in the language the app shows.
+func TodoDeleteItem() string { return In(i18n.Locale()).TodoDeleteItem() }
+
+// TodoDeleteItem says "Delete item"
+// in the language of msgs.
+func (msgs Messages) TodoDeleteItem() string {
+	return Catalog.Format(msgs.locale, "todoDeleteItem", nil)
+}
+
+// TodoDoneGroup says "Done {count}"
+// in the language the app shows.
+//
+// Header of the group of checked items.
+func TodoDoneGroup(count int) string { return In(i18n.Locale()).TodoDoneGroup(count) }
+
+// TodoDoneGroup says "Done {count}"
+// in the language of msgs.
+//
+// Header of the group of checked items.
+func (msgs Messages) TodoDoneGroup(count int) string {
+	return Catalog.Format(msgs.locale, "todoDoneGroup", map[string]any{"count": count})
+}
+
+// TodoClearDone says "Clear completed"
+// in the language the app shows.
+func TodoClearDone() string { return In(i18n.Locale()).TodoClearDone() }
+
+// TodoClearDone says "Clear completed"
+// in the language of msgs.
+func (msgs Messages) TodoClearDone() string {
+	return Catalog.Format(msgs.locale, "todoClearDone", nil)
+}
+
+// TodoCleared says "Cleared {count, plural, one {# completed item} other {# completed items}}"
+// in the language the app shows.
+func TodoCleared(count int) string { return In(i18n.Locale()).TodoCleared(count) }
+
+// TodoCleared says "Cleared {count, plural, one {# completed item} other {# completed items}}"
+// in the language of msgs.
+func (msgs Messages) TodoCleared(count int) string {
+	return Catalog.Format(msgs.locale, "todoCleared", map[string]any{"count": count})
+}
+
+// TodoDeleted says "Deleted “{text}”"
+// in the language the app shows.
+func TodoDeleted(text string) string { return In(i18n.Locale()).TodoDeleted(text) }
+
+// TodoDeleted says "Deleted “{text}”"
+// in the language of msgs.
+func (msgs Messages) TodoDeleted(text string) string {
+	return Catalog.Format(msgs.locale, "todoDeleted", map[string]any{"text": text})
+}
+
+// TodoPasted says "Split {count} pasted lines into {count} items"
+// in the language the app shows.
+func TodoPasted(count int) string { return In(i18n.Locale()).TodoPasted(count) }
+
+// TodoPasted says "Split {count} pasted lines into {count} items"
+// in the language of msgs.
+func (msgs Messages) TodoPasted(count int) string {
+	return Catalog.Format(msgs.locale, "todoPasted", map[string]any{"count": count})
+}
+
+// TodoUndone says "Restored"
+// in the language the app shows.
+//
+// Toast after undoing a change to a to-do list.
+func TodoUndone() string { return In(i18n.Locale()).TodoUndone() }
+
+// TodoUndone says "Restored"
+// in the language of msgs.
+//
+// Toast after undoing a change to a to-do list.
+func (msgs Messages) TodoUndone() string {
+	return Catalog.Format(msgs.locale, "todoUndone", nil)
+}
+
+// TodoProgress says "{done}/{total} done"
+// in the language the app shows.
+func TodoProgress(done int, total int) string { return In(i18n.Locale()).TodoProgress(done, total) }
+
+// TodoProgress says "{done}/{total} done"
+// in the language of msgs.
+func (msgs Messages) TodoProgress(done int, total int) string {
+	return Catalog.Format(msgs.locale, "todoProgress", map[string]any{"done": done, "total": total})
+}
+
+// TodoHints says "{add} add · {done} done · {move} move · {remove} delete"
+// in the language the app shows.
+//
+// Status bar of a to-do list: its keys.
+func TodoHints(add string, done string, move string, remove string) string {
+	return In(i18n.Locale()).TodoHints(add, done, move, remove)
+}
+
+// TodoHints says "{add} add · {done} done · {move} move · {remove} delete"
+// in the language of msgs.
+//
+// Status bar of a to-do list: its keys.
+func (msgs Messages) TodoHints(add string, done string, move string, remove string) string {
+	return Catalog.Format(msgs.locale, "todoHints", map[string]any{"add": add, "done": done, "move": move, "remove": remove})
+}
+
+// TodoCopiedAnnounce says "Copied as a plain-text list, {count, plural, one {# item} other {# items}}"
+// in the language the app shows.
+func TodoCopiedAnnounce(count int) string { return In(i18n.Locale()).TodoCopiedAnnounce(count) }
+
+// TodoCopiedAnnounce says "Copied as a plain-text list, {count, plural, one {# item} other {# items}}"
+// in the language of msgs.
+func (msgs Messages) TodoCopiedAnnounce(count int) string {
+	return Catalog.Format(msgs.locale, "todoCopiedAnnounce", map[string]any{"count": count})
 }

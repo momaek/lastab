@@ -6,11 +6,14 @@ package shell
 import (
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
 	"github.com/egoist/mygo"
 
+	"github.com/momaek/lastab/internal/install"
 	appui "github.com/momaek/lastab/internal/ui"
 	"github.com/momaek/lastab/internal/ui/keys"
 	"github.com/momaek/lastab/locales"
@@ -189,6 +192,66 @@ func (s *Shell) ShowInFolder(path string) { mygo.Shell.ShowItemInFolder(path) }
 // Version is Lastab's version and the framework's.
 func (s *Shell) Version() string {
 	return fmt.Sprintf("%s · MyGo %s", mygo.App.Version(), mygo.Version)
+}
+
+// installEnv is where the lastab command and the skill go: the command is
+// bin/lastab among the app's resources, or under go run the one that
+// `go run ./scripts/build -cli-only` builds into resources/<platform>/bin.
+func (s *Shell) installEnv() install.Env {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		s.Log.Warn("home folder", "err", err)
+	}
+	e := install.Env{Home: home, GlobalBin: "/usr/local/bin"}
+	res, err := mygo.App.Path(mygo.PathResources)
+	if err != nil {
+		s.Log.Warn("resources folder", "err", err)
+		return e
+	}
+	exe := "lastab"
+	if runtime.GOOS == "windows" {
+		exe += ".exe"
+	}
+	e.CLI = filepath.Join(res, "bin", exe)
+	if _, err := os.Stat(e.CLI); err != nil {
+		if dev := filepath.Join(res, runtime.GOOS+"-"+runtime.GOARCH, "bin", exe); fileExists(dev) {
+			e.CLI = dev
+		}
+	}
+	return e
+}
+
+func fileExists(p string) bool {
+	_, err := os.Stat(p)
+	return err == nil
+}
+
+// CLIStatus reports whether lastab is on the PATH.
+func (s *Shell) CLIStatus() install.Status { return s.installEnv().CLIStatus() }
+
+// SkillStatus reports whether the Claude Code skill is installed and current.
+func (s *Shell) SkillStatus() install.Status { return s.installEnv().SkillStatus() }
+
+// InstallCLI puts lastab on the PATH, as an administrator when admin is set.
+func (s *Shell) InstallCLI(admin bool) (install.Status, error) {
+	st, err := s.installEnv().InstallCLI(admin, locales.InstallCLIPrompt())
+	if err != nil {
+		s.Log.Warn("install command-line tool", "admin", admin, "err", err)
+	} else {
+		s.Log.Info("installed command-line tool", "path", st.Path)
+	}
+	return st, err
+}
+
+// InstallSkill writes the Claude Code skill.
+func (s *Shell) InstallSkill() (install.Status, error) {
+	st, err := s.installEnv().InstallSkill()
+	if err != nil {
+		s.Log.Warn("install skill", "err", err)
+	} else {
+		s.Log.Info("installed skill", "path", st.Path)
+	}
+	return st, err
 }
 
 // Install sets the menu, the global shortcut and the app's lifecycle:

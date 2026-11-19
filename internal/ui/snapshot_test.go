@@ -2,11 +2,14 @@ package appui
 
 import (
 	"image/png"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+
+	"github.com/momaek/lastab/internal/install"
 )
 
 // TestSnapshots writes PNGs of the main states for comparing with the
@@ -98,6 +101,35 @@ func TestSnapshots(t *testing.T) {
 		h.app.OpenSettings(secAgent)
 		h.tt.Frame()
 		save(name+"-settings-agent", h.tt)
+		h.app.CloseSettings()
+
+		// The Install group: AgentInstalling and AgentFailed of the design.
+		h.tt.SetSize(960, 880)
+		home, _ := os.UserHomeDir()
+		h.plat.cli = install.Status{State: install.Installed, Path: "/usr/local/bin/lastab"}
+		h.plat.skill = install.Status{Path: filepath.Join(home, ".claude", "skills", "lastab", "SKILL.md")}
+		var held []func() func()
+		async := h.app.d.Async
+		h.app.d.Async = func(w func() func()) { held = append(held, w) }
+		h.app.OpenSettings(secAgent)
+		h.tt.Frame() // asks for the statuses
+		for _, w := range held {
+			if apply := w(); apply != nil {
+				apply()
+			}
+		}
+		held = nil
+		h.tt.Frame()
+		save(name+"-agent", h.tt)
+		h.tt.Click("Install skill")
+		h.tt.Frame()
+		save(name+"-agent-installing", h.tt)
+		h.app.d.Async = async
+		h.plat.skillErr = &install.DirError{Dir: filepath.Join(home, ".claude", "skills"), Err: fs.ErrPermission}
+		h.app.prefs.skill.busy = false
+		h.app.InstallSkill()
+		h.tt.Frame()
+		save(name+"-agent-failed", h.tt)
 		h.app.CloseSettings()
 		h.tt.SetSize(900, 600)
 	}
