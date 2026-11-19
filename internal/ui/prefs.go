@@ -54,6 +54,37 @@ type prefsPage struct {
 type logRow struct {
 	agentlog.Entry
 	target string
+	undo   bool // an agent's rename the user can still undo
+}
+
+// undoRetitle puts back the title an agent's rename replaced, unless the
+// title changed since, then shows it and reloads the log.
+func (a *App) undoRetitle(r logRow) {
+	if len(r.SnippetIDs) != 1 {
+		return
+	}
+	id := r.SnippetIDs[0]
+	str := func(k string) string { s, _ := r.Args[k].(string); return s }
+	agentTitle := str("title")
+	prev := store.Snippet{Title: str("from"), TitleSource: store.TitleSource(str("from_source")), TitleBy: str("from_by")}
+	svc := a.d.Service
+	a.d.Async(func() func() {
+		ok, err := svc.Store.UndoAgentTitle(a.ctx(), id, agentTitle, r.Client, prev)
+		if err != nil {
+			a.d.Log.Error("undo rename", "err", err)
+		}
+		if !ok {
+			return func() { a.loadAccessLog() }
+		}
+		// A title that was pending, or automatic, is made again.
+		title, src, err := svc.UpdateTitle(a.ctx(), id)
+		return func() {
+			if err == nil {
+				a.applyTitle(id, title, src)
+			}
+			a.loadAccessLog()
+		}
+	})
 }
 
 type storageInfo struct {
@@ -532,6 +563,12 @@ func (a *App) prefsAgent(c *ui.Context) {
 			a.SetAgentMask(on)
 		}
 	})
+	a.prefRow(c, "rename", locales.AgentRenameLabel(), locales.AgentRenameDesc(), func() {
+		on := set.AgentRename
+		if ui.Switch(c.Key("sw"), &on).Label(locales.AgentRenameLabel()).Changed() {
+			a.SetAgentRename(on)
+		}
+	})
 	ui.Row(c).Gap(10).AlignItems(ui.Start).Padding(12, 14).Radius(8).Background(p.Info).Margin(16, 0, 8, 0).Children(func() {
 		ui.Icon(c, iconInfo).Size(15, 15).TextColor(p.Muted)
 		ui.Text(c, locales.AgentInfo()).FontSize(12.5).LineHeight(1.5).TextColor(p.Text2).Shrink(1)
@@ -554,8 +591,10 @@ func (a *App) prefsAgent(c *ui.Context) {
 	loc := i18n.Locale()
 	ui.Column(c.Key("log")).AlignItems(ui.Stretch).Radius(8).Border(1, p.Line).Clip().Role(ui.RoleTable).
 		Label(locales.AccessLog()).Children(func() {
-		row := func(key string, head bool, cells ...string) {
-			r := ui.Row(c.Key(key)).Gap(12).Padding(8, 12).BorderWidth(0, 0, 1, 0).BorderColor(p.LineSoft).Role(ui.RoleRow)
+		// extra, when not nil, follows the last cell: Undo on an agent's rename.
+		row := func(key string, head bool, extra func(), cells ...string) {
+			r := ui.Row(c.Key(key)).Gap(12).AlignItems(ui.Center).Padding(8, 12).BorderWidth(0, 0, 1, 0).
+				BorderColor(p.LineSoft).Role(ui.RoleRow)
 			if head {
 				r.Background(p.Status)
 			}
@@ -578,13 +617,34 @@ func (a *App) prefsAgent(c *ui.Context) {
 						t.Role(ui.RoleCell)
 					}
 				}
+				if extra != nil {
+					extra()
+				}
 			})
 		}
-		row("head", true, locales.ColTime(), locales.ColSource(), locales.ColAction(), locales.ColSnippet())
+		row("head", true, nil, locales.ColTime(), locales.ColSource(), locales.ColAction(), locales.ColSnippet())
 		for i, e := range pg.log {
-			row(fmt.Sprint(i), false, relTime(now, e.At, loc), e.Client, e.Op+argsText(e.Args), e.target)
+			var undo func()
+			if e.undo {
+				undo = func() {
+					if a.outlineButton(c, "undo", locales.Undo(), "").Height(24).Clicked() {
+						a.undoRetitle(e)
+					}
+				}
+			}
+			row(fmt.Sprint(i), false, undo, relTime(now, e.At, loc), e.Client, opText(e.Entry), e.target)
 		}
 	})
+}
+
+// opText writes an access as a command line would. A rename shows the
+// title it gave; what it replaced stays in the log, for Undo.
+func opText(e agentlog.Entry) string {
+	if e.Op == "retitle" {
+		t, _ := e.Args["title"].(string)
+		return fmt.Sprintf("retitle %q", t)
+	}
+	return e.Op + argsText(e.Args)
 }
 
 // argsText writes an access's arguments as a command line would.
@@ -631,11 +691,23 @@ func (a *App) loadAccessLog() {
 			return nil
 		}
 		rows := make([]logRow, len(es))
+		renamed := map[string]bool{} // snippets with a newer rename
 		for i, e := range es {
 			rows[i] = logRow{Entry: e, target: locales.ResultsCount(len(e.SnippetIDs))}
-			if e.Op == "read" && len(e.SnippetIDs) == 1 {
-				if sn, err := st.Get(a.ctx(), e.SnippetIDs[0]); err == nil {
-					rows[i].target = listTitle(sn)
+			if (e.Op == "read" || e.Op == "retitle") && len(e.SnippetIDs) == 1 {
+				id := e.SnippetIDs[0]
+				sn, err := st.Get(a.ctx(), id)
+				if err != nil {
+					continue
+				}
+				rows[i].target = listTitle(sn)
+				if e.Op == "retitle" {
+					// Only the newest rename of a snippet undoes, and only
+					// while its title is still the one that agent gave.
+					t, _ := e.Args["title"].(string)
+					rows[i].undo = !renamed[id] && sn.TitleSource == store.TitleManual &&
+						sn.TitleBy == e.Client && sn.Title == t
+					renamed[id] = true
 				}
 			}
 		}

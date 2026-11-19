@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -36,10 +37,13 @@ type Snippet struct {
 	Body        string
 	Title       string
 	TitleSource TitleSource
-	CreatedAt   time.Time
-	ModifiedAt  time.Time
-	Rev         int
-	Open        bool // in the workspace
+	// TitleBy is who named a manual title: "" for the user, or the client
+	// name of the agent that renamed it through `lastab retitle`.
+	TitleBy    string
+	CreatedAt  time.Time
+	ModifiedAt time.Time
+	Rev        int
+	Open       bool // in the workspace
 }
 
 var (
@@ -54,7 +58,7 @@ func NewID(t time.Time) string {
 	return ulid.MustNew(ulid.Timestamp(t), idEntropy).String()
 }
 
-const snippetCols = `s.id, s.kind, s.body, s.title, s.title_source, s.created_at, s.modified_at, s.rev,
+const snippetCols = `s.id, s.kind, s.body, s.title, s.title_source, s.title_by, s.created_at, s.modified_at, s.rev,
 	EXISTS(SELECT 1 FROM workspace_tab w WHERE w.snippet_id = s.id)`
 
 type scanner interface{ Scan(...any) error }
@@ -63,7 +67,7 @@ func scanSnippet(row scanner) (Snippet, error) {
 	var sn Snippet
 	var created, modified int64
 	var open bool
-	err := row.Scan(&sn.ID, &sn.Kind, &sn.Body, &sn.Title, &sn.TitleSource, &created, &modified, &sn.Rev, &open)
+	err := row.Scan(&sn.ID, &sn.Kind, &sn.Body, &sn.Title, &sn.TitleSource, &sn.TitleBy, &created, &modified, &sn.Rev, &open)
 	if errors.Is(err, sql.ErrNoRows) {
 		return sn, ErrNotFound
 	}
@@ -128,19 +132,88 @@ func (s *Store) SaveBody(ctx context.Context, id, body string, baseRev int) (int
 	return baseRev + 1, time.UnixMilli(now), nil
 }
 
-// SetTitle sets a snippet's title and its source. An automatic title never
-// replaces a manual one; a manual or pending source always applies.
+// SetTitle sets a snippet's title and its source, as the app does: a manual
+// title is the user's own. An automatic title never replaces a manual one
+// (the user's or an agent's); a manual or pending source always applies.
 func (s *Store) SetTitle(ctx context.Context, id, title string, source TitleSource) error {
 	w, err := s.writer()
 	if err != nil {
 		return err
 	}
-	q := `UPDATE snippet SET title = ?, title_source = ? WHERE id = ?`
+	q := `UPDATE snippet SET title = ?, title_source = ?, title_by = '' WHERE id = ?`
 	if source == TitleAuto {
 		q += ` AND title_source != 'manual'`
 	}
 	_, err = w.ExecContext(ctx, q, title, source, id)
 	return err
+}
+
+// UserNamed reports whether the user named the snippet themselves: then
+// nothing but the user renames it.
+func (sn Snippet) UserNamed() bool { return sn.TitleSource == TitleManual && sn.TitleBy == "" }
+
+// ErrUserTitle means the user named the snippet, so an agent may not rename it.
+var ErrUserTitle = errors.New("store: the user named this snippet")
+
+// AgentRetitle sets the title of snippet id on behalf of the agent client,
+// as `lastab retitle` does, and returns the snippet as it was before. The
+// title is stored as manual, so automatic titles no longer replace it, with
+// client in title_by. A title the user named is never replaced: that
+// returns ErrUserTitle. modified_at stays: a title is metadata, not an edit.
+func (s *Store) AgentRetitle(ctx context.Context, id, title, client string) (Snippet, error) {
+	w, err := s.writer()
+	if err != nil {
+		return Snippet{}, err
+	}
+	if client == "" {
+		return Snippet{}, errors.New("store: an agent rename needs a client name")
+	}
+	tx, err := w.BeginTx(ctx, nil)
+	if err != nil {
+		return Snippet{}, err
+	}
+	defer tx.Rollback()
+	old, err := scanSnippet(tx.QueryRowContext(ctx, `SELECT `+snippetCols+` FROM snippet s WHERE s.id = ?`, id))
+	if err != nil {
+		return Snippet{}, err
+	}
+	if old.UserNamed() {
+		return old, ErrUserTitle
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE snippet SET title = ?, title_source = 'manual', title_by = ? WHERE id = ?`, title, client, id); err != nil {
+		return Snippet{}, err
+	}
+	return old, tx.Commit()
+}
+
+// UndoAgentTitle puts back the title that agent client's rename to
+// agentTitle replaced, if the snippet still has that agent's title, and
+// reports whether it did. A later rename, by the user or anyone, wins.
+func (s *Store) UndoAgentTitle(ctx context.Context, id, agentTitle, client string, prev Snippet) (bool, error) {
+	w, err := s.writer()
+	if err != nil {
+		return false, err
+	}
+	switch prev.TitleSource {
+	case TitlePending, TitleAuto:
+		prev.TitleBy = ""
+	case TitleManual:
+	default:
+		return false, fmt.Errorf("store: title source %q", prev.TitleSource)
+	}
+	if client == "" {
+		return false, nil
+	}
+	res, err := w.ExecContext(ctx,
+		`UPDATE snippet SET title = ?, title_source = ?, title_by = ?
+		 WHERE id = ? AND title = ? AND title_source = 'manual' AND title_by = ?`,
+		prev.Title, prev.TitleSource, prev.TitleBy, id, agentTitle, client)
+	if err != nil {
+		return false, err
+	}
+	n, _ := res.RowsAffected()
+	return n > 0, nil
 }
 
 // Get returns one snippet.

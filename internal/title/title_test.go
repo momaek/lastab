@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/momaek/lastab/internal/redact"
 )
 
 func TestMake(t *testing.T) {
@@ -33,5 +35,19 @@ func TestTruncate(t *testing.T) {
 	got := Make(Text, strings.Repeat("长", 100))
 	if utf8.RuneCountInString(got) != MaxRunes || !strings.HasSuffix(got, "…") {
 		t.Errorf("got %q", got)
+	}
+}
+
+func TestClean(t *testing.T) {
+	for in, want := range map[string]string{
+		"  staging\n orders\t repro ":            "staging orders repro",
+		"\x1b[31mred\x1b[0m":                     "[31mred [0m",
+		" \n\t ":                                 "",
+		"Authorization: Bearer abcdefgh12345678": "Authorization: Bearer " + redact.Mask,
+		strings.Repeat("长", 50):                  strings.Repeat("长", MaxRunes-1) + "…",
+	} {
+		if got := Clean(in); got != want {
+			t.Errorf("Clean(%q) = %q, want %q", in, got, want)
+		}
 	}
 }

@@ -355,3 +355,109 @@ func TestClosedOnlyAndVersionCounts(t *testing.T) {
 		t.Fatalf("%v %v", n, err)
 	}
 }
+
+func TestAgentRetitle(t *testing.T) {
+	ctx := context.Background()
+	s := openTest(t)
+	sn, _ := s.CreateSnippet(ctx, KindText, "curl https://x.dev", 0)
+	if err := s.SetTitle(ctx, sn.ID, "curl · x.dev", TitleAuto); err != nil {
+		t.Fatal(err)
+	}
+	before, _ := s.Get(ctx, sn.ID)
+	old, err := s.AgentRetitle(ctx, sn.ID, "staging orders", "claude-code")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if old.Title != "curl · x.dev" || old.TitleSource != TitleAuto {
+		t.Fatalf("old %+v", old)
+	}
+	got, _ := s.Get(ctx, sn.ID)
+	if got.Title != "staging orders" || got.TitleSource != TitleManual || got.TitleBy != "claude-code" || got.UserNamed() {
+		t.Fatalf("got %+v", got)
+	}
+	if !got.ModifiedAt.Equal(before.ModifiedAt) || got.Rev != before.Rev {
+		t.Fatalf("a rename changed modified_at or rev: %+v", got)
+	}
+	// An automatic title doesn't replace an agent's.
+	if err := s.SetTitle(ctx, sn.ID, "auto", TitleAuto); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := s.Get(ctx, sn.ID); got.Title != "staging orders" {
+		t.Fatalf("auto replaced the agent's title: %q", got.Title)
+	}
+	// Another agent may rename what an agent named.
+	if _, err := s.AgentRetitle(ctx, sn.ID, "orders repro", "codex"); err != nil {
+		t.Fatal(err)
+	}
+	// The user's own name is final.
+	if err := s.SetTitle(ctx, sn.ID, "mine", TitleManual); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := s.Get(ctx, sn.ID); !got.UserNamed() {
+		t.Fatalf("not the user's: %+v", got)
+	}
+	if _, err := s.AgentRetitle(ctx, sn.ID, "theirs", "claude-code"); !errors.Is(err, ErrUserTitle) {
+		t.Fatalf("renamed the user's title: %v", err)
+	}
+	if got, _ := s.Get(ctx, sn.ID); got.Title != "mine" {
+		t.Fatalf("title %q", got.Title)
+	}
+	if _, err := s.AgentRetitle(ctx, "nope", "x", "claude-code"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("missing: %v", err)
+	}
+}
+
+func TestUndoAgentTitle(t *testing.T) {
+	ctx := context.Background()
+	s := openTest(t)
+	sn, _ := s.CreateSnippet(ctx, KindText, "hello", 0)
+	s.SetTitle(ctx, sn.ID, "hello", TitleAuto)
+	old, _ := s.AgentRetitle(ctx, sn.ID, "greeting", "claude-code")
+	ok, err := s.UndoAgentTitle(ctx, sn.ID, "greeting", "claude-code", old)
+	if err != nil || !ok {
+		t.Fatalf("undo %v %v", ok, err)
+	}
+	if got, _ := s.Get(ctx, sn.ID); got.Title != "hello" || got.TitleSource != TitleAuto || got.TitleBy != "" {
+		t.Fatalf("got %+v", got)
+	}
+	// After the user renames it, an old agent rename no longer undoes.
+	old, _ = s.AgentRetitle(ctx, sn.ID, "greeting", "claude-code")
+	s.SetTitle(ctx, sn.ID, "mine", TitleManual)
+	if ok, _ := s.UndoAgentTitle(ctx, sn.ID, "greeting", "claude-code", old); ok {
+		t.Fatal("undid over the user's title")
+	}
+	if got, _ := s.Get(ctx, sn.ID); got.Title != "mine" {
+		t.Fatalf("title %q", got.Title)
+	}
+}
+
+func TestOpenAgentWriter(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "lastab.db")
+	if _, err := OpenAgentWriter(path); !errors.Is(err, ErrNoDatabase) {
+		t.Fatalf("no db: %v", err)
+	}
+	app, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer app.Close()
+	sn, _ := app.CreateSnippet(ctx, KindText, "hello", 0)
+	cli, err := OpenAgentWriter(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := cli.AgentRetitle(ctx, sn.ID, "greeting", "test"); err != nil {
+		t.Fatal(err)
+	}
+	cli.Close()
+	if got, _ := app.Get(ctx, sn.ID); got.Title != "greeting" {
+		t.Fatalf("the app doesn't see it: %q", got.Title)
+	}
+	if _, err := app.w.ExecContext(ctx, fmt.Sprintf("PRAGMA user_version = %d", LatestVersion()-1)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := OpenAgentWriter(path); !errors.Is(err, ErrTooOld) {
+		t.Fatalf("old db: %v", err)
+	}
+}

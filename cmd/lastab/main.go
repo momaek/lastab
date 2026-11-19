@@ -1,5 +1,6 @@
-// Command lastab reads Lastab's snippets for agents, read-only, as JSON.
-// It works whether or not the app runs, and records each read in
+// Command lastab reads Lastab's snippets for agents, as JSON. Its one write
+// is retitle, which renames a snippet's title when the user allows it. It
+// works whether or not the app runs, and records each access in
 // agent_log.db. The user turns access on and off in the app's settings.
 package main
 
@@ -22,6 +23,7 @@ import (
 	"github.com/momaek/lastab/internal/redact"
 	"github.com/momaek/lastab/internal/search"
 	"github.com/momaek/lastab/internal/store"
+	"github.com/momaek/lastab/internal/title"
 	"github.com/momaek/lastab/internal/todo"
 )
 
@@ -35,6 +37,7 @@ const (
 	exitDenied   = 3
 	exitNotFound = 4
 	exitNoDB     = 5
+	exitRefused  = 6 // the user named the snippet: an agent may not rename it
 	exitInternal = 1
 )
 
@@ -96,7 +99,7 @@ func writeJSON(w io.Writer, v any) {
 func newRoot(e *env) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "lastab",
-		Short:         "Read Lastab snippets as JSON (read-only)",
+		Short:         "Read Lastab snippets as JSON, and rename titles when allowed",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
@@ -104,7 +107,7 @@ func newRoot(e *env) *cobra.Command {
 	root.PersistentFlags().StringVar(&e.client, "client", "", "name of the calling agent, for the access log")
 	root.PersistentFlags().Bool("json", true, "output JSON (the only format)")
 
-	root.AddCommand(listCmd(e), searchCmd(e), readCmd(e), statusCmd(e), versionCmd(e))
+	root.AddCommand(listCmd(e), searchCmd(e), readCmd(e), retitleCmd(e), statusCmd(e), versionCmd(e))
 	return root
 }
 
@@ -118,16 +121,23 @@ func (e *env) dbPath() (string, error) {
 
 // open opens the database read-only and checks access is allowed.
 func (e *env) open(ctx context.Context) error {
+	return e.openWith(ctx, store.OpenReadOnly)
+}
+
+// openWith opens the database with opener and checks access is allowed.
+func (e *env) openWith(ctx context.Context, opener func(string) (*store.Store, error)) error {
 	path, err := e.dbPath()
 	if err != nil {
 		return err
 	}
-	st, err := store.OpenReadOnly(path)
+	st, err := opener(path)
 	switch {
 	case errors.Is(err, store.ErrNoDatabase):
 		return fail(exitNoDB, "no_database", "no Lastab database at %s", path)
 	case errors.Is(err, store.ErrTooNew):
 		return fail(exitNoDB, "database_too_new", "%v: update lastab", err)
+	case errors.Is(err, store.ErrTooOld):
+		return fail(exitNoDB, "database_too_old", "%v: open Lastab once to update it", err)
 	case err != nil:
 		return fail(exitInternal, "internal", "%v", err)
 	}
@@ -397,6 +407,57 @@ func readCmd(e *env) *cobra.Command {
 	}
 }
 
+func retitleCmd(e *env) *cobra.Command {
+	return &cobra.Command{
+		Use:   "retitle <id or unique prefix> <title>",
+		Short: "Rename a snippet's title, if the user allows agents to (never one the user named)",
+		Args:  cobra.MinimumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
+			t := title.Clean(strings.Join(args[1:], " "))
+			if t == "" {
+				return fail(exitUsage, "usage", "the title is empty")
+			}
+			if err := e.openWith(ctx, store.OpenAgentWriter); err != nil {
+				return err
+			}
+			var allowed bool
+			if _, err := e.st.GetSetting(ctx, store.SettingAgentRename, &allowed); err != nil {
+				return fail(exitInternal, "internal", "%v", err)
+			}
+			if !allowed {
+				return fail(exitDenied, "rename_denied", "renaming titles is turned off in Lastab's settings")
+			}
+			sn, err := e.st.GetByPrefix(ctx, args[0])
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				return fail(exitNotFound, "not_found", "no snippet with ID %q", args[0])
+			case errors.Is(err, store.ErrAmbiguous):
+				return fail(exitNotFound, "ambiguous", "ID prefix %q matches several snippets", args[0])
+			case err != nil:
+				return fail(exitInternal, "internal", "%v", err)
+			}
+			old, err := e.st.AgentRetitle(ctx, sn.ID, t, e.clientName())
+			switch {
+			case errors.Is(err, store.ErrUserTitle):
+				return fail(exitRefused, "user_title", "the user named this snippet themselves; only they can rename it")
+			case errors.Is(err, store.ErrNotFound):
+				return fail(exitNotFound, "not_found", "no snippet with ID %q", args[0])
+			case err != nil:
+				return fail(exitInternal, "internal", "%v", err)
+			}
+			// The log keeps what the rename replaced, so that the user can
+			// undo it from Settings. It lives in agent_log.db, on this device.
+			e.record(ctx, "retitle", map[string]any{
+				"id": args[0], "title": t,
+				"from": old.Title, "from_source": string(old.TitleSource), "from_by": old.TitleBy,
+			}, []string{sn.ID})
+			writeJSON(e.out, map[string]any{"id": sn.ID, "title": t, "previous_title": redact.String(old.Title)})
+			return nil
+		},
+	}
+}
+
 func statusCmd(e *env) *cobra.Command {
 	return &cobra.Command{
 		Use:   "status",
@@ -423,7 +484,11 @@ func statusCmd(e *env) *cobra.Command {
 				return fail(exitInternal, "internal", "%v", err)
 			}
 			v, _ := st.UserVersion(ctx)
-			out := map[string]any{"access": access, "database": path, "schema_version": v, "cli_version": version}
+			var rename bool
+			if _, err := st.GetSetting(ctx, store.SettingAgentRename, &rename); err != nil {
+				return fail(exitInternal, "internal", "%v", err)
+			}
+			out := map[string]any{"access": access, "rename": access && rename, "database": path, "schema_version": v, "cli_version": version}
 			if access {
 				n, _ := st.Count(ctx)
 				out["snippets"] = n

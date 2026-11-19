@@ -80,6 +80,39 @@ func (a *App) commitRename() {
 	})
 }
 
+// RefreshTitles reads the stored titles of the open tabs again, and has All
+// snippets query again, so that a rename made outside the window, by an
+// agent through `lastab retitle`, shows. The shell calls it when the window
+// gets the focus back.
+func (a *App) RefreshTitles() {
+	if a.lib.open {
+		a.lib.stale = true
+	}
+	var ids []string
+	for _, t := range a.tabs {
+		if t.id != "" {
+			ids = append(ids, t.id)
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+	st := a.d.Service.Store
+	a.d.Async(func() func() {
+		var got []store.Snippet
+		for _, id := range ids {
+			if sn, err := st.Get(a.ctx(), id); err == nil {
+				got = append(got, sn)
+			}
+		}
+		return func() {
+			for _, sn := range got {
+				a.applyTitle(sn.ID, sn.Title, sn.TitleSource)
+			}
+		}
+	})
+}
+
 // applyTitle shows a snippet's new title wherever it shows.
 func (a *App) applyTitle(id, title string, src store.TitleSource) {
 	for _, t := range a.tabs {

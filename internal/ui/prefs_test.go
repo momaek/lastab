@@ -294,3 +294,62 @@ func TestAccessLogAndStorage(t *testing.T) {
 		t.Errorf("shown %q", h.plat.shown)
 	}
 }
+
+func TestAgentRenameSettingAndUndo(t *testing.T) {
+	h := newHarness(t, "")
+	ctx := context.Background()
+	h.tt.Type("curl https://x.dev/orders")
+	h.settle()
+	id := h.app.Active().ID()
+	auto := h.app.Active().title
+
+	h.app.OpenSettings(secAgent)
+	h.tt.Frame()
+	if setting[bool](t, h.st, store.SettingAgentRename) {
+		t.Fatal("renaming on by default")
+	}
+	h.clickRole(ui.RoleSwitch, "Let agents rename titles")
+	if !setting[bool](t, h.st, store.SettingAgentRename) {
+		t.Fatal("rename setting not saved")
+	}
+
+	// An agent renames the snippet while the window is away.
+	old, err := h.st.AgentRetitle(ctx, id, "orders repro", "claude-code")
+	if err != nil {
+		t.Fatal(err)
+	}
+	l, err := agentlog.Open(filepath.Join(h.dir, "agent_log.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	l.Add(ctx, agentlog.Entry{At: time.Now(), Client: "claude-code", Op: "retitle", SnippetIDs: []string{id},
+		Args: map[string]any{"id": id, "title": "orders repro", "from": old.Title, "from_source": string(old.TitleSource), "from_by": old.TitleBy}})
+	l.Close()
+	h.app.RefreshTitles()
+	h.tt.Frame()
+	if got := h.app.Active().title; got != "orders repro" {
+		t.Fatalf("tab title %q", got)
+	}
+
+	h.tt.SetSize(1000, 1400) // the log is below the install rows
+	h.app.OpenSettings(secAgent)
+	h.tt.Frame()
+	all := strings.Join(h.tt.Texts(), "|")
+	if !strings.Contains(all, `retitle "orders repro"`) {
+		t.Fatalf("log lacks the rename: %q", all)
+	}
+	if err := h.tt.Click("Undo"); err != nil {
+		t.Fatal(err)
+	}
+	h.tt.Frame()
+	got, _ := h.st.Get(ctx, id)
+	if got.Title != auto || got.TitleSource != store.TitleAuto {
+		t.Fatalf("after undo %+v, want %q", got, auto)
+	}
+	if h.app.Active().title != auto {
+		t.Errorf("tab title %q", h.app.Active().title)
+	}
+	if h.tt.HasText("Undo") {
+		t.Error("Undo still offered")
+	}
+}

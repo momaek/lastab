@@ -1624,11 +1624,11 @@ func (msgs Messages) EditorSize() string {
 	return Catalog.Format(msgs.locale, "editorSize", nil)
 }
 
-// AgentDesc says "Let agents like Claude Code search and read all your snippets and to-do lists through the local lastab command. Read-…"
+// AgentDesc says "Let agents like Claude Code search and read all your snippets and to-do lists through the local lastab command. They …"
 // in the language the app shows.
 func AgentDesc() string { return In(i18n.Locale()).AgentDesc() }
 
-// AgentDesc says "Let agents like Claude Code search and read all your snippets and to-do lists through the local lastab command. Read-…"
+// AgentDesc says "Let agents like Claude Code search and read all your snippets and to-do lists through the local lastab command. They …"
 // in the language of msgs.
 func (msgs Messages) AgentDesc() string {
 	return Catalog.Format(msgs.locale, "agentDesc", nil)
@@ -1644,11 +1644,11 @@ func (msgs Messages) AgentAccessLabel() string {
 	return Catalog.Format(msgs.locale, "agentAccessLabel", nil)
 }
 
-// AgentAccessDesc says "When off, the command-line tool refuses every read"
+// AgentAccessDesc says "When off, the command-line tool refuses everything"
 // in the language the app shows.
 func AgentAccessDesc() string { return In(i18n.Locale()).AgentAccessDesc() }
 
-// AgentAccessDesc says "When off, the command-line tool refuses every read"
+// AgentAccessDesc says "When off, the command-line tool refuses everything"
 // in the language of msgs.
 func (msgs Messages) AgentAccessDesc() string {
 	return Catalog.Format(msgs.locale, "agentAccessDesc", nil)
@@ -1672,6 +1672,26 @@ func AgentMaskDesc() string { return In(i18n.Locale()).AgentMaskDesc() }
 // in the language of msgs.
 func (msgs Messages) AgentMaskDesc() string {
 	return Catalog.Format(msgs.locale, "agentMaskDesc", nil)
+}
+
+// AgentRenameLabel says "Let agents rename titles"
+// in the language the app shows.
+func AgentRenameLabel() string { return In(i18n.Locale()).AgentRenameLabel() }
+
+// AgentRenameLabel says "Let agents rename titles"
+// in the language of msgs.
+func (msgs Messages) AgentRenameLabel() string {
+	return Catalog.Format(msgs.locale, "agentRenameLabel", nil)
+}
+
+// AgentRenameDesc says "The skill tells them to rename only when you ask. They can’t change the text or a title you named yourself, and eac…"
+// in the language the app shows.
+func AgentRenameDesc() string { return In(i18n.Locale()).AgentRenameDesc() }
+
+// AgentRenameDesc says "The skill tells them to rename only when you ask. They can’t change the text or a title you named yourself, and eac…"
+// in the language of msgs.
+func (msgs Messages) AgentRenameDesc() string {
+	return Catalog.Format(msgs.locale, "agentRenameDesc", nil)
 }
 
 // AgentInfo says "Whatever an agent reads is sent to the model service that agent uses. Lastab itself still uploads nothing, and every …"
