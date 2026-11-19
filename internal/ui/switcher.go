@@ -20,6 +20,9 @@ type switcher struct {
 	filter string
 	sel    int
 	items  []*Tab // ordered when opened; filtered each frame
+	// reveal asks for the selected row to scroll into view this frame:
+	// set only when the selection moves, so the user can still scroll.
+	reveal bool
 }
 
 // OpenSwitcher shows the switcher, the snippet edited before the current
@@ -33,7 +36,7 @@ func (a *App) OpenSwitcher() {
 		items = slices.Delete(items, i, i+1)
 		items = slices.Insert(items, 0, cur)
 	}
-	a.switcher = switcher{open: true, items: items, sel: min(1, len(items)-1)}
+	a.switcher = switcher{open: true, items: items, sel: min(1, len(items)-1), reveal: true}
 }
 
 // SwitcherOpen reports whether the switcher shows.
@@ -58,6 +61,7 @@ func (s *switcher) move(d, n int) {
 		return
 	}
 	s.sel = ((s.sel+d)%n + n) % n
+	s.reveal = true
 }
 
 func (a *App) choose(t *Tab) {
@@ -79,6 +83,7 @@ func (a *App) switcherView(c *ui.Context) {
 	vis := s.visible()
 	if s.sel >= len(vis) {
 		s.sel = max(0, len(vis)-1)
+		s.reveal = true
 	}
 	ui.DialogBase(c, &s.open, func(backdrop, panel ui.Element) {
 		backdrop.Background(p.Scrim).AlignItems(ui.Center).Justify(ui.Start).Padding(64, 16, 16, 16)
@@ -92,6 +97,7 @@ func (a *App) switcherView(c *ui.Context) {
 				FontSize(14).Padding(12, 14).Background(p.Panel).Border(0, p.Panel).
 				BorderWidth(0, 0, 1, 0).BorderColor(p.Line).Radius(0)
 			if in.Changed() {
+				s.reveal = true
 				s.sel = 0
 				if len(s.visible()) > 1 && strings.TrimSpace(s.filter) == "" {
 					s.sel = 1
@@ -117,6 +123,7 @@ func (a *App) switcherView(c *ui.Context) {
 					a.switcherRow(c, t, i == s.sel, i, n)
 				}
 			})
+			s.reveal = false
 			ui.Text(c, locales.SwitcherHint()).FontSize(11).TextColor(p.Faint).
 				Padding(8, 14).BorderWidth(1, 0, 0, 0).BorderColor(p.Line)
 		})
@@ -129,7 +136,9 @@ func (a *App) switcherRow(c *ui.Context, t *Tab, selected bool, i, n int) {
 		Role(ui.RoleOption).Selected(selected).PositionInSet(i+1, n).Label(tabTitle(t))
 	if selected {
 		row.Background(a.acc.Sel)
-		row.ScrollIntoView()
+		if a.switcher.reveal {
+			row.ScrollIntoView()
+		}
 	} else if row.Hovered() {
 		row.Background(p.Chrome)
 	}
