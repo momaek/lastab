@@ -159,7 +159,7 @@ lastab/
 │   ├── SKILL.md                # 安装到 ~/.claude/skills/lastab/ 的模板（含 lastab-skill-version 版本注释）
 │   └── skill.go                # //go:embed SKILL.md，供设置页写出
 ├── resources/
-│   ├── icon.png                # 1024×1024 占位应用图标（scripts/genicon 生成）；icon-dev.png 为开发版图标（橙色）
+│   ├── icon.png                # 1024×1024 应用图标（scripts/genicon 生成）；icon-dev.png 为开发版图标（橙色）
 │   ├── tray.png                # 托盘图标（macOS 模板图）
 │   ├── fonts/                  # 由 //go:embed 使用，不进入资源目录（resourcesExclude）
 │   ├── darwin-arm64/bin/lastab           # 由 scripts/build 生成，不提交
@@ -168,7 +168,7 @@ lastab/
 │   └── windows-arm64/bin/lastab.exe
 └── scripts/
     ├── gentokens/              # design/tokens.json → internal/theme/tokens_gen.go
-    ├── genicon/                # 画占位图标 resources/icon.png、icon-dev.png
+    ├── genicon/                # 画应用与托盘图标 resources/icon*.png、internal/shell/assets/tray-*.png
     └── build/                  # 先交叉编译 lastab 到 resources/<平台>/bin，再调用 mygo build；从环境变量注入签名设置
 ```
 
@@ -617,7 +617,7 @@ go tool mygo generate                  # 重新生成 locales/catalog_gen.go
 go run ./scripts/build                                        # 本机平台：Lastab.app + DMG（ad hoc 签名）
 go run ./scripts/build -platform darwin/universal             # 在 Mac 上：通用 .app + DMG，有证书时签名并公证
 go run ./scripts/build -platform windows/amd64,windows/arm64  # 任意机器：Lastab.exe + NSIS 安装包（需 makensis，没有时跳过安装包）
-go run ./scripts/genicon                                      # 重新生成占位图标
+go run ./scripts/genicon                                      # 重新生成应用与托盘图标
 ```
 
 `scripts/build` 依次：交叉编译 `lastab` 到对应的 `resources/<平台>/bin/` → 按环境变量临时把签名设置写进 `mygo.json` → 运行 `go tool mygo build -platform …` → 无论成败（含 Ctrl+C）都把 `mygo.json` 恢复原样。产物在 `build/<平台>/`，不提交。
@@ -637,7 +637,7 @@ go run ./scripts/genicon                                      # 重新生成占�
 | Windows | `Lastab.exe`、`bin\lastab.exe` 与 `lastab-setup-<版本>-<架构>.exe`（NSIS，按用户安装）。有证书时签名应用、`lastab.exe`、安装包与卸载程序 |
 
 - 签名证书与公证凭据只放在 CI Secrets 与钥匙串中，不进仓库。
-- 图标：`resources/icon.png`（1024×1024，`scripts/genicon` 画的占位图，蓝色）与 `resources/icon-dev.png`（橙色，`mygo dev` 用）。正式图标出来后直接替换这两个文件。`icon.png` 会随应用进入资源目录（MyGo 的更新插件会读它），不排除。
+- 图标：`resources/icon.png`（1024×1024，墨色底）与 `resources/icon-dev.png`（橙色底，`mygo dev` 用），连同托盘图标都由 `scripts/genicon` 画出，标志母版与使用说明在 `design/brand/`。`icon.png` 会随应用进入资源目录（MyGo 的更新插件会读它），不排除。
 - 版本号：`mygo.json` 的 `version`；应用与 CLI 同一个版本号（构建时用 `-ldflags` 写入 CLI），`lastab version` 可查。
 - 自动更新：MyGo 内置签名更新（`mygo.Updater`，支持 GitHub Releases 与增量更新）。需求未提，首期不开启，**待确认**；开启后 `release.yml` 改用 `mygo build -upload`。
 

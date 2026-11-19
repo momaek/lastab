@@ -34,7 +34,7 @@ jobs:
   draft-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check the tag against mygo.json
         run: |
           want="v$(jq -r .version mygo.json)"
@@ -56,8 +56,8 @@ jobs:
     name: macOS (universal)
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Import the certificate and the notary credentials
@@ -110,7 +110,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" build/darwin-universal/*.dmg --repo "$GITHUB_REPOSITORY" --clobber
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: macos
           path: build/darwin-universal/*.dmg
@@ -120,8 +120,8 @@ jobs:
     name: Windows (amd64, arm64)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       - name: Install NSIS and osslsigncode
@@ -153,7 +153,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" build/windows-*/*-setup-*.exe --repo "$GITHUB_REPOSITORY" --clobber
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows
           path: build/windows-*/*-setup-*.exe
