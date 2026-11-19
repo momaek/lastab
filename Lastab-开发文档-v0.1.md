@@ -307,7 +307,7 @@ func (s *Service) Rename(ctx context.Context, id, title string) error           
 
 - **索引**：FTS5 `trigram` 分词器，`title` 与 `body` 两列，覆盖所有片段（含已关闭的）。默认只搜当前内容，不搜旧版本（**待确认**，需求待确认问题 10）。
 - **查询长度 ≥ 3 个字符**：用 `snippet_fts MATCH`，按 `bm25()` 加最近修改时间综合排序。
-- **查询长度 < 3 个字符**（如「周会」「{"」）：trigram 无法命中，回退为 `body LIKE '%q%' OR title LIKE '%q%'` 全表扫描。本地片段量（万条级）下可接受，技术验证中实测。
+- **查询长度 < 3 个字符**（如「周会」「{"」）：trigram 无法命中，回退为 `body LIKE '%q%' OR title LIKE '%q%'` 全表扫描；不含 ASCII 字母时用等价而更快的 `instr()`。1 万条下最坏约 32 ms（实测见 12.1.1）。
 - **过滤**：类型（文本 / 待办）、时间范围（今天、7 天、30 天、自定义），以及「只看已打开」。
 - **结果**：返回命中位置附近的一段正文与高亮区间（界面用 `RichText` 的 `Span` 高亮）；预览先经过 `redact`。
 - 搜索在 goroutine 中执行，带取消：输入变化时取消上一次查询。
@@ -617,7 +617,7 @@ go run ./scripts/build -platform windows/amd64,windows/arm64  # 任意机器：L
 
 ### 10.3 CI（GitHub Actions）
 
-- PR（已建，`.github/workflows/ci.yml`）：`CGO_ENABLED=0`；macOS 与 Windows 两个 runner 跑 `go vet`、`go test ./...`、`mygo i18n check` 和构建；macOS 上另查 `gofmt`、Windows / Linux 交叉 `vet`，以及 `tokens_gen.go`、`catalog_gen.go` 与源文件一致。`golangci-lint`、`staticcheck`、`govulncheck` 待加（需锁定版本）。
+- PR（已建，`.github/workflows/ci.yml`）：`CGO_ENABLED=0`；macOS 与 Windows 两个 runner 跑 `go vet`、`go test ./...`、`mygo i18n check` 和构建；macOS 上另查 `gofmt`、Windows / Linux 交叉 `vet`，以及 `tokens_gen.go`、`catalog_gen.go` 与源文件一致。另有 `lint` 作业：`staticcheck`、`golangci-lint`（配置见 `.golangci.yml`）与 `govulncheck`，均锁定确切版本，用项目的 Go 构建；前两者另按 `GOOS=windows` 再查一遍。
 - `main`：额外构建未签名的产物，供内部试用。
 - Tag：在 macOS runner 上构建、签名、公证 macOS 包；构建并签名 Windows 安装包；生成 Release 草稿。工作流参考 MyGo 文档中的 GitHub Actions 一节。
 
@@ -671,11 +671,82 @@ go run ./scripts/build -platform windows/amd64,windows/arm64  # 任意机器：L
 | --- | --- | --- |
 | 3 | 部分通过：CRLF 文本粘贴进空白片段、复制全部，逐字节一致（在 `OnInput` 拦截 `paste` 命令，用 `Buffer.Set` 原样载入） | `internal/ui` 视图测试（`ui.NewTester`）；真实窗口与选区复制待手工确认 |
 | 6 | 通过：`modernc.org/sqlite` 支持 FTS5 trigram；应用持续写入时，只读打开的 CLI 搜索无错误、不阻塞 | `internal/store` 测试；真实应用运行时 `lastab status` / `list` 正常 |
+| 7 | 通过（数据层，Apple M4）：1 万条片段下 `Store.Search` 全部 < 35 ms，⌘K 每次按键的查询（含预览、版本数、总数）≤ 32 ms。短查询暂不需要 bigram 辅助表 | 下文 12.1.1；`internal/store`、`internal/search` 的基准测试 |
 | 8 | 通过（无窗口）：浮层中过滤框的 `Element.Shortcut` 能接住 Tab / Shift+Tab / ↑↓ / ⌘\`，Enter 由 `Submitted` 处理 | `TestSwitcher` |
 
 开发环境补充：本机 Command Line Tools 的 SDK 与链接器不匹配时，`go test` 默认启用 cgo 会链接失败。项目不用 cgo，统一用 `CGO_ENABLED=0` 运行 `go test` / `go build`（`scripts/build` 已设置）。
 
-其余验证项（1、2、4、5、7、9、10、11）需要真实窗口、输入法或多种键盘布局，仍待手工验证。
+其余验证项（1、2、4、5、9、10、11）需要真实窗口、输入法或多种键盘布局，仍待手工验证，步骤见 `docs/acceptance.md`。
+
+#### 12.1.1 验证项 7：1 万条片段的搜索延迟（2026-11-19）
+
+**方法**：`internal/store/storetest` 用固定种子生成 1 万条片段：中文段落 30%、英文 20%、curl 命令 10%（带 `Authorization`、`--since`、`-d '{"…"}'`）、JSON 12%、代码 13%、日志 7%、待办 8%；长度 60% 在 1 KB 以内，3% 为 12–20 KB；修改时间集中在最近 90 天；20 条在工作区中打开；每条 0–5 个版本。合计正文 24.4 MB、版本 24,929 个，数据库 160 MB（trigram 索引占大头）。在 Apple M4、macOS、Go 1.27.4、`modernc.org/sqlite` v1.62.0 上运行：
+
+```
+CGO_ENABLED=0 go test -run '^$' -bench . ./internal/store ./internal/search
+```
+
+**`Store.Search`**（`Limit` 300，即 ⌘K 的上限，另注明的除外）：
+
+| 查询 | 路径 | 命中 | 耗时 |
+| --- | --- | ---: | ---: |
+| `周会` | 短查询扫描 | 300 | 6.6 ms |
+| `周会`，不限条数 | 短查询扫描 | 1,656 | 34.4 ms |
+| `发版` | 短查询扫描 | 300 | 2.8 ms |
+| `{"` | 短查询扫描 | 300 | 4.0 ms |
+| `鲸鱼`（无命中，扫完全表，最坏情况） | 短查询扫描 | 0 | 32.0 ms |
+| `鲸鱼` + 30 天 | 短查询扫描 | 0 | 12.7 ms |
+| `周会` + 7 天 | 短查询扫描 | 181 | 3.0 ms |
+| `发版` + 只看已打开 | 短查询扫描 | 11 | 0.09 ms（改前 31 ms） |
+| `发版` + 只看已关闭 | 短查询扫描 | 300 | 3.2 ms |
+| `数据库` | trigram | 300 | 17.8 ms |
+| `--since` | trigram | 300 | 13.2 ms |
+| `{"id` | trigram | 300 | 10.9 ms |
+| `/v2/` | trigram | 300 | 14.9 ms |
+| `Authorization` | trigram | 300 | 15.8 ms |
+| `certificate`（只出现在部分待办里） | trigram | 300 | 4.2 ms |
+| `zebra crossing`（无命中） | trigram | 0 | 0.13 ms |
+| `the`（常见词） | trigram | 300 | 15.8 ms |
+| `the`，不限条数 | trigram | 2,662 | 21.5 ms |
+| `the` + 7 天 | trigram | 299 | 4.4 ms |
+| `the` + 30 天 + 只看已关闭 | trigram | 300 | 8.2 ms |
+| `the` + 只看已打开 | trigram | 5 | 2.5 ms |
+| `the` + 待办 | trigram | 300 | 6.7 ms |
+| `数据库` + 7 天 | trigram | 291 | 5.6 ms |
+
+| 其他调用 | 耗时 |
+| --- | ---: |
+| `List`，300 条（空查询的 ⌘K） | 0.53 ms |
+| `List`，300 条 + 7 天 / 只看已关闭 | 0.55 / 0.58 ms |
+| `List`，全部 1 万条 | 22.0 ms |
+| `VersionCounts`，300 个 ID | 0.29 ms |
+| `Count` | 0.005 ms |
+
+**⌘K 一次按键的完整查询**（`search.Searcher.Query` 含预览与遮蔽，加 `VersionCounts` 与 `Count`，即界面在后台 goroutine 中做的全部工作）：
+
+| 查询 | 改前 | 改后 |
+| --- | ---: | ---: |
+| 空查询 | 107 ms | 5.0 ms |
+| `周会` | 72 ms | 13.8 ms |
+| `鲸鱼`（无命中） | 39 ms | 32.1 ms |
+| `the` | 140 ms | 24.9 ms |
+| `数据库` | 109 ms | 25.5 ms |
+| `--since` | 210 ms | 22.4 ms |
+| `the` + 7 天 | 121 ms | 13.4 ms |
+
+**改动**：
+
+- 慢的不是 SQLite，是预览：`search.Preview` 对每条结果的整段正文跑一遍 `redact`（13 条正则），再只取 160 字节。现在只遮蔽命中位置前后若干整行的窗口（遮蔽规则都不跨行，窗口外再多留两行以防键与值之间的空白跨行），含 PEM 私钥的正文仍整段遮蔽；`TestPreviewWindow` 用生成的片段与边界样本逐条比对，与整段遮蔽的结果一致。
+- `redact` 先查每条规则必含的字面量（如 `authorization`、`sk-`、`AKIA`），文本里没有就跳过该正则；`(?i)` 规则在折叠大小写后的文本里查（含 K 的开尔文符号、长 s）。`TestPrefilter` 比对与逐条跑正则的结果一致。
+- 短查询（< 3 个字符）不含 ASCII 字母时（`周会`、`{"`）用 `instr()` 代替 `LIKE`：SQLite 的 `LIKE` 只对 ASCII 忽略大小写，两者结果相同，全表扫描快约 20%。
+- 「只看已打开」改为 `s.id IN (SELECT snippet_id FROM workspace_tab)`，让 SQLite 从约 20 个打开的 tab 出发，而不是逐条扫描再判断。
+
+**结论**：
+
+- 目标（< 50 ms）在这台机器上达到。最慢的是不能提前停下的短查询扫描（无命中或不限条数，约 32–34 ms）：它要读完 24 MB 正文，余量约三分之一。**bigram 辅助表暂不加**；在较慢的 Windows 笔记本上复测这两项，超过 50 ms 再加（短查询走 bigram 表，3 个字符以上仍走 trigram）。
+- ⌘K 的 300 条上限对数据层没有问题：300 条的预览、版本数与总数合计几毫秒。
+- 不做虚拟化的列表是现在每次按键最大的开销。用 `ui.NewTester` 在同一份数据上临时测量（未提交）：结果变化后的第一帧要重新排版 300 行，约 30–95 ms，比查询本身还慢；结果不变的帧 2–3 ms，↓ 键加一帧约 10 ms。建议界面先只渲染前 50–100 行，滚动时再补（或做虚拟化），属于界面的后续工作，不阻塞 M0。
+- 测量中发现一个界面问题：结果按相关度排序时（3 个字符以上的查询），同一天的结果可能不相邻，`libraryList` 以 `day-<标签>` 作为日期分组标题的 key，同一个标签出现两次时 MyGo 报重复 key 并 panic（`internal/ui/library.go` 的日期分组）。需要界面修复，例如 key 加上序号，或相关度排序时不分组。
 
 ## 13. 里程碑（建议）
 
