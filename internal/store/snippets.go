@@ -210,7 +210,7 @@ func (o ListOptions) where(args *[]any) string {
 		*args = append(*args, o.Until.UnixMilli())
 	}
 	if o.OpenOnly {
-		conds = append(conds, "EXISTS(SELECT 1 FROM workspace_tab w WHERE w.snippet_id = s.id)")
+		conds = append(conds, "s.id IN (SELECT snippet_id FROM workspace_tab)")
 	}
 	if o.ClosedOnly {
 		conds = append(conds, "NOT EXISTS(SELECT 1 FROM workspace_tab w WHERE w.snippet_id = s.id)")
