@@ -2,12 +2,15 @@ package appui
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 
 	"github.com/momaek/lastab/internal/store"
+	"github.com/momaek/lastab/internal/store/storetest"
 )
 
 // seed makes three snippets through the UI and closes the middle one.
@@ -174,5 +177,84 @@ func TestLibrarySeesUnsavedEdits(t *testing.T) {
 	h.tt.Frame()
 	if len(h.app.lib.items) != 1 {
 		t.Fatalf("results %q", libTitles(h.app))
+	}
+}
+
+// Relevance interleaves days over a real collection; the list shows the
+// results by last edit, each day's header once. Ranked rows used to give two
+// day headers the same key, which panics.
+func TestLibraryGroupsByDayWhateverTheRanking(t *testing.T) {
+	h := newHarness(t, "")
+	ctx := context.Background()
+	if _, err := storetest.Seed(ctx, h.st, 2000, 0, 1); err != nil {
+		t.Fatal(err)
+	}
+	h.st.SetClock(time.Now)
+	ranked, _ := h.st.Search(ctx, "the", store.ListOptions{Limit: LibraryLimit})
+	interleaved := false
+	for i := 2; i < len(ranked); i++ {
+		if !sameDay(ranked[i].ModifiedAt, ranked[i-1].ModifiedAt) && sameDay(ranked[i].ModifiedAt, ranked[i-2].ModifiedAt) {
+			interleaved = true
+		}
+	}
+	if !interleaved {
+		t.Fatal("the corpus no longer interleaves days by relevance; the test would not catch the bug")
+	}
+	h.tt.Key(ui.Cmd, ui.KeyK)
+	h.tt.Type("the")
+	h.tt.Frame()
+	items := h.app.lib.items
+	if len(items) < 10 {
+		t.Fatalf("results %d", len(items))
+	}
+	for i := 1; i < len(items); i++ {
+		if items[i].ModifiedAt.After(items[i-1].ModifiedAt) {
+			t.Fatalf("not in order of last edit at %d", i)
+		}
+	}
+	seen := map[string]bool{}
+	for _, r := range h.app.lib.rows {
+		if r.item < 0 {
+			if seen[r.header] {
+				t.Fatalf("day %q heads two groups", r.header)
+			}
+			seen[r.header] = true
+		}
+	}
+	// Scroll through every row, so each is built once.
+	for range len(items) {
+		h.tt.Key(0, ui.KeyDown)
+	}
+}
+
+// Only the rows in view are built: 300 results cost what a screenful does.
+func TestLibraryBuildsOnlyRowsInView(t *testing.T) {
+	h := newHarness(t, "")
+	ctx := context.Background()
+	for i := range 320 {
+		if _, err := h.st.CreateSnippet(ctx, store.KindText, fmt.Sprintf("note %03d", i), i); err != nil {
+			t.Fatal(err)
+		}
+	}
+	h.tt.Key(ui.Cmd, ui.KeyK)
+	h.tt.Frame()
+	if len(h.app.lib.items) != LibraryLimit {
+		t.Fatalf("results %d", len(h.app.lib.items))
+	}
+	built := 0
+	for _, s := range h.tt.Texts() {
+		if strings.HasPrefix(s, "note ") {
+			built++
+		}
+	}
+	if built == 0 || built > 60 {
+		t.Errorf("%d result rows built for %d results", built, LibraryLimit)
+	}
+	// Moving the selection far down brings its row into view.
+	for range 40 {
+		h.tt.Key(0, ui.KeyDown)
+	}
+	if body := h.app.lib.items[40].Body; !h.tt.HasText(body) {
+		t.Errorf("selected row %q not in view", body)
 	}
 }
