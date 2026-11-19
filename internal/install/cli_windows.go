@@ -85,7 +85,8 @@ func broadcastEnvironment() {
 		return
 	}
 	var result uintptr
-	windows.NewLazySystemDLL("user32.dll").NewProc("SendMessageTimeoutW").Call(
+	// Best effort: programs started later read the new PATH anyway.
+	_, _, _ = windows.NewLazySystemDLL("user32.dll").NewProc("SendMessageTimeoutW").Call(
 		hwndBroadcast, wmSettingChange, 0, uintptr(unsafe.Pointer(env)),
 		smtoAbortIfHung, broadcastTimeout, uintptr(unsafe.Pointer(&result)))
 }

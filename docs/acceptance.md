@@ -10,7 +10,7 @@
 
 一行可以同时有自动化测试与手工检查：自动化覆盖逻辑，手工确认真实窗口里的表现。两者都通过，这一行才算通过。
 
-本文最后核对：2026-11-19，`main` 之后的 `claude/sad-jepsen-7641bd` 分支。
+本文最后核对：2026-11-19，合入待办界面（#6）与打包（#7）之后的 `main`。
 
 ## 验收行为对照
 
@@ -31,9 +31,9 @@
 | A13 | 列表与搜索需主动呼出，默认面对编辑视图 | 部分：`TestLibrarySearchFindsClosed`（Enter 打开后回到编辑器）。启动时默认是编辑视图：尚无断言 | M6 第 1 步 | 手工 |
 | A14 | 标题仍在生成时，仍可继续编辑或复制正文 | 尚无（标题在本地同步生成，`TestTypeKeepsAndTitles` 只验证生成结果） | M6 第 2 步 | 手工 |
 | A15 | 修改旧片段后，能在版本历史中找回修改前的内容 | `internal/ui/history_test.go` `TestHistoryListsAndCompares`、`TestHistoryRestoreAndUndo`、`TestHistoryFromLibrary`；`internal/snippet/snippet_test.go` `TestRecordRestore`；`internal/history/history_test.go` `TestSnapshotDedupes` | — | 通过 |
-| A16 | 按 ⌘T / Ctrl+T 直接打开可输入的空白待办清单，无需命名 | 尚无（⌘T 已能新建待办类型的 tab，清单界面在 M4 开发中） | — | 未做：待办界面合入后补视图测试（M4） |
-| A17 | 待办清单同样自动留存，出现在列表与搜索中；打开时也出现在「最近」切换器中 | 部分：`internal/ui/library_test.go` `TestLibraryFiltersAndKeys`（「待办」过滤）；`internal/todo/todo_test.go` `TestParse`、`TestRoundTrip` | — | 未做：切换器中的待办随待办界面补（M4） |
-| A18 | Agent 能搜索并读取全部片段，包括非代码内容（随手记录、待办） | `cmd/lastab/main_test.go` `TestListSearchRead` | M7（Skill → CLI 全链路） | 通过；M7 手工 |
+| A16 | 按 ⌘T / Ctrl+T 直接打开可输入的空白待办清单，无需命名 | `internal/ui/todo_test.go` `TestTodoEnterAddsAndSaves`（经 `newTodo`：⌘T 后焦点直接在「Add an item」）及其余 `TestTodo*` | — | 通过 |
+| A17 | 待办清单同样自动留存，出现在列表与搜索中；打开时也出现在「最近」切换器中 | 留存：`internal/ui/todo_test.go` `TestTodoEnterAddsAndSaves`、`TestTodoBodyRoundTrips`；列表与搜索：`internal/ui/library_test.go` `TestLibraryFiltersAndKeys`（「待办」过滤）；`internal/todo/todo_test.go` `TestParse`、`TestRoundTrip`。切换器中的待办：尚无断言 | — | 未做：给 `TestSwitcher` 加一个待办 tab 的断言 |
+| A18 | Agent 能搜索并读取全部片段，包括非代码内容（随手记录、待办） | `cmd/lastab/main_test.go` `TestListSearchRead`；安装：`internal/install` 的 `TestCLI*`、`TestSkill*`，`internal/ui/agent_test.go` `TestInstallSkillOnClick` 等 | M7（Skill → CLI 全链路） | 通过；M7 手工 |
 | A19 | 关闭「允许 Agent 访问」后，Agent 无法读取任何片段 | `cmd/lastab/main_test.go` `TestAccessOffPrintsNothingButTheError`；`internal/ui/prefs_test.go` `TestEditorFontAndAgent` | — | 通过 |
 | A20 | 默认情况下，Agent 读到的疑似密钥被遮蔽 | `cmd/lastab/main_test.go` `TestListSearchRead`（`read` 与 `search` 预览遮蔽；允许原文后才输出原文）；`internal/redact/redact_test.go` `TestMasks`、`TestPrivateKey`、`TestNoFalsePositives` | — | 通过 |
 | A21 | （新）系统切换浅色 / 深色时应用即时跟随；设置中可固定为浅色或深色 | 固定部分：`internal/ui/prefs_test.go` `TestSettingsOpenAndGeneral`；`internal/theme/theme_test.go` `TestBuild` | M5 第 1–2 步 | 手工 |
@@ -51,7 +51,7 @@
 
 通用准备：
 
-- 用待验收提交构建应用：`go run ./scripts/build -platform darwin/universal`（macOS）或 `go run ./scripts/build -platform windows/amd64`（Windows）；`scripts/build` 随打包分支（momaek/lastab#7）合入，在那之前用 `CGO_ENABLED=0 go tool mygo build`。安装后启动，确认菜单「关于」里的版本与提交一致。
+- 用待验收提交构建应用：`go run ./scripts/build -platform darwin/universal`（macOS）或 `go run ./scripts/build -platform windows/amd64`（Windows）。安装后启动，确认菜单「关于」里的版本与提交一致。
 - 每项检查在结果表里加一行：日期、机器与系统版本、Lastab 提交、检查人、结果（通过 / 不通过）、备注（不通过时写现象，附录屏或截图路径）。
 - 不通过时先对照开发文档第 12 节的「不通过时的备选」，再决定修复或豁免。
 

@@ -60,7 +60,7 @@ var (
 	// ErrNotInstalled says the app runs from its disk image, or from where
 	// macOS moved it to run it once (App Translocation): a link there
 	// would break, so the app must be moved to Applications first.
-	ErrNotInstalled = errors.New("Lastab runs from its disk image or a temporary copy; move it to Applications first")
+	ErrNotInstalled = errors.New("the app runs from its disk image or a temporary copy; move Lastab to Applications first")
 )
 
 // ExistsError says a file not made by Lastab is where the link goes, which

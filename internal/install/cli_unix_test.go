@@ -13,7 +13,9 @@ func newEnv(t *testing.T) Env {
 	t.Helper()
 	root := t.TempDir()
 	cli := filepath.Join(root, "Lastab.app", "Contents", "Resources", "bin", "lastab")
-	os.MkdirAll(filepath.Dir(cli), 0o755)
+	if err := os.MkdirAll(filepath.Dir(cli), 0o755); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(cli, []byte("#!/bin/sh\n"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -44,9 +46,13 @@ func TestCLIFallsBackToLocalBin(t *testing.T) {
 	}
 	e := newEnv(t)
 	parent := filepath.Dir(e.GlobalBin) // usr/local, without bin, read-only
-	os.MkdirAll(parent, 0o755)
-	os.Chmod(parent, 0o555)
-	t.Cleanup(func() { os.Chmod(parent, 0o755) })
+	if err := os.MkdirAll(parent, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(parent, 0o555); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(parent, 0o755) })
 	if st := e.CLIStatus(); !st.Elevate {
 		t.Errorf("Elevate not offered: %+v", st)
 	}
@@ -58,15 +64,21 @@ func TestCLIFallsBackToLocalBin(t *testing.T) {
 
 func TestCLILeavesOtherFilesAlone(t *testing.T) {
 	e := newEnv(t)
-	os.MkdirAll(e.GlobalBin, 0o755)
-	os.WriteFile(e.globalLink(), []byte("someone else's"), 0o755)
+	if err := os.MkdirAll(e.GlobalBin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(e.globalLink(), []byte("someone else's"), 0o755); err != nil {
+		t.Fatal(err)
+	}
 	_, err := e.InstallCLI(false, "")
 	var ee *ExistsError
 	if !errors.As(err, &ee) || ee.Path != e.globalLink() {
 		t.Errorf("regular file: %v", err)
 	}
 	os.Remove(e.globalLink())
-	os.Symlink("/opt/other/lastab", e.globalLink())
+	if err := os.Symlink("/opt/other/lastab", e.globalLink()); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := e.InstallCLI(false, ""); !errors.As(err, &ee) {
 		t.Errorf("foreign link: %v", err)
 	}
@@ -74,8 +86,12 @@ func TestCLILeavesOtherFilesAlone(t *testing.T) {
 
 func TestCLIOutdatedLink(t *testing.T) {
 	e := newEnv(t)
-	os.MkdirAll(e.GlobalBin, 0o755)
-	os.Symlink("/Volumes/Old/Lastab.app/Contents/Resources/bin/lastab", e.globalLink())
+	if err := os.MkdirAll(e.GlobalBin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("/Volumes/Old/Lastab.app/Contents/Resources/bin/lastab", e.globalLink()); err != nil {
+		t.Fatal(err)
+	}
 	if st := e.CLIStatus(); st.State != Outdated || st.Path != e.globalLink() {
 		t.Fatalf("status %+v", st)
 	}
@@ -98,9 +114,13 @@ func TestCLIMissingFromApp(t *testing.T) {
 func TestCLIRefusesTranslocatedApp(t *testing.T) {
 	e := newEnv(t)
 	moved := filepath.Join(filepath.Dir(e.CLI), "AppTranslocation", "x")
-	os.MkdirAll(moved, 0o755)
+	if err := os.MkdirAll(moved, 0o755); err != nil {
+		t.Fatal(err)
+	}
 	cli := filepath.Join(moved, "lastab")
-	os.WriteFile(cli, nil, 0o755)
+	if err := os.WriteFile(cli, nil, 0o755); err != nil {
+		t.Fatal(err)
+	}
 	e.CLI = cli
 	if _, err := e.InstallCLI(false, ""); !errors.Is(err, ErrNotInstalled) {
 		t.Errorf("err %v", err)

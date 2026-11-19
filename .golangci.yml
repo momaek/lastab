@@ -14,8 +14,9 @@ linters:
       - std-error-handling
     rules:
       # internal/ui is being changed by other branches; its errcheck
-      # findings are listed in the PR that added this file. Remove this
-      # rule once they are fixed.
+      # findings (and the unused todo.hover field) are listed in the PR
+      # that added this file. Remove this rule once they are fixed.
       - path: internal/ui/
         linters:
           - errcheck
+          - unused

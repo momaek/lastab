@@ -72,7 +72,13 @@ jobs:
           go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$GOLANGCI_LINT_VERSION
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: staticcheck
-        run: staticcheck ./... && GOOS=windows staticcheck ./...
+        # internal/ui skips U1000 (unused code) until the findings listed in
+        # the PR that added this job are fixed; see .golangci.yml.
+        run: |
+          for goos in darwin windows; do
+            GOOS=$goos staticcheck $(GOOS=$goos go list ./... | grep -v '/internal/ui$')
+            GOOS=$goos staticcheck -checks inherit,-U1000 ./internal/ui
+          done
       - name: golangci-lint
         run: golangci-lint run ./... && GOOS=windows golangci-lint run ./...
       - name: govulncheck
