@@ -179,5 +179,20 @@
   "aboutDesc": "常驻后台的临时文本工作台：粘贴、修改、再复制出去。每条片段都自动留存、自动命名、可以搜索，无需命名或归类。",
   "schemaVersion": "数据库结构 v{n}",
   "openSettings": "设置",
-  "windowMenu": "窗口"
+  "windowMenu": "窗口",
+  "todoListLabel": "待办事项",
+  "todoItemLabel": "事项内容",
+  "todoAddLabel": "新增一项",
+  "todoAddPlaceholder": "新增一项，回车确认；粘贴多行会拆成多项",
+  "todoCheckLabel": "完成：{text}",
+  "todoDeleteItem": "删除此项",
+  "todoDoneGroup": "已完成 {count}",
+  "todoClearDone": "清除已完成",
+  "todoCleared": "已清除 {count, plural, other {# 项}}已完成",
+  "todoDeleted": "已删除「{text}」",
+  "todoPasted": "已把粘贴的 {count} 行拆成 {count} 项",
+  "todoUndone": "已恢复",
+  "todoProgress": "{done}/{total} 已完成",
+  "todoHints": "{add} 新增 · {done} 完成 · {move} 排序 · {remove} 删除",
+  "todoCopiedAnnounce": "已复制为纯文本清单，{count, plural, other {# 项}}"
 }

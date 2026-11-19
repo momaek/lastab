@@ -1855,3 +1855,171 @@ func WindowMenu() string { return In(i18n.Locale()).WindowMenu() }
 func (msgs Messages) WindowMenu() string {
 	return Catalog.Format(msgs.locale, "windowMenu", nil)
 }
+
+// TodoListLabel says "To-do items"
+// in the language the app shows.
+func TodoListLabel() string { return In(i18n.Locale()).TodoListLabel() }
+
+// TodoListLabel says "To-do items"
+// in the language of msgs.
+func (msgs Messages) TodoListLabel() string {
+	return Catalog.Format(msgs.locale, "todoListLabel", nil)
+}
+
+// TodoItemLabel says "Item text"
+// in the language the app shows.
+func TodoItemLabel() string { return In(i18n.Locale()).TodoItemLabel() }
+
+// TodoItemLabel says "Item text"
+// in the language of msgs.
+func (msgs Messages) TodoItemLabel() string {
+	return Catalog.Format(msgs.locale, "todoItemLabel", nil)
+}
+
+// TodoAddLabel says "Add an item"
+// in the language the app shows.
+func TodoAddLabel() string { return In(i18n.Locale()).TodoAddLabel() }
+
+// TodoAddLabel says "Add an item"
+// in the language of msgs.
+func (msgs Messages) TodoAddLabel() string {
+	return Catalog.Format(msgs.locale, "todoAddLabel", nil)
+}
+
+// TodoAddPlaceholder says "Add an item, press Enter. Paste several lines to add several items"
+// in the language the app shows.
+func TodoAddPlaceholder() string { return In(i18n.Locale()).TodoAddPlaceholder() }
+
+// TodoAddPlaceholder says "Add an item, press Enter. Paste several lines to add several items"
+// in the language of msgs.
+func (msgs Messages) TodoAddPlaceholder() string {
+	return Catalog.Format(msgs.locale, "todoAddPlaceholder", nil)
+}
+
+// TodoCheckLabel says "Done: {text}"
+// in the language the app shows.
+//
+// Name of an item's check box for assistive technology.
+func TodoCheckLabel(text string) string { return In(i18n.Locale()).TodoCheckLabel(text) }
+
+// TodoCheckLabel says "Done: {text}"
+// in the language of msgs.
+//
+// Name of an item's check box for assistive technology.
+func (msgs Messages) TodoCheckLabel(text string) string {
+	return Catalog.Format(msgs.locale, "todoCheckLabel", map[string]any{"text": text})
+}
+
+// TodoDeleteItem says "Delete item"
+// in the language the app shows.
+func TodoDeleteItem() string { return In(i18n.Locale()).TodoDeleteItem() }
+
+// TodoDeleteItem says "Delete item"
+// in the language of msgs.
+func (msgs Messages) TodoDeleteItem() string {
+	return Catalog.Format(msgs.locale, "todoDeleteItem", nil)
+}
+
+// TodoDoneGroup says "Done {count}"
+// in the language the app shows.
+//
+// Header of the group of checked items.
+func TodoDoneGroup(count int) string { return In(i18n.Locale()).TodoDoneGroup(count) }
+
+// TodoDoneGroup says "Done {count}"
+// in the language of msgs.
+//
+// Header of the group of checked items.
+func (msgs Messages) TodoDoneGroup(count int) string {
+	return Catalog.Format(msgs.locale, "todoDoneGroup", map[string]any{"count": count})
+}
+
+// TodoClearDone says "Clear completed"
+// in the language the app shows.
+func TodoClearDone() string { return In(i18n.Locale()).TodoClearDone() }
+
+// TodoClearDone says "Clear completed"
+// in the language of msgs.
+func (msgs Messages) TodoClearDone() string {
+	return Catalog.Format(msgs.locale, "todoClearDone", nil)
+}
+
+// TodoCleared says "Cleared {count, plural, one {# completed item} other {# completed items}}"
+// in the language the app shows.
+func TodoCleared(count int) string { return In(i18n.Locale()).TodoCleared(count) }
+
+// TodoCleared says "Cleared {count, plural, one {# completed item} other {# completed items}}"
+// in the language of msgs.
+func (msgs Messages) TodoCleared(count int) string {
+	return Catalog.Format(msgs.locale, "todoCleared", map[string]any{"count": count})
+}
+
+// TodoDeleted says "Deleted “{text}”"
+// in the language the app shows.
+func TodoDeleted(text string) string { return In(i18n.Locale()).TodoDeleted(text) }
+
+// TodoDeleted says "Deleted “{text}”"
+// in the language of msgs.
+func (msgs Messages) TodoDeleted(text string) string {
+	return Catalog.Format(msgs.locale, "todoDeleted", map[string]any{"text": text})
+}
+
+// TodoPasted says "Split {count} pasted lines into {count} items"
+// in the language the app shows.
+func TodoPasted(count int) string { return In(i18n.Locale()).TodoPasted(count) }
+
+// TodoPasted says "Split {count} pasted lines into {count} items"
+// in the language of msgs.
+func (msgs Messages) TodoPasted(count int) string {
+	return Catalog.Format(msgs.locale, "todoPasted", map[string]any{"count": count})
+}
+
+// TodoUndone says "Restored"
+// in the language the app shows.
+//
+// Toast after undoing a change to a to-do list.
+func TodoUndone() string { return In(i18n.Locale()).TodoUndone() }
+
+// TodoUndone says "Restored"
+// in the language of msgs.
+//
+// Toast after undoing a change to a to-do list.
+func (msgs Messages) TodoUndone() string {
+	return Catalog.Format(msgs.locale, "todoUndone", nil)
+}
+
+// TodoProgress says "{done}/{total} done"
+// in the language the app shows.
+func TodoProgress(done int, total int) string { return In(i18n.Locale()).TodoProgress(done, total) }
+
+// TodoProgress says "{done}/{total} done"
+// in the language of msgs.
+func (msgs Messages) TodoProgress(done int, total int) string {
+	return Catalog.Format(msgs.locale, "todoProgress", map[string]any{"done": done, "total": total})
+}
+
+// TodoHints says "{add} add · {done} done · {move} move · {remove} delete"
+// in the language the app shows.
+//
+// Status bar of a to-do list: its keys.
+func TodoHints(add string, done string, move string, remove string) string {
+	return In(i18n.Locale()).TodoHints(add, done, move, remove)
+}
+
+// TodoHints says "{add} add · {done} done · {move} move · {remove} delete"
+// in the language of msgs.
+//
+// Status bar of a to-do list: its keys.
+func (msgs Messages) TodoHints(add string, done string, move string, remove string) string {
+	return Catalog.Format(msgs.locale, "todoHints", map[string]any{"add": add, "done": done, "move": move, "remove": remove})
+}
+
+// TodoCopiedAnnounce says "Copied as a plain-text list, {count, plural, one {# item} other {# items}}"
+// in the language the app shows.
+func TodoCopiedAnnounce(count int) string { return In(i18n.Locale()).TodoCopiedAnnounce(count) }
+
+// TodoCopiedAnnounce says "Copied as a plain-text list, {count, plural, one {# item} other {# items}}"
+// in the language of msgs.
+func (msgs Messages) TodoCopiedAnnounce(count int) string {
+	return Catalog.Format(msgs.locale, "todoCopiedAnnounce", map[string]any{"count": count})
+}
