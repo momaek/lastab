@@ -62,14 +62,11 @@ func (h *harness) undo() {
 	h.tt.Frame()
 }
 
-// clickText clicks the middle of what shows s, as a pointer would.
+// clickText clicks the text of the open item showing s, as a pointer would.
 func (h *harness) clickText(s string) {
 	h.t.Helper()
-	r, ok := h.tt.Find(s)
-	if !ok {
-		h.t.Fatalf("no %q", s)
-	}
-	h.tt.ClickAt(r.X+r.W/2, r.Y+r.H/2)
+	r := h.rowOf(s)
+	h.tt.ClickAt(r.X+64, r.Y+r.H/2)
 	h.tt.Frame()
 }
 
@@ -372,27 +369,100 @@ func TestTodoCopyAllIsPlainText(t *testing.T) {
 	}
 }
 
-func TestTodoDragReorders(t *testing.T) {
-	h := newTodo(t, "a", "b", "c")
-	ra, _ := h.tt.Find("a")
-	rc, _ := h.tt.Find("c")
-	// By its grip, at the left of the row, onto the top of a.
-	x := rc.X + 8
-	h.tt.Move(x, rc.Y+rc.H/2)
+// rowOf returns where the open item showing text was laid out.
+func (h *harness) rowOf(text string) ui.Rect {
+	h.t.Helper()
+	l := h.app.Active().todo
+	for _, it := range l.items {
+		if it.text == text {
+			if r, ok := l.rowBox[it.id]; ok {
+				return r
+			}
+		}
+	}
+	h.t.Fatalf("no open row %q", text)
+	return ui.Rect{}
+}
+
+// dragGrip presses the grip of the item showing text and moves the
+// pointer to y, a few DIPs a frame, without letting go.
+func (h *harness) dragGrip(text string, y float32) (x float32) {
+	h.t.Helper()
+	r := h.rowOf(text)
+	x, from := r.X+8, r.Y+r.H/2
+	h.tt.Move(x, from)
 	h.tt.Frame()
-	h.tt.Press(x, rc.Y+rc.H/2)
-	for y := rc.Y + rc.H/2; y > ra.Y+4; y -= 6 {
-		h.tt.Move(x, y)
+	h.tt.Press(x, from)
+	h.tt.Frame()
+	step := float32(6)
+	if y < from {
+		step = -step
+	}
+	for at := from; (step < 0 && at > y) || (step > 0 && at < y); at += step {
+		h.tt.Move(x, at)
 		h.tt.Frame()
 	}
+	h.tt.Move(x, y)
+	h.tt.Frame()
+	return x
+}
+
+func TestTodoDragReorders(t *testing.T) {
+	h := newTodo(t, "a", "b", "c")
+	ra := h.rowOf("a")
+	x := h.dragGrip("c", ra.Y+4)
+	// Lifted: it follows the pointer over the others, which part around
+	// the line where it would drop, before a.
+	d := h.app.Active().todo.drag
+	if d == nil || !d.active || d.to != 0 {
+		t.Fatalf("drag %+v", d)
+	}
+	h.wantBody("- [ ] a\n- [ ] b\n- [ ] c") // nothing moved yet
 	h.tt.Release(x, ra.Y+4)
 	h.tt.Frame()
 	h.tt.Frame()
 	h.wantBody("- [ ] c\n- [ ] a\n- [ ] b")
-	// To the end.
-	h.app.Active().todo.list.Reorder([]int{0}, 3)
+	if h.app.Active().todo.drag != nil {
+		t.Errorf("drag left over")
+	}
+
+	// Down to the end.
+	rb := h.rowOf("b")
+	x = h.dragGrip("c", rb.Y+rb.H+20)
+	if d := h.app.Active().todo.drag; d == nil || d.to != 2 {
+		t.Fatalf("drag %+v", d)
+	}
+	h.tt.Release(x, rb.Y+rb.H+20)
+	h.tt.Frame()
 	h.tt.Frame()
 	h.wantBody("- [ ] a\n- [ ] b\n- [ ] c")
+}
+
+func TestTodoDragEscapeCancels(t *testing.T) {
+	h := newTodo(t, "a", "b", "c")
+	ra := h.rowOf("a")
+	x := h.dragGrip("c", ra.Y+4)
+	h.tt.Key(0, ui.KeyEscape)
+	h.tt.Frame()
+	if d := h.app.Active().todo.drag; d == nil || d.active {
+		t.Fatalf("Escape did not put it back: %+v", d)
+	}
+	h.tt.Release(x, ra.Y+4)
+	h.tt.Frame()
+	h.tt.Frame()
+	h.wantBody("- [ ] a\n- [ ] b\n- [ ] c")
+}
+
+func TestTodoGripClickDoesNotMove(t *testing.T) {
+	h := newTodo(t, "a", "b")
+	r := h.rowOf("b")
+	h.tt.ClickAt(r.X+8, r.Y+r.H/2)
+	h.tt.Frame()
+	h.tt.Frame()
+	h.wantBody("- [ ] a\n- [ ] b")
+	if h.app.Active().todo.drag != nil {
+		t.Errorf("drag left over")
+	}
 }
 
 // TestTodoSnapshots writes PNGs of a to-do list, as the design draws it,
@@ -427,24 +497,19 @@ func TestTodoSnapshots(t *testing.T) {
 			"- [x] Run kubectl rollout status\n- [ ] Update the order-api CHANGELOG\n" +
 			"- [ ] Tell support the release window: Wed 22:00")
 		h.settle()
-		r, _ := h.tt.Find("Confirm staging-b regression passed")
+		r := h.rowOf("Confirm staging-b regression passed")
 		h.tt.Move(r.X+r.W/2, r.Y+r.H/2)
 		h.tt.Frame()
 		save(name+"-todo", h.tt)
 
 		// Dragging the CHANGELOG item up between the first two.
-		rc, _ := h.tt.Find("Update the order-api CHANGELOG")
-		x := rc.X + 8
-		h.tt.Move(x, rc.Y+rc.H/2)
+		first := h.rowOf("Confirm staging-b regression passed")
+		x := h.dragGrip("Update the order-api CHANGELOG", first.Y+first.H-6)
+		h.tt.Advance(time.Second) // the rows have parted
 		h.tt.Frame()
-		h.tt.Press(x, rc.Y+rc.H/2)
-		for y := rc.Y + rc.H/2; y > r.Y+r.H-2; y -= 8 {
-			h.tt.Move(x, y)
-			h.tt.Frame()
-		}
 		save(name+"-todo-dragging", h.tt)
 		h.tt.Key(0, ui.KeyEscape)
-		h.tt.Release(x, r.Y+r.H-2)
+		h.tt.Release(x, first.Y+first.H-6)
 		h.tt.Frame()
 
 		h.app.Active().todo.focusOn(draftID, -1)
