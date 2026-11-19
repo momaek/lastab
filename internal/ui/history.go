@@ -10,6 +10,7 @@ import (
 
 	"github.com/momaek/lastab/internal/redact"
 	"github.com/momaek/lastab/internal/store"
+	"github.com/momaek/lastab/internal/theme"
 	"github.com/momaek/lastab/locales"
 )
 
@@ -260,10 +261,10 @@ func (a *App) compareView(c *ui.Context) {
 		cur := editor.NewBuffer(diffText(h.tab.Body()))
 		h.diff = &editor.DiffState{
 			Old: old, New: cur, Layout: editor.DiffUnified, Indicators: editor.DiffClassic,
-			Wrap: true, Font: ui.Font{Size: 13}, LineHeight: 22.0 / 13, ContextLines: 3,
+			Wrap: true, Font: ui.Font{Family: theme.MonoEditor, Size: 13, Features: theme.NoLigatures}, LineHeight: 22.0 / 13, ContextLines: 3,
 		}
 		h.full = &editor.State{Buffer: old, ReadOnly: true, SoftWrap: true, NoFolding: true,
-			Font: ui.Font{Size: 13}, LineHeight: 22.0 / 13, Label: locales.FullText()}
+			Font: ui.Font{Family: theme.MonoEditor, Size: 13, Features: theme.NoLigatures}, LineHeight: 22.0 / 13, Label: locales.FullText()}
 	}
 
 	ui.Column(c.Key("compare")).Grow(1).Shrink(1).MinWidth(0).AlignItems(ui.Stretch).Children(func() {
@@ -417,7 +418,7 @@ func (a *App) versionItem(c *ui.Context, i int, now time.Time, loc string) {
 			ui.Text(c, delta).FontSize(11.5).TextColor(p.Muted).NoWrap()
 		})
 		if v.peek != "" {
-			ui.Text(c, v.peek).FontSize(11.5).Font(monoFont).TextColor(p.Muted).SingleLine()
+			ui.Text(c, v.peek).FontSize(11.5).Font(monoFont).FontFeatures(monoFeatures...).TextColor(p.Muted).SingleLine()
 		}
 	})
 	if row.Clicked() {

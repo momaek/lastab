@@ -41,6 +41,8 @@ jobs:
         run: go test ./...
       - name: Catalogs are complete
         run: go tool mygo i18n check
+      - name: Chinese text is spaced from Latin text
+        run: go run ./scripts/autospace -check
       - name: Generated files are up to date
         if: runner.os == 'macOS'
         run: |

@@ -22,8 +22,12 @@ import (
 // LibraryLimit is the most results the library shows.
 const LibraryLimit = 300
 
-// monoFont is the system's monospaced font, as the editor uses.
-const monoFont = "monospace"
+// monoFont is the monospaced text of lists and previews: JetBrains Mono,
+// Chinese falling back to the system's, without ligatures (monoFeatures).
+const monoFont = theme.MonoFamily
+
+// monoFeatures turns JetBrains Mono's ligatures off, so code shows as typed.
+var monoFeatures = []string{"calt=0", "liga=0"}
 
 // previewMax is the most bytes of a body the preview lays out.
 const previewMax = 20000
@@ -34,6 +38,7 @@ const (
 	timeToday
 	time7Days
 	time30Days
+	timeCustom // from and to, whole days
 )
 
 const (
@@ -68,6 +73,12 @@ type library struct {
 	reveal    bool
 	confirm   bool
 	focus     bool
+
+	// from and to are the days of the custom time range, inclusive;
+	// draftFrom and draftTo what its popover shows until applied.
+	from, to           time.Time
+	draftFrom, draftTo time.Time
+	rangeOpen          bool
 
 	// rows are the list's rows: a header for each day, then its results.
 	rows []libRow
@@ -125,6 +136,9 @@ func (l *library) options(now time.Time) store.ListOptions {
 		o.Since = now.AddDate(0, 0, -7)
 	case time30Days:
 		o.Since = now.AddDate(0, 0, -30)
+	case timeCustom:
+		o.Since = startOfDay(l.from)
+		o.Until = startOfDay(l.to).AddDate(0, 0, 1)
 	}
 	switch l.scope {
 	case scopeOpen:
@@ -435,7 +449,7 @@ func (a *App) librarySearch(c *ui.Context) {
 			in := ui.TextInput(c.Key("query"), &l.query).Grow(1).Shrink(1).
 				Placeholder(locales.SearchPlaceholder()).Label(locales.SearchAll()).
 				Role(ui.RoleComboBox).HasPopup(ui.PopupListBox).
-				FontSize(14).Font(monoFont).Background(ui.Transparent).Border(0, ui.Transparent).Padding(0)
+				FontSize(14).Font(monoFont).FontFeatures(monoFeatures...).Background(ui.Transparent).Border(0, ui.Transparent).Padding(0)
 			if l.focus {
 				in.Focus()
 				l.focus = false
@@ -462,7 +476,8 @@ func (a *App) librarySearch(c *ui.Context) {
 			}
 		})
 		ui.Row(c).Wrap().GapX(20).GapY(8).AlignItems(ui.Center).Children(func() {
-			a.chips(c, "when", locales.FilterTime(), &l.when, locales.OptAll(), locales.OptToday(), locales.Opt7Days(), locales.Opt30Days())
+			a.chipsWith(c, "when", locales.FilterTime(), &l.when, func() { a.customRangeChip(c) },
+				locales.OptAll(), locales.OptToday(), locales.Opt7Days(), locales.Opt30Days())
 			a.chips(c, "scope", locales.FilterScope(), &l.scope, locales.OptAll(), locales.OptOpen(), locales.OptClosed())
 			a.chips(c, "kind", locales.FilterKind(), &l.kind, locales.OptAll(), locales.OptText(), locales.OptTodo())
 			ui.Spacer(c)
@@ -473,6 +488,11 @@ func (a *App) librarySearch(c *ui.Context) {
 
 // chips is a group of pill buttons choosing one value.
 func (a *App) chips(c *ui.Context, key, label string, value *int, opts ...string) {
+	a.chipsWith(c, key, label, value, nil, opts...)
+}
+
+// chipsWith is chips with more built after the options, in the group.
+func (a *App) chipsWith(c *ui.Context, key, label string, value *int, extra func(), opts ...string) {
 	p := a.pal
 	ui.Row(c.Key(key)).Gap(4).AlignItems(ui.Center).Role(ui.RoleRadioGroup).Label(label).Children(func() {
 		ui.Text(c, label).FontSize(12.5).TextColor(p.Muted).Margin(0, 4, 0, 0)
@@ -498,6 +518,67 @@ func (a *App) chips(c *ui.Context, key, label string, value *int, opts ...string
 				a.lib.focus = true
 			}
 		}
+		if extra != nil {
+			extra()
+		}
+	})
+}
+
+// customRangeChip is the last time chip: "Custom…", or the range chosen,
+// which a popover of two dates sets.
+func (a *App) customRangeChip(c *ui.Context) {
+	l := &a.lib
+	p := a.pal
+	on := l.when == timeCustom
+	label := locales.OptCustom()
+	if on {
+		label = i18n.FormatDateRange(i18n.Locale(), l.from, l.to, i18n.DateOptions{Skeleton: "MMMd"})
+	}
+	b := ui.ButtonBase(c.Key("custom")).Height(28).Padding(0, 12).Radius(14).
+		Role(ui.RoleRadio).Checked(on).Label(locales.OptCustom()).HasPopup(ui.PopupDialog).Expanded(l.rangeOpen)
+	fg := p.Text
+	switch {
+	case on:
+		b.Background(p.InvBg).Border(1, p.InvBg)
+		fg = p.InvText
+	case b.Hovered():
+		b.Background(p.Chrome).Border(1, p.BtnLine)
+	default:
+		b.Background(p.Btn).Border(1, p.BtnLine)
+	}
+	b.Children(func() { ui.Text(c, label).FontSize(12.5).TextColor(fg).FontFeatures("tnum") })
+	if b.Clicked() {
+		today := startOfDay(time.Now())
+		l.draftFrom, l.draftTo = today.AddDate(0, 0, -7), today
+		if on {
+			l.draftFrom, l.draftTo = l.from, l.to
+		}
+		l.rangeOpen = !l.rangeOpen
+	}
+	ui.PopoverBase(c, b, &l.rangeOpen, func(panel ui.Element) {
+		panel.Column().Gap(12).Padding(16).Radius(12).Background(p.Panel).Border(1, p.BtnLine).
+			Shadow(0, 8, 24, 0, ui.RGBA(0, 0, 0, 0.14)).Role(ui.RoleDialog).Label(locales.OptCustom())
+		panel.Children(func() {
+			ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+				ui.Text(c, locales.RangeFrom()).FontSize(12.5).TextColor(p.Muted)
+				ui.DateInput(c.Key("from"), &l.draftFrom).Label(locales.RangeFrom())
+				ui.Text(c, locales.RangeTo()).FontSize(12.5).TextColor(p.Muted)
+				ui.DateInput(c.Key("to"), &l.draftTo).Label(locales.RangeTo())
+			})
+			ui.Row(c).Gap(8).Justify(ui.End).Children(func() {
+				if a.outlineButton(c, "cancel", locales.Cancel(), "").Clicked() {
+					l.rangeOpen = false
+				}
+				if ui.PrimaryButton(c.Key("apply"), locales.Apply()).Clicked() {
+					from, to := startOfDay(l.draftFrom), startOfDay(l.draftTo)
+					if to.Before(from) {
+						from, to = to, from
+					}
+					l.from, l.to, l.when = from, to, timeCustom
+					l.rangeOpen, l.stale, l.sel, l.focus = false, true, 0, true
+				}
+			})
+		})
 	})
 }
 
@@ -579,7 +660,7 @@ func (a *App) libraryRow(c *ui.Context, it *libItem, i int, now time.Time, loc s
 			ui.Text(c, when).FontSize(12).TextColor(p.Muted).FontFeatures("tnum").NoWrap()
 		})
 		ui.RichText(c, marked(oneLine(it.Preview), search.Highlights(oneLine(it.Preview), l.query), p)...).
-			FontSize(12).Font(monoFont).LineHeight(1.5).TextColor(p.Muted).SingleLine()
+			FontSize(12).Font(monoFont).FontFeatures(monoFeatures...).LineHeight(1.5).TextColor(p.Muted).SingleLine()
 		created := locales.CreatedLine(exactTime(now, it.CreatedAt, loc), it.versions)
 		if it.Kind == store.KindTodo {
 			created += " · " + locales.TodoKind()
@@ -676,7 +757,10 @@ func (a *App) libraryPreview(c *ui.Context, it *libItem) {
 	// Title, state and facts.
 	ui.Column(c).Gap(8).Padding(16, 24).BorderWidth(0, 0, 1, 0).BorderColor(p.Line).Children(func() {
 		ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-			ui.Text(c, listTitle(it.Snippet)).FontSize(17).FontWeight(600).Shrink(1).MaxLines(2).Role(ui.RoleHeading)
+			if !a.renameField(c, "library", it.ID, 17) {
+				ui.Text(c, listTitle(it.Snippet)).FontSize(17).FontWeight(600).Shrink(1).MaxLines(2).Role(ui.RoleHeading)
+				a.renameButton(c, "library", it.ID, it.Title)
+			}
 			ui.Spacer(c)
 			if it.Open {
 				ui.Text(c, locales.OpenInWorkspace()).FontSize(11.5).TextColor(p.OkText).
@@ -686,7 +770,11 @@ func (a *App) libraryPreview(c *ui.Context, it *libItem) {
 		ui.Row(c).Wrap().GapX(20).GapY(4).Children(func() {
 			small := func(s string) { ui.Text(c, s).FontSize(12).TextColor(p.Muted).FontFeatures("tnum") }
 			small(locales.Created(exactTime(now, it.CreatedAt, loc)))
-			small(locales.Modified(exactTime(now, it.ModifiedAt, loc) + " (" + relTime(now, it.ModifiedAt, loc) + ")"))
+			modified := exactTime(now, it.ModifiedAt, loc)
+			if sameDay(now, it.ModifiedAt) { // "14:36 (4 min ago)"; older ones say the date alone
+				modified += " (" + relTime(now, it.ModifiedAt, loc) + ")"
+			}
+			small(locales.Modified(modified))
 			small(locales.VersionsCount(it.versions))
 			small(locales.LinesChars(lineCount(it.Body), utf8.RuneCountInString(it.Body)))
 		})
@@ -696,7 +784,7 @@ func (a *App) libraryPreview(c *ui.Context, it *libItem) {
 	ui.Scroll(c.Key("body-"+it.ID)).Column().Grow(1).Shrink(1).AlignItems(ui.Stretch).
 		Padding(16, 24).Background(p.Sunken).Children(func() {
 		ui.RichText(c, marked(shown, search.Highlights(shown, l.query), p)...).
-			FontSize(12.5).Font(monoFont).LineHeight(20.0 / 12.5).TextColor(p.Text).PreserveSpaces().Selectable()
+			FontSize(12.5).Font(monoFont).FontFeatures(monoFeatures...).LineHeight(20.0 / 12.5).TextColor(p.Text).PreserveSpaces().Selectable()
 	})
 
 	// Actions.

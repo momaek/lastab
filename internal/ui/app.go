@@ -111,15 +111,20 @@ type App struct {
 	active  int
 	nextKey int
 
-	recovered   bool
-	copiedUntil time.Time
-	copiedItems int // items of the to-do list copied, for the announcement
-	switcher    switcher
-	lib         library
-	settings    Settings
-	prefs       prefsPage
-	history     history
-	toast       *toast
+	recovered bool
+	// recoveredUntil is when the quiet "Restored" notice goes, unless an
+	// edit takes it away first.
+	recoveredUntil time.Time
+	rename         renaming
+	hold           holdHint
+	copiedUntil    time.Time
+	copiedItems    int // items of the to-do list copied, for the announcement
+	switcher       switcher
+	lib            library
+	settings       Settings
+	prefs          prefsPage
+	history        history
+	toast          *toast
 	// frameNow is the time of the frame being built, by the window's clock.
 	frameNow time.Time
 	// pendingHistory opens the history of this snippet once its tab opens.
@@ -573,4 +578,32 @@ func charCount(t *Tab) int {
 		t.charsVer = v
 	}
 	return t.chars
+}
+
+// RecoveredFor is how long the notice of a recovery after a crash shows,
+// unless the user edits first.
+const RecoveredFor = 8 * time.Second
+
+// recoveredShowing reports whether the quiet notice of a recovery shows: a
+// few seconds after launch, or until the first edit.
+func (a *App) recoveredShowing(c *ui.Context) bool {
+	if !a.recovered {
+		return false
+	}
+	now := c.Now()
+	if a.recoveredUntil.IsZero() {
+		a.recoveredUntil = now.Add(RecoveredFor)
+	}
+	for _, t := range a.tabs {
+		if t.buf().Version() != t.savedVer || !t.editedAt.IsZero() {
+			a.recovered = false
+		}
+	}
+	if !now.Before(a.recoveredUntil) {
+		a.recovered = false
+	}
+	if a.recovered {
+		c.After(a.recoveredUntil.Sub(now))
+	}
+	return a.recovered
 }

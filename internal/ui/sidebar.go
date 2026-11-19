@@ -106,6 +106,9 @@ func (a *App) sidebarItem(c *ui.Context, i int, t *Tab, now time.Time, loc strin
 		})
 		// After the build: both change the list being built.
 		cl.OnClick(func() { a.CloseTab(i) })
+		if active {
+			a.keyBadge(c, cl, keys.CloseTab)
+		}
 	})
 	item.OnClick(func() { a.Activate(i) })
 }
@@ -125,6 +128,7 @@ func (a *App) iconButton(c *ui.Context, key, glyph, label string, act keys.Actio
 	b.Children(func() {
 		ui.Text(c, glyph).FontSize(16).TextColor(p.Muted).Fill().TextAlign(ui.Center)
 	})
+	a.keyBadge(c, b, act)
 	return b
 }
 
@@ -149,7 +153,13 @@ func (a *App) mainHeader(c *ui.Context) {
 				a.NewTab(store.KindText)
 			}
 		}
-		ui.Text(c, tabTitle(a.Active())).FontSize(13).FontWeight(600).TextColor(p.Text).SingleLine().Shrink(1).
-			Role(ui.RoleHeading)
+		t := a.Active()
+		if !a.renameField(c, "header", t.id, 13) {
+			ui.Text(c, tabTitle(t)).FontSize(13).FontWeight(600).TextColor(p.Text).SingleLine().Shrink(1).
+				Role(ui.RoleHeading)
+			a.renameButton(c, "header", t.id, t.title)
+		}
+		ui.Spacer(c)
+		a.headerTools(c)
 	})
 }

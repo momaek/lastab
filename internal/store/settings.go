@@ -16,6 +16,7 @@ const (
 	SettingEditorFont  = "editor.font" // font family
 	SettingEditorSize  = "editor.fontSize"
 	SettingHoldHint    = "holdHint"
+	SettingTray        = "tray"
 	SettingOpenAtLogin = "openAtLogin"
 	SettingAgentAccess = "agent.access"
 	SettingAgentMask   = "agent.mask"

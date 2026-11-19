@@ -162,7 +162,7 @@ func (a *App) agentInstall(c *ui.Context) {
 		ui.Column(c).Gap(4).Children(func() {
 			ui.Row(c).Gap(4).AlignItems(ui.Center).Wrap().Children(func() {
 				ui.Text(c, locales.AgentOther()).FontSize(12).TextColor(p.Muted)
-				ui.Text(c, `lastab search "curl staging" --since 1d --json`).Font(monoFont).FontSize(12).
+				ui.Text(c, `lastab search "curl staging" --since 1d --json`).Font(monoFont).FontFeatures(monoFeatures...).FontSize(12).
 					TextColor(p.Text).Selectable()
 			})
 			ui.Text(c, locales.AgentJSONNote()).FontSize(12).LineHeight(1.5).TextColor(p.Muted)
@@ -192,10 +192,10 @@ func (a *App) installItem(c *ui.Context, item int) {
 				ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
 					ui.Text(c, title).FontSize(13).FontWeight(500)
 					if cli {
-						ui.Text(c, "lastab").Font(monoFont).FontSize(13)
+						ui.Text(c, "lastab").Font(monoFont).FontFeatures(monoFeatures...).FontSize(13)
 					}
 				})
-				ui.Text(c, path).Font(monoFont).FontSize(11.5).TextColor(p.Muted).Selectable()
+				ui.Text(c, path).Font(monoFont).FontFeatures(monoFeatures...).FontSize(11.5).TextColor(p.Muted).Selectable()
 			})
 			switch {
 			case r.busy:

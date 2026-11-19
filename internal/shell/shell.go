@@ -30,6 +30,7 @@ type Shell struct {
 	table     map[keys.Action]string // in the menus
 	global    string                 // the summon shortcut registered
 	suspended bool
+	tray      *mygo.Tray
 }
 
 var _ appui.Platform = (*Shell)(nil)
@@ -261,7 +262,13 @@ func (s *Shell) Install(onQuit func()) {
 	if err := s.ApplyShortcuts(s.App.Shortcuts()); err != nil {
 		s.Log.Warn("global shortcut unavailable", "err", err)
 	}
-	mygo.App.OnLocaleChanged(func(string) { mygo.App.SetMenu(s.Menu(s.table)) })
+	mygo.App.OnLocaleChanged(func(string) {
+		mygo.App.SetMenu(s.Menu(s.table))
+		if s.tray != nil {
+			s.tray.SetMenu(s.trayMenu())
+		}
+	})
+	s.SetTray(s.App.Settings().Tray)
 
 	mygo.App.OnWindowAllClosed(func() {}) // stay resident
 	mygo.App.OnSecondInstance(func([]string, string) { s.Show() })

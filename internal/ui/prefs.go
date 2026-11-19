@@ -348,6 +348,18 @@ func (a *App) prefsGeneral(c *ui.Context) {
 			}
 		})
 	})
+	a.prefRow(c, "hold", locales.HoldHintLabel(modName()), locales.HoldHintDesc(), func() {
+		on := set.HoldHint
+		if ui.Switch(c.Key("sw"), &on).Label(locales.HoldHintLabel(modName())).Changed() {
+			a.SetHoldHint(on)
+		}
+	})
+	a.prefRow(c, "tray", trayLabel(), locales.TrayDesc(), func() {
+		on := set.Tray
+		if ui.Switch(c.Key("sw"), &on).Label(trayLabel()).Changed() {
+			a.SetTray(on)
+		}
+	})
 	a.prefRow(c, "login", locales.OpenAtLoginLabel(), locales.OpenAtLoginDesc(), func() {
 		on := set.OpenAtLogin
 		if ui.Switch(c.Key("sw"), &on).Label(locales.OpenAtLoginLabel()).Changed() {
@@ -491,12 +503,14 @@ func (a *App) prefsEditing(c *ui.Context) {
 	})
 	ui.Text(c, "curl -X POST 'https://api.example.com/v2/orders' -d '{\"page_size\": 50}'  “”—").
 		Font(set.EditorFont).FontSize(set.EditorSize).TextColor(p.Text).Padding(12, 16).Radius(8).
-		Background(p.Sunken).Border(1, p.Line).Margin(12, 0, 0, 0).Font(fontOrMono(set.EditorFont))
+		Background(p.Sunken).Border(1, p.Line).Margin(12, 0, 0, 0).Font(fontOrMono(set.EditorFont)).FontFeatures(monoFeatures...)
 }
 
+// fontOrMono is the editor font setting as a family: "" is the system's
+// monospaced font.
 func fontOrMono(f string) string {
 	if f == "" {
-		return monoFont
+		return "monospace"
 	}
 	return f
 }
@@ -554,7 +568,7 @@ func (a *App) prefsAgent(c *ui.Context) {
 					case 1:
 						t.Width(100)
 					case 2:
-						t.Grow(1).Shrink(1).Font(monoFont)
+						t.Grow(1).Shrink(1).Font(monoFont).FontFeatures(monoFeatures...)
 					case 3:
 						t.Width(180)
 					}
@@ -639,7 +653,7 @@ func (a *App) prefsStorage(c *ui.Context) {
 	}
 	dir := a.d.DataDir
 	a.prefRow(c, "dir", locales.DataFolder(), "", func() {
-		ui.Text(c, dir).Font(monoFont).FontSize(12).TextColor(p.Text2).Shrink(1).Selectable()
+		ui.Text(c, dir).Font(monoFont).FontFeatures(monoFeatures...).FontSize(12).TextColor(p.Text2).Shrink(1).Selectable()
 		if a.outlineButton(c, "reveal", locales.ShowInFolder(), "").Height(28).Clicked() && a.d.Platform != nil {
 			a.d.Platform.ShowInFolder(filepath.Join(dir, paths.DBFile))
 		}
@@ -691,4 +705,19 @@ func (a *App) prefsAbout(c *ui.Context) {
 	ui.Text(c, v).FontSize(12.5).TextColor(p.Muted).FontFeatures("tnum").Selectable()
 	ui.Text(c, locales.AboutDesc()).FontSize(12.5).LineHeight(1.5).TextColor(p.Text2).Margin(12, 0, 0, 0).MaxWidth(520)
 	ui.Text(c, locales.SchemaVersion(store.LatestVersion())).FontSize(12).TextColor(p.Faint).Margin(12, 0, 0, 0)
+}
+
+// modName is the primary modifier as the platform writes it.
+func modName() string {
+	if runtime.GOOS == "darwin" {
+		return "⌘"
+	}
+	return "Ctrl"
+}
+
+func trayLabel() string {
+	if runtime.GOOS == "darwin" {
+		return locales.TrayLabelMac()
+	}
+	return locales.TrayLabelWin()
 }

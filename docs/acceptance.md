@@ -23,16 +23,16 @@
 | A5 | 复制得到的是正文，不含列表标题；一键复制全部得到完整正文 | `internal/ui/app_test.go` `TestCopyAllKeepsLineEndings`；`internal/ui/library_test.go` `TestLibraryMasksAndCopies`（列表中遮蔽，复制仍是原文） | — | 通过 |
 | A6 | 连续编辑多个片段后，用「最近」切换器两步内回到其中最近修改的任意一条 | `internal/ui/app_test.go` `TestSwitcher`；`internal/ui/sidebar_test.go` `TestSidebarOrdersByLastEditWithoutJumping`（切换器顺序） | — | 通过 |
 | A7 | （新）按切换器快捷键弹出列表后，用 Tab 切换选中项并打开 | `internal/ui/app_test.go` `TestSwitcher` | M4（真实键盘下 ⌘\`） | 通过；M4 手工 |
-| A8 | （新）切换器只列出已打开的 tab；已关闭的片段可通过列表或搜索找回 | 找回部分：`internal/ui/library_test.go` `TestLibrarySearchFindsClosed`。切换器不列已关闭片段：尚无断言（实现上切换器只遍历工作区的 tab） | — | 未做：给 `TestSwitcher` 加「关闭一个 tab 后不在切换器中」的断言（M2） |
+| A8 | （新）切换器只列出已打开的 tab；已关闭的片段可通过列表或搜索找回 | 找回：`internal/ui/library_test.go` `TestLibrarySearchFindsClosed`；切换器不列已关闭片段：`internal/ui/polish_test.go` `TestSwitcherListsOpenTabsOnly` | — | 通过 |
 | A9 | （新）弹出时默认选中上一条，快捷键 + 回车即回到它；Shift+Tab 反向，Esc 取消 | `internal/ui/app_test.go` `TestSwitcher` | — | 通过 |
 | A10 | （新）macOS 上松开 ⌘ 后用 Tab 选择，不触发系统 ⌘Tab 应用切换 | — | M4 第 5 步 | 手工 |
 | A11 | 列表按最近修改排序，每条显示标题与创建 / 修改时间 | `internal/ui/sidebar_test.go` `TestSidebarOrdersByLastEditWithoutJumping`；`internal/ui/library_test.go` `TestLibrarySearchFindsClosed`（日期分组）；`internal/store/store_test.go` `TestWorkspaceCloseIsNotDelete` | — | 通过 |
 | A12 | 已关闭的片段仍能被全文搜索找到 | `internal/ui/library_test.go` `TestLibrarySearchFindsClosed`；`internal/store/store_test.go` `TestSearch`、`TestClosedOnlyAndVersionCounts` | — | 通过 |
-| A13 | 列表与搜索需主动呼出，默认面对编辑视图 | 部分：`TestLibrarySearchFindsClosed`（Enter 打开后回到编辑器）。启动时默认是编辑视图：尚无断言 | M6 第 1 步 | 手工 |
+| A13 | 列表与搜索需主动呼出，默认面对编辑视图 | 部分：`TestLibrarySearchFindsClosed`（Enter 打开后回到编辑器）。启动时默认是编辑视图：`internal/ui/polish_test.go` `TestSwitcherListsOpenTabsOnly` | M6 第 1 步 | 手工 |
 | A14 | 标题仍在生成时，仍可继续编辑或复制正文 | 尚无（标题在本地同步生成，`TestTypeKeepsAndTitles` 只验证生成结果） | M6 第 2 步 | 手工 |
 | A15 | 修改旧片段后，能在版本历史中找回修改前的内容 | `internal/ui/history_test.go` `TestHistoryListsAndCompares`、`TestHistoryRestoreAndUndo`、`TestHistoryFromLibrary`；`internal/snippet/snippet_test.go` `TestRecordRestore`；`internal/history/history_test.go` `TestSnapshotDedupes` | — | 通过 |
 | A16 | 按 ⌘T / Ctrl+T 直接打开可输入的空白待办清单，无需命名 | `internal/ui/todo_test.go` `TestTodoEnterAddsAndSaves`（经 `newTodo`：⌘T 后焦点直接在「Add an item」）及其余 `TestTodo*` | — | 通过 |
-| A17 | 待办清单同样自动留存，出现在列表与搜索中；打开时也出现在「最近」切换器中 | 留存：`internal/ui/todo_test.go` `TestTodoEnterAddsAndSaves`、`TestTodoBodyRoundTrips`；列表与搜索：`internal/ui/library_test.go` `TestLibraryFiltersAndKeys`（「待办」过滤）；`internal/todo/todo_test.go` `TestParse`、`TestRoundTrip`。切换器中的待办：尚无断言 | — | 未做：给 `TestSwitcher` 加一个待办 tab 的断言 |
+| A17 | 待办清单同样自动留存，出现在列表与搜索中；打开时也出现在「最近」切换器中 | 留存：`internal/ui/todo_test.go` `TestTodoEnterAddsAndSaves`、`TestTodoBodyRoundTrips`；列表与搜索：`internal/ui/library_test.go` `TestLibraryFiltersAndKeys`（「待办」过滤）；`internal/todo/todo_test.go` `TestParse`、`TestRoundTrip`。切换器中的待办：`internal/ui/polish_test.go` `TestSwitcherListsOpenTabsOnly` | — | 通过 |
 | A18 | Agent 能搜索并读取全部片段，包括非代码内容（随手记录、待办） | `cmd/lastab/main_test.go` `TestListSearchRead`；安装：`internal/install` 的 `TestCLI*`、`TestSkill*`，`internal/ui/agent_test.go` `TestInstallSkillOnClick` 等 | M7（Skill → CLI 全链路） | 通过；M7 手工 |
 | A19 | 关闭「允许 Agent 访问」后，Agent 无法读取任何片段 | `cmd/lastab/main_test.go` `TestAccessOffPrintsNothingButTheError`；`internal/ui/prefs_test.go` `TestEditorFontAndAgent` | — | 通过 |
 | A20 | 默认情况下，Agent 读到的疑似密钥被遮蔽 | `cmd/lastab/main_test.go` `TestListSearchRead`（`read` 与 `search` 预览遮蔽；允许原文后才输出原文）；`internal/redact/redact_test.go` `TestMasks`、`TestPrivateKey`、`TestNoFalsePositives` | — | 通过 |

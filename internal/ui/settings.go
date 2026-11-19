@@ -43,6 +43,9 @@ type Platform interface {
 	// to write /usr/local/bin (macOS).
 	InstallCLI(admin bool) (install.Status, error)
 	InstallSkill() (install.Status, error)
+	// SetTray shows or hides the icon in the menu bar (macOS) or the
+	// notification area (Windows).
+	SetTray(on bool)
 }
 
 // Settings are the user's choices, kept in the setting table.
@@ -51,11 +54,13 @@ type Settings struct {
 	Language    string // "system", "zh-Hans", "en"
 	Accent      string
 	Shortcuts   map[keys.Action]string // the user's own, over the defaults
-	EditorFont  string                 // "" is the system's monospaced font
+	EditorFont  string                 // a family; "" is the system's monospaced font
 	EditorSize  float32
 	OpenAtLogin bool
 	AgentAccess bool
 	AgentMask   bool // mask secrets in what agents read
+	HoldHint    bool // holding ⌘ alone shows the buttons' shortcuts
+	Tray        bool // an icon in the menu bar or notification area
 }
 
 // Editor font sizes Settings offers.
@@ -68,8 +73,10 @@ const (
 func DefaultSettings() Settings {
 	return Settings{
 		Appearance: "system", Language: "system", Accent: theme.DefaultAccent,
-		Shortcuts: map[keys.Action]string{}, EditorSize: theme.EditorFontSize,
+		Shortcuts: map[keys.Action]string{}, EditorSize: theme.EditorFontSize, EditorFont: theme.MonoEditor,
 		AgentMask: true, // agent access stays off until the user turns it on
+		HoldHint:  true,
+		Tray:      true,
 	}
 }
 
@@ -90,6 +97,8 @@ func LoadSettings(ctx context.Context, st *store.Store) (Settings, error) {
 		{store.SettingOpenAtLogin, &s.OpenAtLogin},
 		{store.SettingAgentAccess, &s.AgentAccess},
 		{store.SettingAgentRaw, &raw},
+		{store.SettingHoldHint, &s.HoldHint},
+		{store.SettingTray, &s.Tray},
 	} {
 		if _, err := st.GetSetting(ctx, f.key, f.v); err != nil {
 			return DefaultSettings(), fmt.Errorf("setting %s: %w", f.key, err)
@@ -163,7 +172,11 @@ func (a *App) SetEditorFont(family string, size float32) {
 }
 
 func (a *App) styleEditor(st *editor.State) {
-	st.Font = ui.Font{Family: a.settings.EditorFont, Size: a.settings.EditorSize}
+	family := a.settings.EditorFont
+	if family == "" {
+		family = "monospace" // the system's monospaced font
+	}
+	st.Font = ui.Font{Family: family, Size: a.settings.EditorSize, Features: theme.NoLigatures}
 	st.LineHeight = theme.EditorLineHeight / theme.EditorFontSize
 	st.Bindings = a.editorBindings()
 }
@@ -178,6 +191,21 @@ func (a *App) SetOpenAtLogin(on bool) error {
 	a.settings.OpenAtLogin = on
 	a.saveSetting(store.SettingOpenAtLogin, on)
 	return nil
+}
+
+// SetHoldHint turns the shortcut hints of a held ⌘ on or off.
+func (a *App) SetHoldHint(on bool) {
+	a.settings.HoldHint = on
+	a.saveSetting(store.SettingHoldHint, on)
+}
+
+// SetTray shows or hides the icon in the menu bar or notification area.
+func (a *App) SetTray(on bool) {
+	a.settings.Tray = on
+	if a.d.Platform != nil {
+		a.d.Platform.SetTray(on)
+	}
+	a.saveSetting(store.SettingTray, on)
 }
 
 // SetAgentAccess lets the lastab CLI read snippets, or refuses it.

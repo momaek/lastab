@@ -9,6 +9,20 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
+// Font families, from tokens.json: Inter and JetBrains Mono (embedded by
+// resources/fonts), Chinese falling back to the system's.
+const (
+	UIFamily   = "Inter, PingFang SC, Microsoft YaHei"
+	MonoFamily = "JetBrains Mono, PingFang SC, Microsoft YaHei"
+	// MonoEditor is the editor's default: JetBrains Mono alone, Chinese
+	// falling back as the editor picks.
+	MonoEditor = "JetBrains Mono"
+)
+
+// NoLigatures keeps code as typed: JetBrains Mono draws ->, != and ==
+// as one glyph unless contextual alternates and ligatures are off.
+const NoLigatures = "calt=0,liga=0"
+
 // Derived are the accent's shades from tokens.json's rules.
 type Derived struct {
 	Accent   ui.Color
@@ -79,6 +93,7 @@ func Build(dark bool, accentHex string) (*ui.Theme, *Palette, Derived) {
 	t.Radius = 8
 	t.Spacing = 4
 	t.FontSize = UIFontSize
+	t.Font = UIFamily
 	return &t, p, d
 }
 
