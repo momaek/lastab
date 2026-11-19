@@ -12,6 +12,7 @@ import (
 	"github.com/momaek/lastab/internal/snippet"
 	"github.com/momaek/lastab/internal/store"
 	"github.com/momaek/lastab/internal/ui/keys"
+	"github.com/momaek/lastab/resources/fonts"
 )
 
 type fakeClipboard struct{ text string }
@@ -31,6 +32,9 @@ type harness struct {
 
 func newHarness(t *testing.T, path string) *harness {
 	t.Helper()
+	if err := fonts.Register(); err != nil {
+		t.Fatal(err)
+	}
 	if path == "" {
 		path = filepath.Join(t.TempDir(), "lastab.db")
 	}

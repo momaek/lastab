@@ -428,7 +428,7 @@ macOS 上 ⌘\` 是系统「在同一应用的窗口之间切换」的快捷键�
 | `NoFolding` | `true` | 纯文本不需要折叠 |
 | `LineNumbers` | 按设计显示行号 | — |
 | `SoftWrap` | `true` | 长命令与 JSON 不出现横向滚动 |
-| `Font` / `LineHeight` | JetBrains Mono 13.5 / 22（来自 `tokens.json`） | 等宽字体；中文回退到系统字体 |
+| `Font` / `LineHeight` | JetBrains Mono 13.5 / 22（来自 `tokens.json`），`Features: calt=0,liga=0` | 等宽字体；中文回退到系统字体。关闭连字：JetBrains Mono 默认把 `->`、`!=`、`==` 画成一个字形，与「输入即所得」不符；列表、预览、差异视图里的等宽文字同样关闭 |
 | `Placeholder` | 「直接粘贴或输入，无需命名，会自动留存」 | 设计「新建空白片段」画板 |
 | `Bindings` | ⌘K / Ctrl+K 绑定到 `editor.NoCommand` | 编辑器默认把 ⌘K 作为组合键前缀（如 ⌘K ⌘0 折叠），必须让给应用的「全部片段与搜索」 |
 

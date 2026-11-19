@@ -57,7 +57,7 @@ func (a *App) keyBadge(c *ui.Context, anchor ui.Element, act keys.Action) {
 	ui.Overlay(c, func() {
 		ui.Text(c.Key("hint-"+string(act)), keys.Display(acc, runtime.GOOS)).
 			AttachTo(anchor, ui.AnchorBottom, ui.AnchorTop).Margin(4, 0, 0, 0).
-			FontSize(11).Font(monoFont).Padding(2, 6).Radius(4).
+			FontSize(11).Font(monoFont).FontFeatures(monoFeatures...).Padding(2, 6).Radius(4).
 			Background(p.InvBg).TextColor(p.InvText).NoWrap().PassThrough().AccessHidden(true)
 	})
 }

@@ -54,7 +54,7 @@ type Settings struct {
 	Language    string // "system", "zh-Hans", "en"
 	Accent      string
 	Shortcuts   map[keys.Action]string // the user's own, over the defaults
-	EditorFont  string                 // "" is the system's monospaced font
+	EditorFont  string                 // a family; "" is the system's monospaced font
 	EditorSize  float32
 	OpenAtLogin bool
 	AgentAccess bool
@@ -73,7 +73,7 @@ const (
 func DefaultSettings() Settings {
 	return Settings{
 		Appearance: "system", Language: "system", Accent: theme.DefaultAccent,
-		Shortcuts: map[keys.Action]string{}, EditorSize: theme.EditorFontSize,
+		Shortcuts: map[keys.Action]string{}, EditorSize: theme.EditorFontSize, EditorFont: theme.MonoEditor,
 		AgentMask: true, // agent access stays off until the user turns it on
 		HoldHint:  true,
 		Tray:      true,
@@ -172,7 +172,11 @@ func (a *App) SetEditorFont(family string, size float32) {
 }
 
 func (a *App) styleEditor(st *editor.State) {
-	st.Font = ui.Font{Family: a.settings.EditorFont, Size: a.settings.EditorSize}
+	family := a.settings.EditorFont
+	if family == "" {
+		family = "monospace" // the system's monospaced font
+	}
+	st.Font = ui.Font{Family: family, Size: a.settings.EditorSize, Features: theme.NoLigatures}
 	st.LineHeight = theme.EditorLineHeight / theme.EditorFontSize
 	st.Bindings = a.editorBindings()
 }

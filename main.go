@@ -19,6 +19,7 @@ import (
 	"github.com/momaek/lastab/internal/store"
 	appui "github.com/momaek/lastab/internal/ui"
 	_ "github.com/momaek/lastab/locales"
+	"github.com/momaek/lastab/resources/fonts"
 )
 
 func main() {
@@ -34,6 +35,9 @@ func main() {
 		fatal(nil, "data directory", err)
 	}
 	log := newLogger(dir)
+	if err := fonts.Register(); err != nil {
+		log.Warn("fonts: falling back to the system's", "err", err)
+	}
 
 	st, err := store.Open(filepath.Join(dir, paths.DBFile))
 	if err != nil {

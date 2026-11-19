@@ -22,8 +22,12 @@ import (
 // LibraryLimit is the most results the library shows.
 const LibraryLimit = 300
 
-// monoFont is the system's monospaced font, as the editor uses.
-const monoFont = "monospace"
+// monoFont is the monospaced text of lists and previews: JetBrains Mono,
+// Chinese falling back to the system's, without ligatures (monoFeatures).
+const monoFont = theme.MonoFamily
+
+// monoFeatures turns JetBrains Mono's ligatures off, so code shows as typed.
+var monoFeatures = []string{"calt=0", "liga=0"}
 
 // previewMax is the most bytes of a body the preview lays out.
 const previewMax = 20000
@@ -445,7 +449,7 @@ func (a *App) librarySearch(c *ui.Context) {
 			in := ui.TextInput(c.Key("query"), &l.query).Grow(1).Shrink(1).
 				Placeholder(locales.SearchPlaceholder()).Label(locales.SearchAll()).
 				Role(ui.RoleComboBox).HasPopup(ui.PopupListBox).
-				FontSize(14).Font(monoFont).Background(ui.Transparent).Border(0, ui.Transparent).Padding(0)
+				FontSize(14).Font(monoFont).FontFeatures(monoFeatures...).Background(ui.Transparent).Border(0, ui.Transparent).Padding(0)
 			if l.focus {
 				in.Focus()
 				l.focus = false
@@ -656,7 +660,7 @@ func (a *App) libraryRow(c *ui.Context, it *libItem, i int, now time.Time, loc s
 			ui.Text(c, when).FontSize(12).TextColor(p.Muted).FontFeatures("tnum").NoWrap()
 		})
 		ui.RichText(c, marked(oneLine(it.Preview), search.Highlights(oneLine(it.Preview), l.query), p)...).
-			FontSize(12).Font(monoFont).LineHeight(1.5).TextColor(p.Muted).SingleLine()
+			FontSize(12).Font(monoFont).FontFeatures(monoFeatures...).LineHeight(1.5).TextColor(p.Muted).SingleLine()
 		created := locales.CreatedLine(exactTime(now, it.CreatedAt, loc), it.versions)
 		if it.Kind == store.KindTodo {
 			created += " · " + locales.TodoKind()
@@ -780,7 +784,7 @@ func (a *App) libraryPreview(c *ui.Context, it *libItem) {
 	ui.Scroll(c.Key("body-"+it.ID)).Column().Grow(1).Shrink(1).AlignItems(ui.Stretch).
 		Padding(16, 24).Background(p.Sunken).Children(func() {
 		ui.RichText(c, marked(shown, search.Highlights(shown, l.query), p)...).
-			FontSize(12.5).Font(monoFont).LineHeight(20.0 / 12.5).TextColor(p.Text).PreserveSpaces().Selectable()
+			FontSize(12.5).Font(monoFont).FontFeatures(monoFeatures...).LineHeight(20.0 / 12.5).TextColor(p.Text).PreserveSpaces().Selectable()
 	})
 
 	// Actions.
