@@ -38,13 +38,13 @@ func (a *App) sidebar(c *ui.Context) {
 		ui.Row(c).Height(max(bar.Height, theme.TitleBarHeight)).Padding(0, 8, 0, bar.Left+8).
 			Gap(2).AlignItems(ui.Center).DragWindow().Children(func() {
 			ui.Spacer(c)
-			if a.iconButton(c, "settings", "⚙", locales.OpenSettings(), keys.Settings).Clicked() {
+			if a.iconButton(c, "settings", iconSettings, locales.OpenSettings(), keys.Settings).Clicked() {
 				a.OpenSettings(-1)
 			}
-			if a.iconButton(c, "hide", "⇤", locales.HideSidebar(), keys.ToggleSidebar).Clicked() {
+			if a.iconButton(c, "hide", iconHideSide, locales.HideSidebar(), keys.ToggleSidebar).Clicked() {
 				a.ToggleSidebar()
 			}
-			if a.iconButton(c, "new", "+", locales.NewSnippetMenu(), keys.NewText).Clicked() {
+			if a.iconButton(c, "new", iconPlus, locales.NewSnippetMenu(), keys.NewText).Clicked() {
 				a.NewTab(store.KindText)
 			}
 		})
@@ -77,7 +77,7 @@ func (a *App) sidebarItem(c *ui.Context, i int, t *Tab, now time.Time, loc strin
 		ui.Column(c).Grow(1).Shrink(1).MinWidth(0).Gap(2).Children(func() {
 			ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
 				if t.kind == store.KindTodo {
-					ui.Text(c, "☑").FontSize(12).TextColor(p.Muted)
+					ui.Icon(c, iconTodo).Size(13, 13).TextColor(p.Muted)
 				}
 				col := p.Text2
 				if active {
@@ -96,13 +96,13 @@ func (a *App) sidebarItem(c *ui.Context, i int, t *Tab, now time.Time, loc strin
 			ui.Text(c, when).FontSize(11.5).TextColor(p.Faint).FontFeatures("tnum").SingleLine()
 		})
 		show := active || hovered
-		cl := ui.ButtonBase(c.Key("close")).Size(20, 20).Radius(4).Label(locales.CloseTab()).
+		cl := ui.ButtonBase(c.Key("close")).Row().AlignItems(ui.Center).Justify(ui.Center).Size(20, 20).Radius(4).Label(locales.CloseTab()).
 			IgnoreInput(!show).Opacity(map[bool]float32{true: 1, false: 0}[show])
 		if cl.Hovered() {
 			cl.Background(p.BadgeTab)
 		}
 		cl.Children(func() {
-			ui.Text(c, "×").FontSize(14).TextColor(p.Faint).Fill().TextAlign(ui.Center)
+			ui.Icon(c, iconClose).Size(14, 14).TextColor(p.Faint)
 		})
 		// After the build: both change the list being built.
 		cl.OnClick(func() { a.CloseTab(i) })
@@ -115,18 +115,18 @@ func (a *App) sidebarItem(c *ui.Context, i int, t *Tab, now time.Time, loc strin
 
 // iconButton is a small square button with a glyph, its name and key in
 // the tooltip.
-func (a *App) iconButton(c *ui.Context, key, glyph, label string, act keys.Action) ui.Element {
+func (a *App) iconButton(c *ui.Context, key string, icon *ui.SVG, label string, act keys.Action) ui.Element {
 	p := a.pal
 	tip := label
 	if act != "" {
 		tip += "  " + keys.Display(a.Shortcuts()[act], runtime.GOOS)
 	}
-	b := ui.ButtonBase(c.Key(key)).Size(28, 28).Radius(6).Label(label).Tooltip(tip)
+	b := ui.ButtonBase(c.Key(key)).Row().AlignItems(ui.Center).Justify(ui.Center).Size(28, 28).Radius(6).Label(label).Tooltip(tip)
 	if b.Hovered() {
 		b.Background(p.BadgeTab)
 	}
 	b.Children(func() {
-		ui.Text(c, glyph).FontSize(16).TextColor(p.Muted).Fill().TextAlign(ui.Center)
+		ui.Icon(c, icon).Size(16, 16).TextColor(p.Muted)
 	})
 	a.keyBadge(c, b, act)
 	return b
@@ -146,12 +146,15 @@ func (a *App) mainHeader(c *ui.Context) {
 		Gap(8).AlignItems(ui.Center).Background(p.Bg).
 		BorderWidth(0, 0, 1, 0).BorderColor(p.Line).DragWindow().Children(func() {
 		if a.sidebarHidden {
-			if a.iconButton(c, "show", "⇥", locales.ShowSidebar(), keys.ToggleSidebar).Clicked() {
-				a.ToggleSidebar()
-			}
-			if a.iconButton(c, "new", "+", locales.NewSnippetMenu(), keys.NewText).Clicked() {
-				a.NewTab(store.KindText)
-			}
+			// Spaced as they are in the sidebar's header.
+			ui.Row(c).Gap(2).AlignItems(ui.Center).Margin(0, 8, 0, 0).Children(func() {
+				if a.iconButton(c, "show", iconShowSide, locales.ShowSidebar(), keys.ToggleSidebar).Clicked() {
+					a.ToggleSidebar()
+				}
+				if a.iconButton(c, "new", iconPlus, locales.NewSnippetMenu(), keys.NewText).Clicked() {
+					a.NewTab(store.KindText)
+				}
+			})
 		}
 		t := a.Active()
 		if !a.renameField(c, "header", t.id, 13) {

@@ -66,15 +66,16 @@ func (a *App) keyBadge(c *ui.Context, anchor ui.Element, act keys.Action) {
 func (a *App) headerTools(c *ui.Context) {
 	ui.Row(c).Gap(4).AlignItems(ui.Center).Children(func() {
 		for _, tool := range []struct {
-			key, glyph, label string
-			act               keys.Action
+			key, label string
+			icon       *ui.SVG
+			act        keys.Action
 		}{
-			{"search", "⌕", locales.AllSnippetsMenu(), keys.AllSnippets},
-			{"recent", "⇆", locales.RecentMenu(), keys.Recent},
-			{"history", "◷", locales.HistoryMenu(), keys.History},
+			{"search", locales.AllSnippetsMenu(), iconSearch, keys.AllSnippets},
+			{"recent", locales.RecentMenu(), iconRecent, keys.Recent},
+			{"history", locales.HistoryMenu(), iconHistory, keys.History},
 		} {
 			act := tool.act
-			a.iconButton(c, tool.key, tool.glyph, tool.label, act).OnClick(func() { a.Run(act, c.Now()) })
+			a.iconButton(c, tool.key, tool.icon, tool.label, act).OnClick(func() { a.Run(act, c.Now()) })
 		}
 	})
 }

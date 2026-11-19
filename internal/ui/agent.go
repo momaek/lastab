@@ -232,7 +232,7 @@ func (a *App) installItem(c *ui.Context, item int) {
 		case r.err != "":
 			ui.Row(c.Key("failed")).Gap(8).AlignItems(ui.Center).Padding(8, 12).Radius(4).Background(p.DangerBg).
 				Role(ui.RoleAlert).Children(func() {
-				ui.Text(c, "ⓘ").FontSize(13).TextColor(p.Danger).AccessHidden(true)
+				ui.Icon(c, iconInfo).Size(14, 14).TextColor(p.Danger)
 				ui.Text(c, r.err).FontSize(12.5).LineHeight(1.5).TextColor(p.Danger).Grow(1).Shrink(1).MinWidth(0)
 				if a.outlineButton(c, "retry", locales.Retry(), "").Height(28).Clicked() {
 					retry()
@@ -279,5 +279,8 @@ func (a *App) appVersion() string {
 		return ""
 	}
 	v, _, _ := strings.Cut(a.d.Platform.Version(), " · ")
+	if v == "dev" { // an unbundled build: no version to show
+		return ""
+	}
 	return v
 }

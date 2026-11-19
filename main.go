@@ -89,7 +89,9 @@ func main() {
 			MinHeight:     320,
 			StateKey:      "main",
 			TitleBarStyle: mygo.TitleBarHidden,
-			Content:       ui.View(app.View),
+			// Centers the traffic lights in the 44pt header the pages draw.
+			TrafficLightPosition: &mygo.Point{X: 16, Y: 15},
+			Content:              ui.View(app.View),
 		})
 		sh.Install(func() {
 			if err := session.End(); err != nil {

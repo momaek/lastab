@@ -67,7 +67,7 @@ func (a *App) toastView(c *ui.Context) {
 			box.Padding(8, 12)
 		}
 		box.Children(func() {
-			ui.Text(c, "✓").FontSize(12.5).TextColor(p.ToastOk)
+			ui.Icon(c, iconCheck).Size(14, 14).TextColor(p.ToastOk)
 			ui.Text(c, t.text).FontSize(12.5).TextColor(p.ToastText).NoWrap()
 			if t.action == "" {
 				return

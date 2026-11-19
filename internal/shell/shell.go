@@ -192,7 +192,11 @@ func (s *Shell) ShowInFolder(path string) { mygo.Shell.ShowItemInFolder(path) }
 
 // Version is Lastab's version and the framework's.
 func (s *Shell) Version() string {
-	return fmt.Sprintf("%s · MyGo %s", mygo.App.Version(), mygo.Version)
+	v := mygo.App.Version()
+	if v == "" {
+		v = "dev" // go run and go build carry no bundle version
+	}
+	return fmt.Sprintf("%s · MyGo %s", v, mygo.Version)
 }
 
 // installEnv is where the lastab command and the skill go: the command is

@@ -137,14 +137,15 @@ func (a *App) switcherRow(c *ui.Context, t *Tab, selected bool, i, n int) {
 		ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
 			ui.Text(c, tabTitle(t)).TextColor(p.Text).SingleLine().Grow(1).Shrink(1)
 			if t == a.Active() {
-				ui.Text(c, "●").FontSize(8).TextColor(a.acc.Accent)
+				ui.Box(c).Size(6, 6).Radius(3).Background(a.acc.Accent).AccessHidden(true)
 			}
 			ui.Text(c, clock(t.modifiedAt)).FontSize(11).TextColor(p.Faint).FontFeatures("tnum")
 		})
 		if selected {
 			preview := previewLines(redact.String(t.buf().String()), 3)
 			if preview != "" {
-				ui.Text(c, preview).FontSize(12).TextColor(p.Muted).MaxLines(3).TextAlign(ui.Start)
+				ui.Text(c, preview).Font(monoFont).FontFeatures(monoFeatures...).FontSize(12).LineHeight(18.0/12).
+					TextColor(p.Text2).MaxLines(3).TextAlign(ui.Start).Padding(8, 12).Radius(4).Background(p.Bg)
 			}
 		}
 	})

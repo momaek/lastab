@@ -309,7 +309,7 @@ func (a *App) tab() *Tab { return a.history.tab }
 func (a *App) historyEmpty(c *ui.Context, none bool) {
 	p := a.pal
 	ui.Column(c).Grow(1).Gap(8).Padding(32).AlignItems(ui.Center).Justify(ui.Center).Children(func() {
-		ui.Text(c, "◷").FontSize(28).TextColor(p.Faint)
+		ui.Icon(c, iconHistory).Size(28, 28).TextColor(p.Faint)
 		title := locales.SingleTitle()
 		if none {
 			title = locales.NoVersionsTitle()
@@ -334,7 +334,8 @@ func (a *App) historyDrawer(c *ui.Context) {
 					ui.Text(c, locales.HistoryTitle()).FontSize(13.5).FontWeight(600).Role(ui.RoleHeading)
 					ui.Text(c, locales.HistorySub()).FontSize(12).LineHeight(17.0 / 12).TextColor(p.Muted)
 				})
-				if a.iconButton(c, "close", "×", locales.CloseHistory(), "").Clicked() {
+				// Pulled up so the × lines up with the title rather than below it.
+				if a.iconButton(c, "close", iconClose, locales.CloseHistory(), "").Margin(-5, -6, 0, 0).Clicked() {
 					a.CloseHistory()
 				}
 			})

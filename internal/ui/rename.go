@@ -52,7 +52,7 @@ func (a *App) renameButton(c *ui.Context, where, id, title string) {
 	if id == "" || a.rename.where != "" {
 		return
 	}
-	if a.iconButton(c, "rename", "✎", locales.RenameTitle(), "").Clicked() {
+	if a.iconButton(c, "rename", iconRename, locales.RenameTitle(), "").Clicked() {
 		a.startRename(where, id, title)
 	}
 }
