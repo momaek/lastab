@@ -1,6 +1,7 @@
 package appui
 
 import (
+	"math"
 	"runtime"
 	"strings"
 	"time"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
+	"github.com/momaek/lastab/internal/theme"
 	"github.com/momaek/lastab/internal/todo"
 	"github.com/momaek/lastab/internal/ui/keys"
 	"github.com/momaek/lastab/locales"
@@ -53,10 +55,34 @@ type todoList struct {
 	focus int
 	caret int
 
-	list    ui.ListState
-	pending *rowMove // a drag dropped this frame, moved as the next one starts
-	hover   int
+	drag    *todoDrag
+	grips   map[int]ui.Element // this frame's grip of each item, by id
+	rowBox  map[int]ui.Rect    // where each open row was laid out, by id
+	pending *rowMove           // a drag dropped this frame, moved as the next one starts
 }
+
+// todoDrag is an open item being dragged by its grip. Once the pointer
+// moved a few DIPs the item lifts: it follows the pointer, smaller and
+// tilted, over the others, which part around a line where it would drop.
+type todoDrag struct {
+	id     int
+	pressY float32 // the pointer as the press began, in the column
+	grab   float32 // the pointer's offset into the row as it was pressed
+	h      float32 // the row's height
+	y      float32 // the lifted row's top, in the column
+	to     int     // the other open items it would go before
+	active bool    // moved far enough to lift
+	cancel bool    // Escape put it back; it waits for the release
+}
+
+// Drag motion, after the design.
+const (
+	dragSlop    = 4    // DIPs the pointer moves before the item lifts
+	dragScale   = 0.9  // the lifted row's size
+	dragTilt    = -0.6 // its tilt, in degrees
+	dragPart    = 8    // how far the rows next to the line move aside
+	dragFalloff = 0.7  // and those further, each by this much less
+)
 
 type rowMove struct {
 	rows []int
@@ -525,14 +551,7 @@ func (a *App) todoView(c *ui.Context, t *Tab) {
 
 	ui.Scroll(c.Key(t.key)).Column().Grow(1).Shrink(1).MinHeight(0).FillWidth().AlignItems(ui.Stretch).
 		Padding(16, 48, 24, 24).Role(ui.RoleTabPanel).Label(tabTitle(t)).Children(func() {
-		l.list.Key = func(i int) any { return open[i].id }
-		l.list.Label = func(i int) string { return open[i].text }
-		l.list.Reorder = func(rows []int, to int) { l.pending = &rowMove{rows, to} }
-		l.list.MoveAnimation = &ui.Smooth
-		ui.List(c.Key("open"), &l.list, len(open)).FillWidth().Label(locales.TodoListLabel()).
-			Rows(func(row ui.ListRow) {
-				a.todoRow(row.Context, t, open[row.Index], row.Hovered(), true, fresh)
-			})
+		a.todoOpenRows(c, t, open, fresh)
 		a.todoDraftRow(c, t)
 		if len(done) == 0 {
 			return
@@ -564,34 +583,186 @@ func (a *App) todoView(c *ui.Context, t *Tab) {
 			return
 		}
 		for _, it := range done {
-			a.todoRow(c, t, it, false, false, false)
+			a.todoRow(c, t, it, rowDone, false)
 		}
 	})
 	a.writeTodo(t)
 }
 
+// todoOpenRows builds the open items. While one is dragged, it is built
+// last, lifted over the others where the pointer holds it, and the others
+// part around a line where it would drop.
+func (a *App) todoOpenRows(c *ui.Context, t *Tab, open []*todoItem, fresh bool) {
+	p := a.pal
+	l := t.todo
+	col := ui.Column(c.Key("open")).AlignItems(ui.Stretch).Role(ui.RoleList).Label(locales.TodoListLabel())
+	colBox := col.LayoutBounds()
+	_, py, _ := col.PointerPosition()
+	d := l.drag
+	if d != nil && l.index(d.id) < 0 {
+		l.drag, d = nil, nil // deleted while held
+	}
+	var lifted *todoItem
+	var others []*todoItem
+	for _, it := range open {
+		if d != nil && d.active && it.id == d.id {
+			lifted = it
+			continue
+		}
+		others = append(others, it)
+	}
+	if lifted != nil {
+		d.y = py - d.grab
+		// It goes before the first other row whose middle is below its own.
+		mid := colBox.Y + d.y + d.h/2
+		d.to = len(others)
+		for j, it := range others {
+			if b := l.rowBox[it.id]; mid < b.Y+b.H/2 {
+				d.to = j
+				break
+			}
+		}
+		c.OnWindowShortcut(0, ui.KeyEscape, func() { d.active, d.cancel = false, true })
+	}
+	if l.rowBox == nil {
+		l.rowBox = map[int]ui.Rect{}
+	}
+	col.Children(func() {
+		for j, it := range others {
+			var shift float32
+			if lifted != nil {
+				if j == d.to {
+					a.todoDropLine(c)
+				}
+				// The rows next to the line move aside, those further less.
+				if j < d.to {
+					shift = -dragPart * float32(math.Pow(dragFalloff, float64(d.to-1-j)))
+				} else {
+					shift = dragPart * float32(math.Pow(dragFalloff, float64(j-d.to)))
+				}
+			}
+			row := a.todoRow(c, t, it, rowOpen, fresh)
+			row.Translate(0, row.AnimateTo("part", shift, ui.Smooth))
+			l.rowBox[it.id] = row.LayoutBounds()
+			a.todoGrip(c, t, it, row, colBox, py)
+		}
+		if lifted == nil {
+			return
+		}
+		if d.to == len(others) {
+			a.todoDropLine(c)
+		}
+		row := a.todoRow(c, t, lifted, rowLifted, false)
+		row.Absolute().Top(d.y).Left(64).Width(560).ZIndex(1).
+			Padding(0, 12).Radius(8).Background(p.Panel).Border(1, p.BtnLine).
+			Shadow(0, 8, 24, 0, a.popShadow()).
+			TransformOrigin(0, 0.5).Scale(dragScale, dragScale).Rotate(dragTilt).Cursor(ui.CursorGrabbing)
+		a.todoGrip(c, t, lifted, row, colBox, py)
+	})
+}
+
+// popShadow is the shadow of what floats over the page, as the design's
+// pop shadow: 14% black in light, 45% in dark.
+func (a *App) popShadow() ui.Color {
+	if a.pal == &theme.Dark {
+		return ui.RGBA(0, 0, 0, 0.45)
+	}
+	return ui.RGBA(0, 0, 0, 0.14)
+}
+
+// todoDropLine is where the lifted item would drop, under the text.
+func (a *App) todoDropLine(c *ui.Context) {
+	ui.Box(c.Key("dropLine")).Height(2).Margin(0, 0, 0, 48).Radius(1).Background(a.pal.DropLine).AccessHidden(true)
+}
+
+// todoGrip follows the press on an item's grip: it lifts the item once
+// the pointer moved, and drops it where the line shows as it lets go.
+func (a *App) todoGrip(c *ui.Context, t *Tab, it *todoItem, row ui.Element, colBox ui.Rect, py float32) {
+	l := t.todo
+	grip := l.grips[it.id]
+	if !grip.Valid() {
+		return
+	}
+	d := l.drag
+	held := gripHeld(grip)
+	switch {
+	case held && d == nil:
+		b := row.LayoutBounds()
+		l.drag = &todoDrag{id: it.id, pressY: py, grab: py - (b.Y - colBox.Y), h: b.H, to: -1}
+	case held && d.id == it.id:
+		if !d.active && !d.cancel && abs32(py-d.pressY) > dragSlop {
+			d.active = true
+			c.Invalidate() // lift it now
+		}
+	case !held && d != nil && d.id == it.id:
+		// Let go: it drops where the line is, as the next frame starts.
+		if d.active && d.to >= 0 {
+			from := l.index(it.id)
+			to := d.to
+			if to >= from {
+				to++ // counted among the others, without it
+			}
+			l.pending = &rowMove{[]int{from}, to}
+		}
+		l.drag = nil
+		c.Invalidate()
+	}
+}
+
+// gripHeld reports whether the primary button holds the grip, wherever
+// the pointer went since it pressed it (Pressed is false off the grip).
+func gripHeld(grip ui.Element) bool {
+	grip.Pressed() // the grip takes the press
+	b, ok := grip.PressedButton()
+	return ok && b == 0
+}
+
+func abs32(x float32) float32 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+// How an item shows.
+type rowKind int
+
+const (
+	rowOpen   rowKind = iota // in the open group
+	rowLifted                // dragged over the open group
+	rowDone                  // in the Done group
+)
+
 // todoRow builds an item: its grip, its check box, its text and, under the
-// pointer, the button that deletes it. In the open group it is a row of the
-// list; in the Done group, a row of its own.
-func (a *App) todoRow(c *ui.Context, t *Tab, it *todoItem, hovered, inOpen, fresh bool) {
+// pointer, the button that deletes it.
+func (a *App) todoRow(c *ui.Context, t *Tab, it *todoItem, kind rowKind, fresh bool) ui.Element {
 	p := a.pal
 	l := t.todo
 	now := c.Now()
+	dragging := l.drag != nil && l.drag.active
 	row := ui.Row(c.Key(it.id)).MinHeight(36).Gap(8).AlignItems(ui.Center)
-	if inOpen {
+	if kind == rowOpen {
 		row.BorderWidth(0, 0, 1, 0).BorderColor(p.LineSoft)
 		if fresh && it.fresh {
 			row.Background(a.acc.Sel)
 		}
 	}
-	if !inOpen {
-		hovered = row.Hovered()
-	}
+	hovered := row.Hovered() && !dragging
 	row.Children(func() {
-		grip := ui.Text(c, "⠿").FontSize(12).TextColor(p.Faint).Width(16).TextAlign(ui.Center).AccessHidden(true)
-		if !inOpen || !hovered {
+		grip := ui.Box(c.Key("grip")).Width(16).Height(28).AccessHidden(true)
+		if kind != rowDone {
+			grip.Cursor(ui.CursorGrab)
+			if l.grips == nil {
+				l.grips = map[int]ui.Element{}
+			}
+			l.grips[it.id] = grip
+		}
+		if kind == rowDone || !hovered && kind != rowLifted && !gripHeld(grip) {
 			grip.Opacity(0)
 		}
+		grip.Children(func() {
+			ui.Text(c, "⠿").FontSize(12).TextColor(p.Faint).Fill().TextAlign(ui.Center).Padding(7, 0, 0, 0)
+		})
 		done := it.done
 		cb := ui.Checkbox(c.Key("check"), &done, "").Label(locales.TodoCheckLabel(it.text)).Margin(0, 4, 0, 0)
 		if cb.Changed() {
@@ -625,6 +796,9 @@ func (a *App) todoRow(c *ui.Context, t *Tab, it *todoItem, hovered, inOpen, fres
 		if in.Changed() && it.fresh {
 			it.fresh = false
 		}
+		if kind == rowLifted {
+			return
+		}
 		del := ui.ButtonBase(c.Key("delete")).Row().AlignItems(ui.Center).Justify(ui.Center).Size(28, 28).Radius(8).Label(locales.TodoDeleteItem()).
 			Tooltip(locales.TodoDeleteItem() + "  " + todoKey("CmdOrCtrl+Shift+Backspace"))
 		if !hovered {
@@ -637,6 +811,7 @@ func (a *App) todoRow(c *ui.Context, t *Tab, it *todoItem, hovered, inOpen, fres
 		})
 		del.OnClick(func() { a.todoDelete(t, id, true, a.frameNow) })
 	})
+	return row
 }
 
 // todoCheckLater records a click on a check box for the next frame.
