@@ -8,6 +8,8 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
+	"github.com/momaek/lastab/internal/ui/keys"
+
 	"github.com/momaek/lastab/internal/store"
 )
 
@@ -17,7 +19,7 @@ func TestHistoryListsAndCompares(t *testing.T) {
 	h.settle()
 	h.tt.Type("\npage_size=20")
 	h.settle()
-	h.tt.Key(ui.Cmd, ui.KeyY)
+	h.press(keys.History)
 	if !h.app.HistoryOpen() {
 		t.Fatal("Cmd+Y did not open the history")
 	}
@@ -51,7 +53,7 @@ func TestHistoryRestoreAndUndo(t *testing.T) {
 	h.settle()
 	h.tt.Type(" then v2")
 	h.settle()
-	h.tt.Key(ui.Cmd, ui.KeyY)
+	h.press(keys.History)
 	if err := h.tt.Click("Restore this version"); err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +107,7 @@ func TestHistoryToastExpires(t *testing.T) {
 	h.settle()
 	h.tt.Type("b")
 	h.settle()
-	h.tt.Key(ui.Cmd, ui.KeyY)
+	h.press(keys.History)
 	h.tt.Click("Restore this version")
 	h.tt.Move(0, 300) // not over the toast
 	h.tt.Advance(UndoFor + time.Second)
@@ -119,14 +121,14 @@ func TestHistoryToastExpires(t *testing.T) {
 
 func TestHistorySingleAndBlank(t *testing.T) {
 	h := newHarness(t, "")
-	h.tt.Key(ui.Cmd, ui.KeyY)
+	h.press(keys.History)
 	if !h.tt.HasText("No versions yet") {
 		t.Errorf("blank: %q", h.tt.Texts())
 	}
-	h.tt.Key(ui.Cmd, ui.KeyY)
+	h.press(keys.History)
 	h.tt.Type("kubectl get pods")
 	h.settle()
-	h.tt.Key(ui.Cmd, ui.KeyY)
+	h.press(keys.History)
 	if !h.tt.HasText("Only one version so far") {
 		t.Errorf("single: %q", h.tt.Texts())
 	}

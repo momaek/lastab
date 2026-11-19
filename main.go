@@ -88,8 +88,12 @@ func main() {
 			Content:       ui.View(app.View),
 		})
 		sh.Install(func() {
-			session.End()
-			st.Close()
+			if err := session.End(); err != nil {
+				log.Error("end session", "err", err)
+			}
+			if err := st.Close(); err != nil {
+				log.Error("close database", "err", err)
+			}
 		})
 	})
 	if err := mygo.App.Run(); err != nil {

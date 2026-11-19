@@ -54,9 +54,99 @@ func Matches(title, body, q string) bool {
 
 // Preview returns about max bytes of body around the first match of q,
 // masked, with the matches in it. Without a match it is the body's start.
+//
+// It masks only a window of whole lines around the match, not the whole
+// body: redacting 300 bodies of up to 20 KB each cost the library over
+// 100 ms a keystroke. Every redact rule matches within a line, give or take
+// the whitespace between a key and its value, so a window with a few lines
+// of margin masks exactly what masking the whole body would. PEM keys span
+// lines; a body with one is masked whole.
 func Preview(body, q string, max int) (string, []Range) {
-	masked := redact.String(body)
 	q = strings.TrimSpace(q)
+	if strings.Contains(body, "PRIVATE KEY-----") {
+		return previewFull(body, q, max)
+	}
+	if q == "" {
+		if p, hs, ok := previewAt(body, 0, 0, "", max); ok {
+			return p, hs
+		}
+		return previewFull(body, q, max)
+	}
+	off := 0
+	for range 4 {
+		i := indexFold(body[off:], q)
+		if i < 0 {
+			break
+		}
+		at := off + i
+		l := foldLen(body[at:], q)
+		if p, hs, ok := previewAt(body, at, l, q, max); ok {
+			return p, hs
+		}
+		// The match is inside a masked secret; try the next one.
+		off = at + max1(l)
+	}
+	return previewFull(body, q, max)
+}
+
+// previewAt is Preview masking a window around the match at [at, at+n).
+// It widens the window while masks, shorter than the secrets they hide,
+// leave too little text around the match; ok is false when the match is
+// masked.
+func previewAt(body string, at, n int, q string, max int) (string, []Range, bool) {
+	for slack := 2 * max; ; slack *= 4 {
+		ws, we := window(body, at, n, slack)
+		masked := redact.String(body[ws:we])
+		j := 0
+		if q != "" {
+			if j = indexFold(masked, q); j < 0 {
+				return "", nil, false
+			}
+		}
+		enough := (ws == 0 || j > max) && (we == len(body) || len(masked)-j > 2*max)
+		if enough || ws == 0 && we == len(body) {
+			p, hs := cut(masked, ws > 0, we < len(body), q, max)
+			return p, hs, true
+		}
+	}
+}
+
+// windowLines is how many whole lines a preview window adds on each side.
+const windowLines = 2
+
+// window returns the byte range of body that a preview of the match at
+// [at, at+n) masks: whole lines from slack bytes before the match to slack
+// bytes after it, plus windowLines more lines on each side.
+func window(body string, at, n, slack int) (int, int) {
+	start := strings.LastIndexByte(body[:at-min(at, slack)], '\n') + 1
+	for range windowLines {
+		if start == 0 {
+			break
+		}
+		start = strings.LastIndexByte(body[:start-1], '\n') + 1
+	}
+	end := min(len(body), at+n+slack)
+	for range windowLines + 1 {
+		nl := strings.IndexByte(body[end:], '\n')
+		if nl < 0 {
+			return start, len(body)
+		}
+		end += nl + 1
+		if end == len(body) {
+			break
+		}
+	}
+	return start, end
+}
+
+// previewFull is Preview masking the whole body.
+func previewFull(body, q string, max int) (string, []Range) {
+	return cut(redact.String(body), false, false, q, max)
+}
+
+// cut is Preview's trimming of masked, a window of the body: before and
+// after say whether the body goes on past it.
+func cut(masked string, before, after bool, q string, max int) (string, []Range) {
 	at := -1
 	if q != "" {
 		at = indexFold(masked, q)
@@ -79,10 +169,10 @@ func Preview(body, q string, max int) (string, []Range) {
 	}
 	text := masked[start:end]
 	prefix := ""
-	if start > 0 {
+	if start > 0 || before {
 		prefix = "…"
 	}
-	if end < len(masked) {
+	if end < len(masked) || after {
 		text = strings.TrimRightFunc(text, unicode.IsSpace) + "…"
 	}
 	text = prefix + text

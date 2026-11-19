@@ -28,7 +28,9 @@ func TestSkill(t *testing.T) {
 
 	// An older skill, or one without a version, is offered for reinstalling.
 	for _, old := range []string{"<!-- lastab-skill-version: 0 -->\nold", "# my own notes"} {
-		os.WriteFile(st.Path, []byte(old), 0o644)
+		if err := os.WriteFile(st.Path, []byte(old), 0o644); err != nil {
+			t.Fatal(err)
+		}
 		if got := e.SkillStatus().State; got != Outdated {
 			t.Errorf("%q: state %v", old, got)
 		}
@@ -46,9 +48,13 @@ func TestSkillNoPermission(t *testing.T) {
 		t.Skip("read-only folders need Unix permissions, and a user other than root")
 	}
 	home := t.TempDir()
-	os.MkdirAll(filepath.Join(home, ".claude", "skills"), 0o755)
-	os.Chmod(filepath.Join(home, ".claude", "skills"), 0o555)
-	t.Cleanup(func() { os.Chmod(filepath.Join(home, ".claude", "skills"), 0o755) })
+	if err := os.MkdirAll(filepath.Join(home, ".claude", "skills"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(filepath.Join(home, ".claude", "skills"), 0o555); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(home, ".claude", "skills"), 0o755) })
 	_, err := Env{Home: home}.InstallSkill()
 	var de *DirError
 	if !errors.Is(err, fs.ErrPermission) || !errors.As(err, &de) || !strings.HasSuffix(de.Dir, "lastab") {

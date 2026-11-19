@@ -21,7 +21,9 @@ func setup(t *testing.T, access bool) (string, *store.Store) {
 	}
 	t.Cleanup(func() { st.Close() })
 	if access {
-		st.SetSetting(context.Background(), store.SettingAgentAccess, true)
+		if err := st.SetSetting(context.Background(), store.SettingAgentAccess, true); err != nil {
+			t.Fatal(err)
+		}
 	}
 	return dir, st
 }
@@ -41,7 +43,9 @@ func cli(t *testing.T, dir string, args ...string) (int, map[string]any) {
 
 func TestAccessOffPrintsNothingButTheError(t *testing.T) {
 	dir, st := setup(t, false)
-	st.CreateSnippet(context.Background(), store.KindText, "secret plans", 0)
+	if _, err := st.CreateSnippet(context.Background(), store.KindText, "secret plans", 0); err != nil {
+		t.Fatal(err)
+	}
 	code, m := cli(t, dir, "list")
 	if code != exitDenied {
 		t.Fatalf("code %d", code)
@@ -62,7 +66,9 @@ func TestListSearchRead(t *testing.T) {
 	dir, st := setup(t, true)
 	ctx := context.Background()
 	curl, _ := st.CreateSnippet(ctx, store.KindText, "curl -H 'Authorization: Bearer abcdefgh12345678' https://x.dev/v2/orders", 0)
-	st.SetTitle(ctx, curl.ID, "curl · GET /v2/orders", store.TitleAuto)
+	if err := st.SetTitle(ctx, curl.ID, "curl · GET /v2/orders", store.TitleAuto); err != nil {
+		t.Fatal(err)
+	}
 	td, _ := st.CreateSnippet(ctx, store.KindTodo, "- [x] a\n- [ ] b", 1)
 
 	code, m := cli(t, dir, "list")
@@ -97,7 +103,9 @@ func TestListSearchRead(t *testing.T) {
 	}
 
 	// Raw output when the user allows it.
-	st.SetSetting(ctx, store.SettingAgentRaw, true)
+	if err := st.SetSetting(ctx, store.SettingAgentRaw, true); err != nil {
+		t.Fatal(err)
+	}
 	_, m = cli(t, dir, "read", curl.ID)
 	if m["redacted"] != false || !strings.Contains(m["body"].(string), "abcdefgh") {
 		t.Errorf("raw read %v", m)

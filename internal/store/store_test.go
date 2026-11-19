@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -53,8 +54,12 @@ func TestTitleManualWins(t *testing.T) {
 	ctx := context.Background()
 	s := openTest(t)
 	sn, _ := s.CreateSnippet(ctx, KindText, "hello", 0)
-	s.SetTitle(ctx, sn.ID, "mine", TitleManual)
-	s.SetTitle(ctx, sn.ID, "auto", TitleAuto)
+	if err := s.SetTitle(ctx, sn.ID, "mine", TitleManual); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SetTitle(ctx, sn.ID, "auto", TitleAuto); err != nil {
+		t.Fatal(err)
+	}
 	got, _ := s.Get(ctx, sn.ID)
 	if got.Title != "mine" || got.TitleSource != TitleManual {
 		t.Fatalf("got %q %q", got.Title, got.TitleSource)
@@ -76,7 +81,9 @@ func TestWorkspaceCloseIsNotDelete(t *testing.T) {
 	if len(tabs) != 2 || tabs[0].ID != b.ID || active != a.ID {
 		t.Fatalf("tabs %v active %s", tabs, active)
 	}
-	s.CloseTab(ctx, a.ID)
+	if err := s.CloseTab(ctx, a.ID); err != nil {
+		t.Fatal(err)
+	}
 	tabs, _, _ = s.Workspace(ctx)
 	if len(tabs) != 1 {
 		t.Fatalf("tabs after close: %d", len(tabs))
@@ -107,7 +114,9 @@ func TestSearch(t *testing.T) {
 	meet := mk("周会纪要：发版前检查清单")
 	cli := mk("lastab search --since 1d")
 	closed := mk("Closed but findable TOKEN")
-	s.CloseTab(ctx, closed.ID)
+	if err := s.CloseTab(ctx, closed.ID); err != nil {
+		t.Fatal(err)
+	}
 
 	cases := []struct {
 		q    string
@@ -149,6 +158,75 @@ func TestSearch(t *testing.T) {
 	}
 }
 
+// TestShortSearch checks the short-query scan, instr or LIKE, against a
+// plain LIKE over title and body, and the open and closed filters against
+// the workspace.
+func TestShortSearch(t *testing.T) {
+	ctx := context.Background()
+	s := openTest(t)
+	bodies := []string{
+		"周会纪要", "下周会议", "{\"id\": 1}", "100% done", "a_b c", `C:\\path`, "Café", "CAFÉ", "naïve",
+		"周A计划", "周a计划", "Weekly sync", "WEEKLY", "x", "", "会", "emoji 🙂 here", "tab\there",
+	}
+	var open []string
+	for i, b := range bodies {
+		sn, err := s.CreateSnippet(ctx, KindText, b, i)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := s.SetTitle(ctx, sn.ID, fmt.Sprintf("title %d 周", i), TitleAuto); err != nil {
+			t.Fatal(err)
+		}
+		if i%3 == 0 {
+			open = append(open, sn.ID)
+		} else {
+			if err := s.CloseTab(ctx, sn.ID); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	isOpen := map[string]bool{}
+	for _, id := range open {
+		isOpen[id] = true
+	}
+	for _, q := range []string{"周会", "周", "会", `{"`, "%", "_", `\`, "é", "É", "ï", "周A", "周a", "we", "WE", "x", "🙂", "1", "99"} {
+		rows, err := s.r.QueryContext(ctx, `SELECT id FROM snippet WHERE title LIKE ? ESCAPE '\' OR body LIKE ? ESCAPE '\'`,
+			"%"+likeEscape(q)+"%", "%"+likeEscape(q)+"%")
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := map[string]bool{}
+		for rows.Next() {
+			var id string
+			if err := rows.Scan(&id); err != nil {
+				t.Fatal(err)
+			}
+			want[id] = true
+		}
+		rows.Close()
+		for _, o := range []ListOptions{{}, {OpenOnly: true}, {ClosedOnly: true}} {
+			got, err := s.Search(ctx, q, o)
+			if err != nil {
+				t.Fatalf("%q: %v", q, err)
+			}
+			n := 0
+			for id := range want {
+				if (!o.OpenOnly || isOpen[id]) && (!o.ClosedOnly || !isOpen[id]) {
+					n++
+				}
+			}
+			if len(got) != n {
+				t.Errorf("%q %+v: got %d, want %d", q, o, len(got), n)
+			}
+			for _, sn := range got {
+				if !want[sn.ID] || o.OpenOnly && !isOpen[sn.ID] || o.ClosedOnly && isOpen[sn.ID] || sn.Open != isOpen[sn.ID] {
+					t.Errorf("%q %+v: unexpected %q", q, o, sn.Body)
+				}
+			}
+		}
+	}
+}
+
 func ids(sn []Snippet) []string {
 	var out []string
 	for _, s := range sn {
@@ -164,8 +242,12 @@ func TestVersionsAndSettings(t *testing.T) {
 	if _, err := s.LatestVersion(ctx, sn.ID); !errors.Is(err, ErrNotFound) {
 		t.Fatal(err)
 	}
-	s.AddVersion(ctx, sn.ID, "a", ReasonPaused, 1)
-	s.AddVersion(ctx, sn.ID, "ab", ReasonSwitch, 1)
+	if _, err := s.AddVersion(ctx, sn.ID, "a", ReasonPaused, 1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.AddVersion(ctx, sn.ID, "ab", ReasonSwitch, 1); err != nil {
+		t.Fatal(err)
+	}
 	v, err := s.LatestVersion(ctx, sn.ID)
 	if err != nil || v.Body != "ab" {
 		t.Fatalf("%+v %v", v, err)
@@ -242,7 +324,9 @@ func TestGetByPrefix(t *testing.T) {
 	if err != nil || got.ID != a.ID {
 		t.Fatalf("%v %v", got.ID, err)
 	}
-	s.CreateSnippet(ctx, KindText, "b", 0)
+	if _, err := s.CreateSnippet(ctx, KindText, "b", 0); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := s.GetByPrefix(ctx, a.ID[:2]); !errors.Is(err, ErrAmbiguous) {
 		t.Fatalf("short prefix: %v", err)
 	}
@@ -253,13 +337,19 @@ func TestClosedOnlyAndVersionCounts(t *testing.T) {
 	s := openTest(t)
 	a, _ := s.CreateSnippet(ctx, KindText, "open one", 0)
 	b, _ := s.CreateSnippet(ctx, KindText, "closed one", 1)
-	s.CloseTab(ctx, b.ID)
+	if err := s.CloseTab(ctx, b.ID); err != nil {
+		t.Fatal(err)
+	}
 	got, _ := s.Search(ctx, "one", ListOptions{ClosedOnly: true})
 	if len(got) != 1 || got[0].ID != b.ID {
 		t.Fatalf("closed only: %v", ids(got))
 	}
-	s.AddVersion(ctx, a.ID, "x", ReasonPaused, 1)
-	s.AddVersion(ctx, a.ID, "y", ReasonPaused, 1)
+	if _, err := s.AddVersion(ctx, a.ID, "x", ReasonPaused, 1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.AddVersion(ctx, a.ID, "y", ReasonPaused, 1); err != nil {
+		t.Fatal(err)
+	}
 	n, err := s.VersionCounts(ctx, []string{a.ID, b.ID})
 	if err != nil || n[a.ID] != 2 || n[b.ID] != 0 {
 		t.Fatalf("%v %v", n, err)

@@ -1,0 +1,22 @@
+# golangci-lint v2. The standard linters (errcheck, govet, ineffassign,
+# staticcheck, unused); gofmt runs as its own CI step.
+version: "2"
+
+linters:
+  default: standard
+  settings:
+    errcheck:
+      exclude-functions:
+        # Deferred after Commit, where it is a no-op.
+        - (*database/sql.Tx).Rollback
+  exclusions:
+    presets:
+      - std-error-handling
+    rules:
+      # internal/ui is being changed by other branches; its errcheck
+      # findings (and the unused todo.hover field) are listed in the PR
+      # that added this file. Remove this rule once they are fixed.
+      - path: internal/ui/
+        linters:
+          - errcheck
+          - unused

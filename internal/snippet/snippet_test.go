@@ -32,23 +32,33 @@ func TestTitlesAndClose(t *testing.T) {
 		t.Fatalf("%q %q %v", got, src, err)
 	}
 	// A text snippet keeps its first automatic title.
-	s.SaveBody(ctx, sn.ID, "something else", sn.Rev)
+	if _, err := s.SaveBody(ctx, sn.ID, "something else", sn.Rev); err != nil {
+		t.Fatal(err)
+	}
 	if got, _, _ := s.UpdateTitle(ctx, sn.ID); got != "curl · GET /a" {
 		t.Errorf("title changed to %q", got)
 	}
 	// A to-do list's follows its progress.
 	td, _ := s.Create(ctx, store.KindTodo, "- [ ] a\n- [ ] b", 1)
-	s.UpdateTitle(ctx, td.ID)
-	s.SaveBody(ctx, td.ID, "- [x] a\n- [ ] b", td.Rev)
+	if _, _, err := s.UpdateTitle(ctx, td.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.SaveBody(ctx, td.ID, "- [x] a\n- [ ] b", td.Rev); err != nil {
+		t.Fatal(err)
+	}
 	if got, _, _ := s.UpdateTitle(ctx, td.ID); got != "a · 1/2" {
 		t.Errorf("todo title %q", got)
 	}
 	// Manual titles stick; clearing goes back to automatic.
-	s.Rename(ctx, td.ID, "Release")
+	if err := s.Rename(ctx, td.ID, "Release"); err != nil {
+		t.Fatal(err)
+	}
 	if got, src, _ := s.UpdateTitle(ctx, td.ID); got != "Release" || src != store.TitleManual {
 		t.Errorf("manual %q %q", got, src)
 	}
-	s.Rename(ctx, td.ID, "  ")
+	if err := s.Rename(ctx, td.ID, "  "); err != nil {
+		t.Fatal(err)
+	}
 	if got, _, _ := s.UpdateTitle(ctx, td.ID); got != "a · 1/2" {
 		t.Errorf("after clearing: %q", got)
 	}
@@ -71,12 +81,16 @@ func TestSessionCrash(t *testing.T) {
 	if err != nil || crashed {
 		t.Fatalf("first start: %v %v", crashed, err)
 	}
-	s.End()
+	if err := s.End(); err != nil {
+		t.Fatal(err)
+	}
 	if _, crashed, _ = StartSession(dir); crashed {
 		t.Error("normal quit seen as a crash")
 	}
 	// A lock left by a dead process.
-	os.WriteFile(filepath.Join(dir, "session.lock"), []byte("999999"), 0o600)
+	if err := os.WriteFile(filepath.Join(dir, "session.lock"), []byte("999999"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	if _, crashed, _ = StartSession(dir); !crashed {
 		t.Error("crash not detected")
 	}
@@ -91,8 +105,12 @@ func TestRecordRestore(t *testing.T) {
 	defer st.Close()
 	s := New(st)
 	sn, _ := s.Create(ctx, store.KindText, "v1", 0)
-	s.Snapshot(ctx, sn.ID, "v1", store.ReasonPaused)
-	s.Snapshot(ctx, sn.ID, "v2", store.ReasonPaused)
+	if _, err := s.Snapshot(ctx, sn.ID, "v1", store.ReasonPaused); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Snapshot(ctx, sn.ID, "v2", store.ReasonPaused); err != nil {
+		t.Fatal(err)
+	}
 	vs, _ := s.Versions(ctx, sn.ID)
 	old := vs[1]
 	// Current text "v2 edited" was never recorded: it is kept before the restore.

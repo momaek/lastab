@@ -89,7 +89,8 @@ func writeJSON(w io.Writer, v any) {
 	enc := json.NewEncoder(w)
 	enc.SetEscapeHTML(false)
 	enc.SetIndent("", "  ")
-	enc.Encode(v)
+	// A failed write to stdout leaves nowhere to report the failure.
+	_ = enc.Encode(v)
 }
 
 func newRoot(e *env) *cobra.Command {
@@ -138,7 +139,9 @@ func (e *env) open(ctx context.Context) error {
 	if !access {
 		return fail(exitDenied, "access_denied", "agent access is turned off in Lastab's settings")
 	}
-	st.GetSetting(ctx, store.SettingAgentRaw, &e.raw)
+	if _, err := st.GetSetting(ctx, store.SettingAgentRaw, &e.raw); err != nil {
+		return fail(exitInternal, "internal", "%v", err)
+	}
 	return nil
 }
 
@@ -162,7 +165,8 @@ func (e *env) record(ctx context.Context, op string, args map[string]any, ids []
 		return
 	}
 	defer l.Close()
-	l.Add(ctx, agentlog.Entry{At: e.now(), Client: e.clientName(), Op: op, Args: args, SnippetIDs: ids})
+	// The access record is best effort: it never fails the command.
+	_ = l.Add(ctx, agentlog.Entry{At: e.now(), Client: e.clientName(), Op: op, Args: args, SnippetIDs: ids})
 }
 
 func (e *env) mask(s string) (string, bool) {
@@ -415,7 +419,9 @@ func statusCmd(e *env) *cobra.Command {
 			}
 			e.st = st
 			var access bool
-			st.GetSetting(ctx, store.SettingAgentAccess, &access)
+			if _, err := st.GetSetting(ctx, store.SettingAgentAccess, &access); err != nil {
+				return fail(exitInternal, "internal", "%v", err)
+			}
 			v, _ := st.UserVersion(ctx)
 			out := map[string]any{"access": access, "database": path, "schema_version": v, "cli_version": version}
 			if access {
