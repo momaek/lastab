@@ -53,10 +53,9 @@ func (h *harness) stored() string {
 	return sn.Body
 }
 
-// undo takes the toast's action, once it has settled where it shows.
+// undo takes the toast's action.
 func (h *harness) undo() {
 	h.t.Helper()
-	h.tt.Frame()
 	if err := h.tt.Click("Undo"); err != nil {
 		h.t.Fatal(err)
 	}

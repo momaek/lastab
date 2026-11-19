@@ -120,7 +120,6 @@ type App struct {
 	prefs       prefsPage
 	history     history
 	toast       *toast
-	toastWidth  float32
 	// frameNow is the time of the frame being built, by the window's clock.
 	frameNow time.Time
 	// pendingHistory opens the history of this snippet once its tab opens.

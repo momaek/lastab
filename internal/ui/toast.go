@@ -54,8 +54,10 @@ func (a *App) toastView(c *ui.Context) {
 		box := ui.Row(c.Key("toast")).Absolute().Top(max(bar.Height, theme.TitleBarHeight)+theme.ToastOffset).
 			Gap(12).AlignItems(ui.Center).Padding(4, 4, 4, 12).Radius(8).
 			Background(p.Toast).Border(1, p.ToastLine).Role(ui.RoleStatus)
+		// Centered by its own width as the frame lays it out, so it is in
+		// place from its first frame.
 		w, _ := c.Size()
-		box.Left(w/2 - a.toastWidth/2)
+		box.Left(w/2).TranslatePercent(-50, 0)
 		if box.Hovered() {
 			t.deadline = now.Add(t.left) // paused
 		} else {
@@ -88,9 +90,6 @@ func (a *App) toastView(c *ui.Context) {
 				}
 			}
 		})
-		if r := box.Bounds(); r.W > 0 {
-			a.toastWidth = r.W
-		}
 	})
 	// Redraw as the seconds tick and when it goes.
 	next := t.left - t.left.Truncate(time.Second)
