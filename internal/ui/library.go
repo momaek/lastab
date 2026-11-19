@@ -68,6 +68,43 @@ type library struct {
 	reveal    bool
 	confirm   bool
 	focus     bool
+
+	// rows are the list's rows: a header for each day, then its results.
+	rows []libRow
+	list ui.ListState
+	// scrollTo shows the selected row once, wherever it is, as after a
+	// query restores the selection further down.
+	scrollTo bool
+}
+
+// libRow is a row of the result list: a day's header, or a result.
+type libRow struct {
+	header string
+	item   int // index in items; -1 for a header
+}
+
+// group lays the results out under the days they were edited. The results
+// are in order of their last edit, so each day comes once.
+func (l *library) group(now time.Time, loc string) {
+	l.rows = l.rows[:0]
+	day := ""
+	for i := range l.items {
+		if d := dayLabel(now, l.items[i].ModifiedAt, loc); d != day {
+			day = d
+			l.rows = append(l.rows, libRow{header: d, item: -1})
+		}
+		l.rows = append(l.rows, libRow{item: i})
+	}
+}
+
+// rowOf returns the row showing result i.
+func (l *library) rowOf(i int) int {
+	for r, row := range l.rows {
+		if row.item == i {
+			return r
+		}
+	}
+	return 0
 }
 
 type libItem struct {
@@ -190,6 +227,9 @@ func (a *App) refresh(now time.Time) {
 			if gen != l.gen {
 				return // a newer query is on its way
 			}
+			// Relevance chose which results come back; they show in order
+			// of their last edit, as the page says, grouped by day.
+			slices.SortStableFunc(res, func(x, y search.Result) int { return y.ModifiedAt.Compare(x.ModifiedAt) })
 			l.items = l.items[:0]
 			for _, r := range res {
 				l.items = append(l.items, libItem{r, counts[r.ID]})
@@ -201,7 +241,9 @@ func (a *App) refresh(now time.Time) {
 					l.sel = i
 				}
 			}
-			l.scrollSel = true
+			l.group(time.Now(), i18n.Locale())
+			l.list = ui.ListState{} // another set of rows: from the top
+			l.scrollTo = l.sel > 0
 		}
 	})
 }
@@ -287,6 +329,7 @@ func (a *App) DeleteSelected() {
 	a.lib.items = slices.Delete(a.lib.items, a.lib.sel, a.lib.sel+1)
 	a.lib.total--
 	a.lib.sel = min(a.lib.sel, max(len(a.lib.items)-1, 0))
+	a.lib.group(time.Now(), i18n.Locale())
 	if i := slices.IndexFunc(a.tabs, func(t *Tab) bool { return t.id == id }); i >= 0 {
 		a.tabs = slices.Delete(a.tabs, i, i+1)
 		if len(a.tabs) == 0 {
@@ -464,19 +507,35 @@ func (a *App) libraryList(c *ui.Context) {
 	now := time.Now()
 	loc := i18n.Locale()
 	exact := c.Modifiers()&ui.Alt != 0
-	ui.Scroll(c.Key("list")).Column().Grow(1).Shrink(1).AlignItems(ui.Stretch).Padding(8).
-		Role(ui.RoleListBox).Label(locales.AllSnippets()).Children(func() {
-		day := ""
-		for i := range l.items {
-			it := &l.items[i]
-			if d := dayLabel(now, it.ModifiedAt, loc); d != day {
-				day = d
-				ui.Text(c.Key("day-"+d), d).FontSize(11.5).FontWeight(600).TextColor(p.Muted).
-					Padding(8, 12, 4, 12).AccessHidden(true)
-			}
-			a.libraryRow(c, it, i, now, loc, exact)
+	// A virtual list: only the rows in view are built, so 300 results lay
+	// out as fast as ten.
+	st := &l.list
+	st.Key = func(r int) any {
+		if row := l.rows[r]; row.item >= 0 {
+			return l.items[row.item].ID
 		}
-	})
+		return "day:" + l.rows[r].header
+	}
+	st.Header = func(r int) bool { return l.rows[r].item < 0 }
+	st.Label = func(r int) string {
+		if row := l.rows[r]; row.item >= 0 {
+			return listTitle(l.items[row.item].Snippet)
+		}
+		return l.rows[r].header
+	}
+	if l.scrollTo {
+		st.ScrollTo(l.rowOf(l.sel), ui.Center)
+		l.scrollTo = false
+	}
+	ui.List(c.Key("list"), st, len(l.rows), func(r int) {
+		row := l.rows[r]
+		if row.item < 0 {
+			ui.Text(c, row.header).FontSize(11.5).FontWeight(600).TextColor(p.Muted).
+				Padding(8, 12, 4, 12).Background(p.Bg).AccessHidden(true)
+			return
+		}
+		a.libraryRow(c, &l.items[row.item], row.item, now, loc, exact)
+	}).Grow(1).Shrink(1).Padding(8).Role(ui.RoleListBox).Label(locales.AllSnippets())
 	hint := locales.LibraryHint(keyName("enter"), keyName("alt"))
 	if exact {
 		hint = locales.LibraryHintExact(keyName("enter"), keyName("alt"))
