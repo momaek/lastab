@@ -348,6 +348,18 @@ func (a *App) prefsGeneral(c *ui.Context) {
 			}
 		})
 	})
+	a.prefRow(c, "hold", locales.HoldHintLabel(modName()), locales.HoldHintDesc(), func() {
+		on := set.HoldHint
+		if ui.Switch(c.Key("sw"), &on).Label(locales.HoldHintLabel(modName())).Changed() {
+			a.SetHoldHint(on)
+		}
+	})
+	a.prefRow(c, "tray", trayLabel(), locales.TrayDesc(), func() {
+		on := set.Tray
+		if ui.Switch(c.Key("sw"), &on).Label(trayLabel()).Changed() {
+			a.SetTray(on)
+		}
+	})
 	a.prefRow(c, "login", locales.OpenAtLoginLabel(), locales.OpenAtLoginDesc(), func() {
 		on := set.OpenAtLogin
 		if ui.Switch(c.Key("sw"), &on).Label(locales.OpenAtLoginLabel()).Changed() {
@@ -691,4 +703,19 @@ func (a *App) prefsAbout(c *ui.Context) {
 	ui.Text(c, v).FontSize(12.5).TextColor(p.Muted).FontFeatures("tnum").Selectable()
 	ui.Text(c, locales.AboutDesc()).FontSize(12.5).LineHeight(1.5).TextColor(p.Text2).Margin(12, 0, 0, 0).MaxWidth(520)
 	ui.Text(c, locales.SchemaVersion(store.LatestVersion())).FontSize(12).TextColor(p.Faint).Margin(12, 0, 0, 0)
+}
+
+// modName is the primary modifier as the platform writes it.
+func modName() string {
+	if runtime.GOOS == "darwin" {
+		return "⌘"
+	}
+	return "Ctrl"
+}
+
+func trayLabel() string {
+	if runtime.GOOS == "darwin" {
+		return locales.TrayLabelMac()
+	}
+	return locales.TrayLabelWin()
 }

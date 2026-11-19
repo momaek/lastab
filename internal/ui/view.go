@@ -24,6 +24,7 @@ func (a *App) View(c *ui.Context) {
 
 	a.frameNow = c.Now()
 	a.tick(c)
+	a.holdTick(c)
 	a.shortcuts(c)
 	if a.prefs.open {
 		a.prefsView(c)
@@ -173,7 +174,7 @@ func (a *App) statusBar(c *ui.Context) {
 					}
 				case t.saving || t.buf().Version() != t.savedVer:
 					ui.Text(c, locales.Saving()).FontSize(small).TextColor(p.Faint)
-				case a.recovered:
+				case a.recoveredShowing(c):
 					ui.Box(c).Size(6, 6).Radius(3).Background(p.OkDot)
 					ui.Text(c, locales.Recovered()).FontSize(small).TextColor(p.OkText)
 				case t.id != "":
@@ -221,6 +222,7 @@ func (a *App) copyButton(c *ui.Context) {
 		}
 		ui.Text(c, label).FontSize(theme.SmallFontSize).TextColor(col)
 	})
+	a.keyBadge(c, b, keys.CopyAll)
 	if b.Clicked() {
 		a.CopyAll(c.Now())
 		if a.Active().kind == store.KindTodo {

@@ -29,7 +29,10 @@ type fakePlatform struct {
 	cliErr, skillErr error
 	cliCalls         []bool // admin, per InstallCLI
 	skillCalls       int
+	tray             *bool
 }
+
+func (f *fakePlatform) SetTray(on bool) { f.tray = &on }
 
 func (f *fakePlatform) CLIStatus() install.Status   { return f.cli }
 func (f *fakePlatform) SkillStatus() install.Status { return f.skill }

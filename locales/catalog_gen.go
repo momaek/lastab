@@ -2213,3 +2213,123 @@ func TodoCopiedAnnounce(count int) string { return In(i18n.Locale()).TodoCopiedA
 func (msgs Messages) TodoCopiedAnnounce(count int) string {
 	return Catalog.Format(msgs.locale, "todoCopiedAnnounce", map[string]any{"count": count})
 }
+
+// RenameTitle says "Rename title"
+// in the language the app shows.
+func RenameTitle() string { return In(i18n.Locale()).RenameTitle() }
+
+// RenameTitle says "Rename title"
+// in the language of msgs.
+func (msgs Messages) RenameTitle() string {
+	return Catalog.Format(msgs.locale, "renameTitle", nil)
+}
+
+// RenamePlaceholder says "Leave empty for the automatic title"
+// in the language the app shows.
+func RenamePlaceholder() string { return In(i18n.Locale()).RenamePlaceholder() }
+
+// RenamePlaceholder says "Leave empty for the automatic title"
+// in the language of msgs.
+func (msgs Messages) RenamePlaceholder() string {
+	return Catalog.Format(msgs.locale, "renamePlaceholder", nil)
+}
+
+// HoldHintLabel says "Hold {mod} to show shortcuts"
+// in the language the app shows.
+func HoldHintLabel(mod string) string { return In(i18n.Locale()).HoldHintLabel(mod) }
+
+// HoldHintLabel says "Hold {mod} to show shortcuts"
+// in the language of msgs.
+func (msgs Messages) HoldHintLabel(mod string) string {
+	return Catalog.Format(msgs.locale, "holdHintLabel", map[string]any{"mod": mod})
+}
+
+// HoldHintDesc says "Shortcut labels appear under the buttons after about half a second, and hide when you let go"
+// in the language the app shows.
+func HoldHintDesc() string { return In(i18n.Locale()).HoldHintDesc() }
+
+// HoldHintDesc says "Shortcut labels appear under the buttons after about half a second, and hide when you let go"
+// in the language of msgs.
+func (msgs Messages) HoldHintDesc() string {
+	return Catalog.Format(msgs.locale, "holdHintDesc", nil)
+}
+
+// TrayLabelMac says "Show in menu bar"
+// in the language the app shows.
+func TrayLabelMac() string { return In(i18n.Locale()).TrayLabelMac() }
+
+// TrayLabelMac says "Show in menu bar"
+// in the language of msgs.
+func (msgs Messages) TrayLabelMac() string {
+	return Catalog.Format(msgs.locale, "trayLabelMac", nil)
+}
+
+// TrayLabelWin says "Show in notification area"
+// in the language the app shows.
+func TrayLabelWin() string { return In(i18n.Locale()).TrayLabelWin() }
+
+// TrayLabelWin says "Show in notification area"
+// in the language of msgs.
+func (msgs Messages) TrayLabelWin() string {
+	return Catalog.Format(msgs.locale, "trayLabelWin", nil)
+}
+
+// TrayDesc says "Shows or creates snippets from there while the window is hidden"
+// in the language the app shows.
+func TrayDesc() string { return In(i18n.Locale()).TrayDesc() }
+
+// TrayDesc says "Shows or creates snippets from there while the window is hidden"
+// in the language of msgs.
+func (msgs Messages) TrayDesc() string {
+	return Catalog.Format(msgs.locale, "trayDesc", nil)
+}
+
+// TrayShow says "Show Lastab"
+// in the language the app shows.
+func TrayShow() string { return In(i18n.Locale()).TrayShow() }
+
+// TrayShow says "Show Lastab"
+// in the language of msgs.
+func (msgs Messages) TrayShow() string {
+	return Catalog.Format(msgs.locale, "trayShow", nil)
+}
+
+// OptCustom says "Custom…"
+// in the language the app shows.
+func OptCustom() string { return In(i18n.Locale()).OptCustom() }
+
+// OptCustom says "Custom…"
+// in the language of msgs.
+func (msgs Messages) OptCustom() string {
+	return Catalog.Format(msgs.locale, "optCustom", nil)
+}
+
+// RangeFrom says "From"
+// in the language the app shows.
+func RangeFrom() string { return In(i18n.Locale()).RangeFrom() }
+
+// RangeFrom says "From"
+// in the language of msgs.
+func (msgs Messages) RangeFrom() string {
+	return Catalog.Format(msgs.locale, "rangeFrom", nil)
+}
+
+// RangeTo says "To"
+// in the language the app shows.
+func RangeTo() string { return In(i18n.Locale()).RangeTo() }
+
+// RangeTo says "To"
+// in the language of msgs.
+func (msgs Messages) RangeTo() string {
+	return Catalog.Format(msgs.locale, "rangeTo", nil)
+}
+
+// Apply says "Apply"
+// in the language the app shows.
+func Apply() string { return In(i18n.Locale()).Apply() }
+
+// Apply says "Apply"
+// in the language of msgs.
+func (msgs Messages) Apply() string {
+	return Catalog.Format(msgs.locale, "apply", nil)
+}

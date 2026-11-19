@@ -549,5 +549,24 @@
         "type": "int"
       }
     }
-  }
+  },
+  "renameTitle": "Rename title",
+  "renamePlaceholder": "Leave empty for the automatic title",
+  "holdHintLabel": "Hold {mod} to show shortcuts",
+  "@holdHintLabel": {
+    "placeholders": {
+      "mod": {
+        "type": "String"
+      }
+    }
+  },
+  "holdHintDesc": "Shortcut labels appear under the buttons after about half a second, and hide when you let go",
+  "trayLabelMac": "Show in menu bar",
+  "trayLabelWin": "Show in notification area",
+  "trayDesc": "Shows or creates snippets from there while the window is hidden",
+  "trayShow": "Show Lastab",
+  "optCustom": "Custom…",
+  "rangeFrom": "From",
+  "rangeTo": "To",
+  "apply": "Apply"
 }
