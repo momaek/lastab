@@ -51,8 +51,6 @@ var (
 	white       = hex("#FFFFFF")
 	black       = hex("#000000")
 	blue        = hex("#2F5BD3")
-	blueLift    = hex("#5B85F2") // the dot on ink
-	greyOnInk   = hex("#6A6A63") // the tab title on ink
 	greyOnWhite = hex("#C9C9C2") // the tab title on white
 	line        = hex("#E3E3DD") // text lines on the page
 	inactive    = hex("#34342F") // the inactive tab
