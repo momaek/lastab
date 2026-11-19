@@ -579,7 +579,8 @@ lastab version
 - 设计稿中 Windows 的 CLI 路径 `%LOCALAPPDATA%\Lastab\bin\lastab.exe` 已按实际安装位置显示为 `%LOCALAPPDATA%\Programs\Lastab\bin\lastab.exe`。
 - `SKILL.md` 说明何时调用（用户提到「我之前改的 / 记的…」）、命令用法、输出字段，并要求 Agent 在用户要求时才读取正文。
 - Skill 版本：`SKILL.md` 中的 `<!-- lastab-skill-version: N -->`。已安装文件的版本低于应用自带的（或没有版本注释，比如用户自己改写过的），设置页提示「这个版本的 Lastab 附带了更新的 Skill」并给「重新安装」，不静默覆盖。**改动 `SKILL.md` 时必须把 N 加一。**
-- 未做 / 待确认：卸载 Windows 版时不会从用户 PATH 移除 `bin` 目录（残留一条指向不存在目录的 PATH，无害；可用 `windows.installerInclude` 的 `customUnInstall` 补上）；`~/.local/bin` 退回方案是否接受仍**待确认**。
+- 卸载 Windows 版时从用户 PATH 移除 `$INSTDIR\bin`：`mygo.json` 的 `windows.installerInclude` 指向 `scripts/build/installer.nsh`，其 `customUnInstall` 读 `HKCU\Environment` 的 `Path`，去掉与该目录相同的条目（原样或展开变量后比较，不分大小写，忽略末尾反斜杠），写回为 `REG_EXPAND_SZ`（空了就删除该值），并广播 `WM_SETTINGCHANGE`。PATH 长到接近 NSIS 字符串上限（`NSIS_MAX_STRLEN`，常见为 1024）时可能读到截断的值，此时不改动，只在卸载日志里说明。应用自动更新不经过卸载程序，PATH 保持不变。
+- 待确认：`~/.local/bin` 退回方案是否接受。
 
 ## 9. 平台差异
 
@@ -620,7 +621,7 @@ go run ./scripts/genicon                                      # 重新生成占�
 
 `scripts/build` 依次：交叉编译 `lastab` 到对应的 `resources/<平台>/bin/` → 按环境变量临时把签名设置写进 `mygo.json` → 运行 `go tool mygo build -platform …` → 无论成败（含 Ctrl+C）都把 `mygo.json` 恢复原样。产物在 `build/<平台>/`，不提交。
 
-`mygo.json` 只放不含秘密的设置：`macos.minimumSystemVersion: "12.0"`、`windows.installDirName: "Lastab"`（NSIS 安装包默认按用户安装到 `%LOCALAPPDATA%\Programs\Lastab`，不需要管理员权限）、`resourcesExclude: ["fonts"]`。`mygo.json` 是 JSON，不能读环境变量（只有 `mygo.config.ts` 可以，但那需要 Node/Bun），所以签名设置由 `scripts/build` 注入：
+`mygo.json` 只放不含秘密的设置：`macos.minimumSystemVersion: "12.0"`、`windows.installDirName: "Lastab"`（NSIS 安装包默认按用户安装到 `%LOCALAPPDATA%\Programs\Lastab`，不需要管理员权限）、`windows.installerInclude: "scripts/build/installer.nsh"`（卸载时移除 PATH 条目，见 8.3）、`resourcesExclude: ["fonts"]`。在 Mac 上打 Windows 安装包需 `brew install makensis`；Homebrew 的 makensis 在 `LANG` 为空时会崩溃（`std::bad_alloc`），`scripts/build` 此时自动设 `LANG=C.UTF-8`。`mygo.json` 是 JSON，不能读环境变量（只有 `mygo.config.ts` 可以，但那需要 Node/Bun），所以签名设置由 `scripts/build` 注入：
 
 | 环境变量 | 写入 `mygo.json` 的 | 没有时 |
 | --- | --- | --- |

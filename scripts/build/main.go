@@ -101,7 +101,12 @@ func main() {
 			os.Exit(130)
 		}()
 	}
-	err = run(append(os.Environ(), "CGO_ENABLED=0"), "go", "tool", "mygo", "build", "-platform", *platform)
+	env := append(os.Environ(), "CGO_ENABLED=0")
+	if os.Getenv("LANG") == "" && os.Getenv("LC_ALL") == "" {
+		// Homebrew's makensis aborts (std::bad_alloc) without a locale.
+		env = append(env, "LANG=C.UTF-8")
+	}
+	err = run(env, "go", "tool", "mygo", "build", "-platform", *platform)
 	restore()
 	if err != nil {
 		log.Fatal(err)
