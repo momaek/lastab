@@ -23,6 +23,10 @@ func (a *App) View(c *ui.Context) {
 	a.frameNow = c.Now()
 	a.tick(c)
 	a.shortcuts(c)
+	if a.prefs.open {
+		a.prefsView(c)
+		return
+	}
 	if a.lib.open {
 		a.libraryView(c)
 		return
@@ -57,21 +61,26 @@ func (a *App) View(c *ui.Context) {
 	a.toastView(c)
 }
 
+// shortcuts registers the window's keys from the shortcut table in effect,
+// the user's own included. While a new shortcut is recorded, none: the
+// recorder takes every key.
 func (a *App) shortcuts(c *ui.Context) {
-	run := func(act keys.Action) func() { return func() { a.Run(act, c.Now()) } }
-	c.OnWindowShortcut(ui.Cmd, ui.KeyN, run(keys.NewText))
-	c.OnWindowShortcut(ui.Cmd, ui.KeyT, run(keys.NewTodo))
-	c.OnWindowShortcut(ui.Cmd, ui.KeyW, run(keys.CloseTab))
-	c.OnWindowShortcut(ui.Cmd, ui.KeyK, run(keys.AllSnippets))
-	c.OnWindowShortcut(ui.Cmd|ui.Shift, ui.KeyC, run(keys.CopyAll))
-	c.OnWindowShortcut(ui.Cmd, ui.KeyBackslash, run(keys.ToggleSidebar))
-	if !a.switcher.open {
-		c.OnWindowShortcut(ui.Cmd, ui.KeyBackquote, run(keys.Recent))
+	if a.prefs.recording != "" {
+		return
 	}
-	if runtime.GOOS == "darwin" {
-		c.OnWindowShortcut(ui.Cmd, ui.KeyY, run(keys.History))
-	} else {
-		c.OnWindowShortcut(ui.Cmd|ui.Shift, ui.KeyY, run(keys.History))
+	table := a.Shortcuts()
+	for _, act := range append(append([]keys.Action{}, keys.Customizable...), keys.Settings) {
+		if keys.IsGlobal(act) || (act == keys.Recent && a.switcher.open) {
+			continue
+		}
+		if m, k, ok := parseAccel(table[act]); ok {
+			act := act
+			c.OnWindowShortcut(m, k, func() { a.Run(act, c.Now()) })
+		}
+	}
+	if a.prefs.open {
+		c.OnWindowShortcut(0, ui.KeyEscape, a.CloseSettings)
+		return
 	}
 	if a.history.open && !a.switcher.open {
 		c.OnWindowShortcut(0, ui.KeyEscape, a.CloseHistory)
@@ -188,7 +197,7 @@ func (a *App) copyButton(c *ui.Context) {
 	b := ui.ButtonBase(c.Key("copyAll")).Row().AlignItems(ui.Center).Height(24).Padding(0, 10).Radius(6).
 		Border(1, p.BtnLine).Background(p.Btn).Label(label).
 		KeyShortcuts(ui.Cmd|ui.Shift, ui.KeyC).
-		Tooltip(locales.CopyAll() + "  " + keys.Display(keys.Default(keys.CopyAll), runtime.GOOS))
+		Tooltip(locales.CopyAll() + "  " + keys.Display(a.Shortcuts()[keys.CopyAll], runtime.GOOS))
 	if b.Hovered() {
 		b.Background(p.Chrome)
 	}

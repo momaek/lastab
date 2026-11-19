@@ -30,3 +30,4 @@ Carthage/Build/
 /.mygo/
 mygo_windows_*.syso
 /resources/*/bin/
+/build-check/

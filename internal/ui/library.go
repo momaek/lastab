@@ -659,12 +659,12 @@ func (a *App) libraryPreview(c *ui.Context, it *libItem) {
 		if copied {
 			label = locales.Copied()
 		}
-		cp := a.outlineButton(c, "copy", label, keys.Display(keys.Default(keys.CopyAll), runtime.GOOS))
+		cp := a.outlineButton(c, "copy", label, keys.Display(a.Shortcuts()[keys.CopyAll], runtime.GOOS))
 		if cp.Clicked() {
 			a.CopySelected(c.Now())
 			c.Announce(locales.CopiedAnnounce())
 		}
-		if a.outlineButton(c, "history", locales.HistoryTitle(), keys.Display(keys.Default(keys.History), runtime.GOOS)).Clicked() {
+		if a.outlineButton(c, "history", locales.HistoryTitle(), keys.Display(a.Shortcuts()[keys.History], runtime.GOOS)).Clicked() {
 			a.HistoryOfSelected()
 		}
 		if masked {

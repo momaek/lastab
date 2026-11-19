@@ -116,3 +116,10 @@ func (s *Store) VersionCounts(ctx context.Context, ids []string) (map[string]int
 	}
 	return out, rows.Err()
 }
+
+// VersionCount returns the number of versions of all snippets.
+func (s *Store) VersionCount(ctx context.Context) (int, error) {
+	var n int
+	err := s.r.QueryRowContext(ctx, `SELECT count(*) FROM version`).Scan(&n)
+	return n, err
+}

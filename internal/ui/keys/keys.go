@@ -115,3 +115,84 @@ func Display(acc, goos string) string {
 	}
 	return strings.Join(append(mods, strings.ToUpper(key)), "+")
 }
+
+// Settings opens the settings page. It is fixed, not customizable.
+const Settings Action = "settings"
+
+// Customizable lists the actions Settings shows, in its order.
+var Customizable = []Action{NewText, NewTodo, Summon, Recent, AllSnippets, CopyAll, History, CloseTab, ToggleSidebar}
+
+// IsGlobal reports whether an action's shortcut works from any app.
+func IsGlobal(a Action) bool { return a == Summon }
+
+// Table returns the accelerators in effect for goos: the defaults, with
+// the user's own over them.
+func Table(goos string, custom map[Action]string) map[Action]string {
+	m := Defaults(goos)
+	for a, acc := range custom {
+		if _, ok := m[a]; ok && acc != "" {
+			m[a] = acc
+		}
+	}
+	m[Settings] = "CmdOrCtrl+,"
+	return m
+}
+
+// Canonical writes an accelerator in one form for goos, so two that press
+// the same keys compare equal: CmdOrCtrl resolves to Cmd on macOS and Ctrl
+// elsewhere, modifiers come in a fixed order, the key in upper case.
+func Canonical(acc, goos string) string {
+	parts := strings.Split(acc, "+")
+	if len(parts) == 0 {
+		return ""
+	}
+	key := strings.ToUpper(parts[len(parts)-1])
+	if parts[len(parts)-1] == "" && len(parts) >= 2 { // "Ctrl++"
+		key = "+"
+	}
+	has := map[string]bool{}
+	for _, p := range parts[:len(parts)-1] {
+		switch strings.ToLower(p) {
+		case "cmdorctrl", "commandorcontrol":
+			if goos == "darwin" {
+				has["Cmd"] = true
+			} else {
+				has["Ctrl"] = true
+			}
+		case "cmd", "command", "super", "meta":
+			has["Cmd"] = true
+		case "ctrl", "control":
+			has["Ctrl"] = true
+		case "alt", "option":
+			has["Alt"] = true
+		case "shift":
+			has["Shift"] = true
+		}
+	}
+	var out []string
+	for _, m := range []string{"Ctrl", "Alt", "Shift", "Cmd"} {
+		if has[m] {
+			out = append(out, m)
+		}
+	}
+	return strings.Join(append(out, key), "+")
+}
+
+// Conflict returns the action other than a whose accelerator in table
+// presses the same keys as acc.
+func Conflict(table map[Action]string, a Action, acc, goos string) (Action, bool) {
+	want := Canonical(acc, goos)
+	for _, other := range append(append([]Action{}, Customizable...), Settings) {
+		if other != a && Canonical(table[other], goos) == want {
+			return other, true
+		}
+	}
+	return "", false
+}
+
+// HasModifier reports whether acc holds a modifier other than Shift, as an
+// app's shortcut must, so it never takes plain typing.
+func HasModifier(acc, goos string) bool {
+	c := Canonical(acc, goos)
+	return strings.Contains(c, "Ctrl+") || strings.Contains(c, "Alt+") || strings.Contains(c, "Cmd+")
+}

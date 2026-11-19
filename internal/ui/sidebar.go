@@ -38,6 +38,9 @@ func (a *App) sidebar(c *ui.Context) {
 		ui.Row(c).Height(max(bar.Height, theme.TitleBarHeight)).Padding(0, 8, 0, bar.Left+8).
 			Gap(2).AlignItems(ui.Center).DragWindow().Children(func() {
 			ui.Spacer(c)
+			if a.iconButton(c, "settings", "⚙", locales.OpenSettings(), keys.Settings).Clicked() {
+				a.OpenSettings(-1)
+			}
 			if a.iconButton(c, "hide", "⇤", locales.HideSidebar(), keys.ToggleSidebar).Clicked() {
 				a.ToggleSidebar()
 			}
@@ -113,7 +116,7 @@ func (a *App) iconButton(c *ui.Context, key, glyph, label string, act keys.Actio
 	p := a.pal
 	tip := label
 	if act != "" {
-		tip += "  " + keys.Display(keys.Default(act), runtime.GOOS)
+		tip += "  " + keys.Display(a.Shortcuts()[act], runtime.GOOS)
 	}
 	b := ui.ButtonBase(c.Key(key)).Size(28, 28).Radius(6).Label(label).Tooltip(tip)
 	if b.Hovered() {

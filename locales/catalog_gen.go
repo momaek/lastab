@@ -1141,3 +1141,717 @@ func VersionsList() string { return In(i18n.Locale()).VersionsList() }
 func (msgs Messages) VersionsList() string {
 	return Catalog.Format(msgs.locale, "versionsList", nil)
 }
+
+// SettingsTitle says "Settings"
+// in the language the app shows.
+func SettingsTitle() string { return In(i18n.Locale()).SettingsTitle() }
+
+// SettingsTitle says "Settings"
+// in the language of msgs.
+func (msgs Messages) SettingsTitle() string {
+	return Catalog.Format(msgs.locale, "settingsTitle", nil)
+}
+
+// SettingsMenu says "Settings…"
+// in the language the app shows.
+func SettingsMenu() string { return In(i18n.Locale()).SettingsMenu() }
+
+// SettingsMenu says "Settings…"
+// in the language of msgs.
+func (msgs Messages) SettingsMenu() string {
+	return Catalog.Format(msgs.locale, "settingsMenu", nil)
+}
+
+// SettingsSections says "Settings sections"
+// in the language the app shows.
+func SettingsSections() string { return In(i18n.Locale()).SettingsSections() }
+
+// SettingsSections says "Settings sections"
+// in the language of msgs.
+func (msgs Messages) SettingsSections() string {
+	return Catalog.Format(msgs.locale, "settingsSections", nil)
+}
+
+// SecGeneral says "General"
+// in the language the app shows.
+func SecGeneral() string { return In(i18n.Locale()).SecGeneral() }
+
+// SecGeneral says "General"
+// in the language of msgs.
+func (msgs Messages) SecGeneral() string {
+	return Catalog.Format(msgs.locale, "secGeneral", nil)
+}
+
+// SecShortcuts says "Shortcuts"
+// in the language the app shows.
+func SecShortcuts() string { return In(i18n.Locale()).SecShortcuts() }
+
+// SecShortcuts says "Shortcuts"
+// in the language of msgs.
+func (msgs Messages) SecShortcuts() string {
+	return Catalog.Format(msgs.locale, "secShortcuts", nil)
+}
+
+// SecEditing says "Editing & fidelity"
+// in the language the app shows.
+func SecEditing() string { return In(i18n.Locale()).SecEditing() }
+
+// SecEditing says "Editing & fidelity"
+// in the language of msgs.
+func (msgs Messages) SecEditing() string {
+	return Catalog.Format(msgs.locale, "secEditing", nil)
+}
+
+// SecAgent says "Agent access"
+// in the language the app shows.
+func SecAgent() string { return In(i18n.Locale()).SecAgent() }
+
+// SecAgent says "Agent access"
+// in the language of msgs.
+func (msgs Messages) SecAgent() string {
+	return Catalog.Format(msgs.locale, "secAgent", nil)
+}
+
+// SecStorage says "Storage"
+// in the language the app shows.
+func SecStorage() string { return In(i18n.Locale()).SecStorage() }
+
+// SecStorage says "Storage"
+// in the language of msgs.
+func (msgs Messages) SecStorage() string {
+	return Catalog.Format(msgs.locale, "secStorage", nil)
+}
+
+// SecAbout says "About"
+// in the language the app shows.
+func SecAbout() string { return In(i18n.Locale()).SecAbout() }
+
+// SecAbout says "About"
+// in the language of msgs.
+func (msgs Messages) SecAbout() string {
+	return Catalog.Format(msgs.locale, "secAbout", nil)
+}
+
+// Appearance says "Appearance"
+// in the language the app shows.
+func Appearance() string { return In(i18n.Locale()).Appearance() }
+
+// Appearance says "Appearance"
+// in the language of msgs.
+func (msgs Messages) Appearance() string {
+	return Catalog.Format(msgs.locale, "appearance", nil)
+}
+
+// AppearanceDesc says "“System” switches with your system right away, no restart"
+// in the language the app shows.
+func AppearanceDesc() string { return In(i18n.Locale()).AppearanceDesc() }
+
+// AppearanceDesc says "“System” switches with your system right away, no restart"
+// in the language of msgs.
+func (msgs Messages) AppearanceDesc() string {
+	return Catalog.Format(msgs.locale, "appearanceDesc", nil)
+}
+
+// FollowSystem says "System"
+// in the language the app shows.
+func FollowSystem() string { return In(i18n.Locale()).FollowSystem() }
+
+// FollowSystem says "System"
+// in the language of msgs.
+func (msgs Messages) FollowSystem() string {
+	return Catalog.Format(msgs.locale, "followSystem", nil)
+}
+
+// Light says "Light"
+// in the language the app shows.
+func Light() string { return In(i18n.Locale()).Light() }
+
+// Light says "Light"
+// in the language of msgs.
+func (msgs Messages) Light() string {
+	return Catalog.Format(msgs.locale, "light", nil)
+}
+
+// Dark says "Dark"
+// in the language the app shows.
+func Dark() string { return In(i18n.Locale()).Dark() }
+
+// Dark says "Dark"
+// in the language of msgs.
+func (msgs Messages) Dark() string {
+	return Catalog.Format(msgs.locale, "dark", nil)
+}
+
+// Language says "Language"
+// in the language the app shows.
+func Language() string { return In(i18n.Locale()).Language() }
+
+// Language says "Language"
+// in the language of msgs.
+func (msgs Messages) Language() string {
+	return Catalog.Format(msgs.locale, "language", nil)
+}
+
+// LanguageDesc says "Falls back to English if your system language isn’t supported. Changes interface text only, never your snippets"
+// in the language the app shows.
+func LanguageDesc() string { return In(i18n.Locale()).LanguageDesc() }
+
+// LanguageDesc says "Falls back to English if your system language isn’t supported. Changes interface text only, never your snippets"
+// in the language of msgs.
+func (msgs Messages) LanguageDesc() string {
+	return Catalog.Format(msgs.locale, "languageDesc", nil)
+}
+
+// AccentColor says "Accent color"
+// in the language the app shows.
+func AccentColor() string { return In(i18n.Locale()).AccentColor() }
+
+// AccentColor says "Accent color"
+// in the language of msgs.
+func (msgs Messages) AccentColor() string {
+	return Catalog.Format(msgs.locale, "accentColor", nil)
+}
+
+// OpenAtLoginLabel says "Open at login"
+// in the language the app shows.
+func OpenAtLoginLabel() string { return In(i18n.Locale()).OpenAtLoginLabel() }
+
+// OpenAtLoginLabel says "Open at login"
+// in the language of msgs.
+func (msgs Messages) OpenAtLoginLabel() string {
+	return Catalog.Format(msgs.locale, "openAtLoginLabel", nil)
+}
+
+// OpenAtLoginDesc says "Keeps Lastab running in the background, so the global shortcut opens it instantly"
+// in the language the app shows.
+func OpenAtLoginDesc() string { return In(i18n.Locale()).OpenAtLoginDesc() }
+
+// OpenAtLoginDesc says "Keeps Lastab running in the background, so the global shortcut opens it instantly"
+// in the language of msgs.
+func (msgs Messages) OpenAtLoginDesc() string {
+	return Catalog.Format(msgs.locale, "openAtLoginDesc", nil)
+}
+
+// ShortcutsDesc says "Changes apply at once. A shortcut needs ⌘, ⌃ or ⌥ (Ctrl or Alt on Windows)."
+// in the language the app shows.
+func ShortcutsDesc() string { return In(i18n.Locale()).ShortcutsDesc() }
+
+// ShortcutsDesc says "Changes apply at once. A shortcut needs ⌘, ⌃ or ⌥ (Ctrl or Alt on Windows)."
+// in the language of msgs.
+func (msgs Messages) ShortcutsDesc() string {
+	return Catalog.Format(msgs.locale, "shortcutsDesc", nil)
+}
+
+// GlobalBadge says "Global"
+// in the language the app shows.
+func GlobalBadge() string { return In(i18n.Locale()).GlobalBadge() }
+
+// GlobalBadge says "Global"
+// in the language of msgs.
+func (msgs Messages) GlobalBadge() string {
+	return Catalog.Format(msgs.locale, "globalBadge", nil)
+}
+
+// SummonAction says "Show Lastab and create new"
+// in the language the app shows.
+func SummonAction() string { return In(i18n.Locale()).SummonAction() }
+
+// SummonAction says "Show Lastab and create new"
+// in the language of msgs.
+func (msgs Messages) SummonAction() string {
+	return Catalog.Format(msgs.locale, "summonAction", nil)
+}
+
+// DescNewText says "In app; opens a blank editor"
+// in the language the app shows.
+func DescNewText() string { return In(i18n.Locale()).DescNewText() }
+
+// DescNewText says "In app; opens a blank editor"
+// in the language of msgs.
+func (msgs Messages) DescNewText() string {
+	return Catalog.Format(msgs.locale, "descNewText", nil)
+}
+
+// DescNewTodo says "In app; start typing the first item"
+// in the language the app shows.
+func DescNewTodo() string { return In(i18n.Locale()).DescNewTodo() }
+
+// DescNewTodo says "In app; start typing the first item"
+// in the language of msgs.
+func (msgs Messages) DescNewTodo() string {
+	return Catalog.Format(msgs.locale, "descNewTodo", nil)
+}
+
+// DescSummon says "Works from any app"
+// in the language the app shows.
+func DescSummon() string { return In(i18n.Locale()).DescSummon() }
+
+// DescSummon says "Works from any app"
+// in the language of msgs.
+func (msgs Messages) DescSummon() string {
+	return Catalog.Format(msgs.locale, "descSummon", nil)
+}
+
+// DescRecent says "Open snippets only; press Tab to move, Enter to open"
+// in the language the app shows.
+func DescRecent() string { return In(i18n.Locale()).DescRecent() }
+
+// DescRecent says "Open snippets only; press Tab to move, Enter to open"
+// in the language of msgs.
+func (msgs Messages) DescRecent() string {
+	return Catalog.Format(msgs.locale, "descRecent", nil)
+}
+
+// DescAllSnippets says "Includes closed snippets"
+// in the language the app shows.
+func DescAllSnippets() string { return In(i18n.Locale()).DescAllSnippets() }
+
+// DescAllSnippets says "Includes closed snippets"
+// in the language of msgs.
+func (msgs Messages) DescAllSnippets() string {
+	return Catalog.Format(msgs.locale, "descAllSnippets", nil)
+}
+
+// DescCopyAll says "Copies the whole text, not the title"
+// in the language the app shows.
+func DescCopyAll() string { return In(i18n.Locale()).DescCopyAll() }
+
+// DescCopyAll says "Copies the whole text, not the title"
+// in the language of msgs.
+func (msgs Messages) DescCopyAll() string {
+	return Catalog.Format(msgs.locale, "descCopyAll", nil)
+}
+
+// DescHistory says "View and restore earlier versions"
+// in the language the app shows.
+func DescHistory() string { return In(i18n.Locale()).DescHistory() }
+
+// DescHistory says "View and restore earlier versions"
+// in the language of msgs.
+func (msgs Messages) DescHistory() string {
+	return Catalog.Format(msgs.locale, "descHistory", nil)
+}
+
+// DescHistoryWin says "View and restore earlier versions; Ctrl+Y stays Redo"
+// in the language the app shows.
+func DescHistoryWin() string { return In(i18n.Locale()).DescHistoryWin() }
+
+// DescHistoryWin says "View and restore earlier versions; Ctrl+Y stays Redo"
+// in the language of msgs.
+func (msgs Messages) DescHistoryWin() string {
+	return Catalog.Format(msgs.locale, "descHistoryWin", nil)
+}
+
+// DescCloseTab says "Closing isn’t deleting; find it again in the list or search"
+// in the language the app shows.
+func DescCloseTab() string { return In(i18n.Locale()).DescCloseTab() }
+
+// DescCloseTab says "Closing isn’t deleting; find it again in the list or search"
+// in the language of msgs.
+func (msgs Messages) DescCloseTab() string {
+	return Catalog.Format(msgs.locale, "descCloseTab", nil)
+}
+
+// DescToggleSidebar says "Shows or hides the list of open snippets"
+// in the language the app shows.
+func DescToggleSidebar() string { return In(i18n.Locale()).DescToggleSidebar() }
+
+// DescToggleSidebar says "Shows or hides the list of open snippets"
+// in the language of msgs.
+func (msgs Messages) DescToggleSidebar() string {
+	return Catalog.Format(msgs.locale, "descToggleSidebar", nil)
+}
+
+// Recording says "Press a new shortcut…"
+// in the language the app shows.
+func Recording() string { return In(i18n.Locale()).Recording() }
+
+// Recording says "Press a new shortcut…"
+// in the language of msgs.
+func (msgs Messages) Recording() string {
+	return Catalog.Format(msgs.locale, "recording", nil)
+}
+
+// EscCancels says "{esc} to cancel"
+// in the language the app shows.
+func EscCancels(esc string) string { return In(i18n.Locale()).EscCancels(esc) }
+
+// EscCancels says "{esc} to cancel"
+// in the language of msgs.
+func (msgs Messages) EscCancels(esc string) string {
+	return Catalog.Format(msgs.locale, "escCancels", map[string]any{"esc": esc})
+}
+
+// Change says "Change"
+// in the language the app shows.
+func Change() string { return In(i18n.Locale()).Change() }
+
+// Change says "Change"
+// in the language of msgs.
+func (msgs Messages) Change() string {
+	return Catalog.Format(msgs.locale, "change", nil)
+}
+
+// ResetShortcuts says "Reset all to defaults"
+// in the language the app shows.
+func ResetShortcuts() string { return In(i18n.Locale()).ResetShortcuts() }
+
+// ResetShortcuts says "Reset all to defaults"
+// in the language of msgs.
+func (msgs Messages) ResetShortcuts() string {
+	return Catalog.Format(msgs.locale, "resetShortcuts", nil)
+}
+
+// ShortcutConflict says "{keys} is already used by “{action}”"
+// in the language the app shows.
+func ShortcutConflict(keys string, action string) string {
+	return In(i18n.Locale()).ShortcutConflict(keys, action)
+}
+
+// ShortcutConflict says "{keys} is already used by “{action}”"
+// in the language of msgs.
+func (msgs Messages) ShortcutConflict(keys string, action string) string {
+	return Catalog.Format(msgs.locale, "shortcutConflict", map[string]any{"keys": keys, "action": action})
+}
+
+// ShortcutNeedsModifier says "A shortcut needs one of {mods}"
+// in the language the app shows.
+func ShortcutNeedsModifier(mods string) string { return In(i18n.Locale()).ShortcutNeedsModifier(mods) }
+
+// ShortcutNeedsModifier says "A shortcut needs one of {mods}"
+// in the language of msgs.
+func (msgs Messages) ShortcutNeedsModifier(mods string) string {
+	return Catalog.Format(msgs.locale, "shortcutNeedsModifier", map[string]any{"mods": mods})
+}
+
+// ShortcutTaken says "{keys} is taken by another app or the system"
+// in the language the app shows.
+func ShortcutTaken(keys string) string { return In(i18n.Locale()).ShortcutTaken(keys) }
+
+// ShortcutTaken says "{keys} is taken by another app or the system"
+// in the language of msgs.
+func (msgs Messages) ShortcutTaken(keys string) string {
+	return Catalog.Format(msgs.locale, "shortcutTaken", map[string]any{"keys": keys})
+}
+
+// FidelityDesc says "Lastab keeps text exactly as you typed or pasted it. These are always on."
+// in the language the app shows.
+func FidelityDesc() string { return In(i18n.Locale()).FidelityDesc() }
+
+// FidelityDesc says "Lastab keeps text exactly as you typed or pasted it. These are always on."
+// in the language of msgs.
+func (msgs Messages) FidelityDesc() string {
+	return Catalog.Format(msgs.locale, "fidelityDesc", nil)
+}
+
+// FidelityPaste says "Always paste as plain text"
+// in the language the app shows.
+func FidelityPaste() string { return In(i18n.Locale()).FidelityPaste() }
+
+// FidelityPaste says "Always paste as plain text"
+// in the language of msgs.
+func (msgs Messages) FidelityPaste() string {
+	return Catalog.Format(msgs.locale, "fidelityPaste", nil)
+}
+
+// FidelityQuotes says "No smart quotes or dash substitution"
+// in the language the app shows.
+func FidelityQuotes() string { return In(i18n.Locale()).FidelityQuotes() }
+
+// FidelityQuotes says "No smart quotes or dash substitution"
+// in the language of msgs.
+func (msgs Messages) FidelityQuotes() string {
+	return Catalog.Format(msgs.locale, "fidelityQuotes", nil)
+}
+
+// FidelityAutocorrect says "No autocorrect or auto-capitalization"
+// in the language the app shows.
+func FidelityAutocorrect() string { return In(i18n.Locale()).FidelityAutocorrect() }
+
+// FidelityAutocorrect says "No autocorrect or auto-capitalization"
+// in the language of msgs.
+func (msgs Messages) FidelityAutocorrect() string {
+	return Catalog.Format(msgs.locale, "fidelityAutocorrect", nil)
+}
+
+// FidelityWhitespace says "Keep tabs, spaces and line breaks as typed"
+// in the language the app shows.
+func FidelityWhitespace() string { return In(i18n.Locale()).FidelityWhitespace() }
+
+// FidelityWhitespace says "Keep tabs, spaces and line breaks as typed"
+// in the language of msgs.
+func (msgs Messages) FidelityWhitespace() string {
+	return Catalog.Format(msgs.locale, "fidelityWhitespace", nil)
+}
+
+// EditorFont says "Editor font"
+// in the language the app shows.
+func EditorFont() string { return In(i18n.Locale()).EditorFont() }
+
+// EditorFont says "Editor font"
+// in the language of msgs.
+func (msgs Messages) EditorFont() string {
+	return Catalog.Format(msgs.locale, "editorFont", nil)
+}
+
+// MonoOnly says "Monospaced fonts only"
+// in the language the app shows.
+func MonoOnly() string { return In(i18n.Locale()).MonoOnly() }
+
+// MonoOnly says "Monospaced fonts only"
+// in the language of msgs.
+func (msgs Messages) MonoOnly() string {
+	return Catalog.Format(msgs.locale, "monoOnly", nil)
+}
+
+// SystemMonospace says "System monospaced"
+// in the language the app shows.
+func SystemMonospace() string { return In(i18n.Locale()).SystemMonospace() }
+
+// SystemMonospace says "System monospaced"
+// in the language of msgs.
+func (msgs Messages) SystemMonospace() string {
+	return Catalog.Format(msgs.locale, "systemMonospace", nil)
+}
+
+// EditorSize says "Font size"
+// in the language the app shows.
+func EditorSize() string { return In(i18n.Locale()).EditorSize() }
+
+// EditorSize says "Font size"
+// in the language of msgs.
+func (msgs Messages) EditorSize() string {
+	return Catalog.Format(msgs.locale, "editorSize", nil)
+}
+
+// AgentDesc says "Let agents like Claude Code search and read all your snippets and to-do lists through the local lastab command. Read-…"
+// in the language the app shows.
+func AgentDesc() string { return In(i18n.Locale()).AgentDesc() }
+
+// AgentDesc says "Let agents like Claude Code search and read all your snippets and to-do lists through the local lastab command. Read-…"
+// in the language of msgs.
+func (msgs Messages) AgentDesc() string {
+	return Catalog.Format(msgs.locale, "agentDesc", nil)
+}
+
+// AgentAccessLabel says "Allow agent access"
+// in the language the app shows.
+func AgentAccessLabel() string { return In(i18n.Locale()).AgentAccessLabel() }
+
+// AgentAccessLabel says "Allow agent access"
+// in the language of msgs.
+func (msgs Messages) AgentAccessLabel() string {
+	return Catalog.Format(msgs.locale, "agentAccessLabel", nil)
+}
+
+// AgentAccessDesc says "When off, the command-line tool refuses every read"
+// in the language the app shows.
+func AgentAccessDesc() string { return In(i18n.Locale()).AgentAccessDesc() }
+
+// AgentAccessDesc says "When off, the command-line tool refuses every read"
+// in the language of msgs.
+func (msgs Messages) AgentAccessDesc() string {
+	return Catalog.Format(msgs.locale, "agentAccessDesc", nil)
+}
+
+// AgentMaskLabel says "Mask likely secrets (recommended)"
+// in the language the app shows.
+func AgentMaskLabel() string { return In(i18n.Locale()).AgentMaskLabel() }
+
+// AgentMaskLabel says "Mask likely secrets (recommended)"
+// in the language of msgs.
+func (msgs Messages) AgentMaskLabel() string {
+	return Catalog.Format(msgs.locale, "agentMaskLabel", nil)
+}
+
+// AgentMaskDesc says "Authorization, Bearer, api_key and similar come out as ••••. Only changeable here; agents can’t bypass it w…"
+// in the language the app shows.
+func AgentMaskDesc() string { return In(i18n.Locale()).AgentMaskDesc() }
+
+// AgentMaskDesc says "Authorization, Bearer, api_key and similar come out as ••••. Only changeable here; agents can’t bypass it w…"
+// in the language of msgs.
+func (msgs Messages) AgentMaskDesc() string {
+	return Catalog.Format(msgs.locale, "agentMaskDesc", nil)
+}
+
+// AgentInfo says "Whatever an agent reads is sent to the model service that agent uses. Lastab itself still uploads nothing, and every …"
+// in the language the app shows.
+func AgentInfo() string { return In(i18n.Locale()).AgentInfo() }
+
+// AgentInfo says "Whatever an agent reads is sent to the model service that agent uses. Lastab itself still uploads nothing, and every …"
+// in the language of msgs.
+func (msgs Messages) AgentInfo() string {
+	return Catalog.Format(msgs.locale, "agentInfo", nil)
+}
+
+// AgentCLIHint says "Agents call the lastab command. Its JSON field names are always English, whatever the interface language:"
+// in the language the app shows.
+func AgentCLIHint() string { return In(i18n.Locale()).AgentCLIHint() }
+
+// AgentCLIHint says "Agents call the lastab command. Its JSON field names are always English, whatever the interface language:"
+// in the language of msgs.
+func (msgs Messages) AgentCLIHint() string {
+	return Catalog.Format(msgs.locale, "agentCLIHint", nil)
+}
+
+// AccessLog says "Access log"
+// in the language the app shows.
+func AccessLog() string { return In(i18n.Locale()).AccessLog() }
+
+// AccessLog says "Access log"
+// in the language of msgs.
+func (msgs Messages) AccessLog() string {
+	return Catalog.Format(msgs.locale, "accessLog", nil)
+}
+
+// AccessLogEmpty says "No agent has read anything yet."
+// in the language the app shows.
+func AccessLogEmpty() string { return In(i18n.Locale()).AccessLogEmpty() }
+
+// AccessLogEmpty says "No agent has read anything yet."
+// in the language of msgs.
+func (msgs Messages) AccessLogEmpty() string {
+	return Catalog.Format(msgs.locale, "accessLogEmpty", nil)
+}
+
+// ColTime says "Time"
+// in the language the app shows.
+func ColTime() string { return In(i18n.Locale()).ColTime() }
+
+// ColTime says "Time"
+// in the language of msgs.
+func (msgs Messages) ColTime() string {
+	return Catalog.Format(msgs.locale, "colTime", nil)
+}
+
+// ColSource says "Source"
+// in the language the app shows.
+func ColSource() string { return In(i18n.Locale()).ColSource() }
+
+// ColSource says "Source"
+// in the language of msgs.
+func (msgs Messages) ColSource() string {
+	return Catalog.Format(msgs.locale, "colSource", nil)
+}
+
+// ColAction says "Action"
+// in the language the app shows.
+func ColAction() string { return In(i18n.Locale()).ColAction() }
+
+// ColAction says "Action"
+// in the language of msgs.
+func (msgs Messages) ColAction() string {
+	return Catalog.Format(msgs.locale, "colAction", nil)
+}
+
+// ColSnippet says "Snippet"
+// in the language the app shows.
+func ColSnippet() string { return In(i18n.Locale()).ColSnippet() }
+
+// ColSnippet says "Snippet"
+// in the language of msgs.
+func (msgs Messages) ColSnippet() string {
+	return Catalog.Format(msgs.locale, "colSnippet", nil)
+}
+
+// ResultsCount says "{count, plural, =0 {No results} one {# result} other {# results}}"
+// in the language the app shows.
+func ResultsCount(count int) string { return In(i18n.Locale()).ResultsCount(count) }
+
+// ResultsCount says "{count, plural, =0 {No results} one {# result} other {# results}}"
+// in the language of msgs.
+func (msgs Messages) ResultsCount(count int) string {
+	return Catalog.Format(msgs.locale, "resultsCount", map[string]any{"count": count})
+}
+
+// StorageDesc says "Everything stays on this computer. Nothing is synced or uploaded."
+// in the language the app shows.
+func StorageDesc() string { return In(i18n.Locale()).StorageDesc() }
+
+// StorageDesc says "Everything stays on this computer. Nothing is synced or uploaded."
+// in the language of msgs.
+func (msgs Messages) StorageDesc() string {
+	return Catalog.Format(msgs.locale, "storageDesc", nil)
+}
+
+// DataFolder says "Data folder"
+// in the language the app shows.
+func DataFolder() string { return In(i18n.Locale()).DataFolder() }
+
+// DataFolder says "Data folder"
+// in the language of msgs.
+func (msgs Messages) DataFolder() string {
+	return Catalog.Format(msgs.locale, "dataFolder", nil)
+}
+
+// ShowInFolder says "Show in folder"
+// in the language the app shows.
+func ShowInFolder() string { return In(i18n.Locale()).ShowInFolder() }
+
+// ShowInFolder says "Show in folder"
+// in the language of msgs.
+func (msgs Messages) ShowInFolder() string {
+	return Catalog.Format(msgs.locale, "showInFolder", nil)
+}
+
+// StoredLabel says "Stored"
+// in the language the app shows.
+func StoredLabel() string { return In(i18n.Locale()).StoredLabel() }
+
+// StoredLabel says "Stored"
+// in the language of msgs.
+func (msgs Messages) StoredLabel() string {
+	return Catalog.Format(msgs.locale, "storedLabel", nil)
+}
+
+// StoredCounts says "{snippets, plural, one {# snippet} other {# snippets}} · {versions, plural, one {# version} other {# versions}} · {…"
+// in the language the app shows.
+func StoredCounts(snippets int, versions int, size string) string {
+	return In(i18n.Locale()).StoredCounts(snippets, versions, size)
+}
+
+// StoredCounts says "{snippets, plural, one {# snippet} other {# snippets}} · {versions, plural, one {# version} other {# versions}} · {…"
+// in the language of msgs.
+func (msgs Messages) StoredCounts(snippets int, versions int, size string) string {
+	return Catalog.Format(msgs.locale, "storedCounts", map[string]any{"snippets": snippets, "versions": versions, "size": size})
+}
+
+// AboutDesc says "A resident scratchpad for text you paste, change and copy out again: every snippet is kept, titled and searchable, wi…"
+// in the language the app shows.
+func AboutDesc() string { return In(i18n.Locale()).AboutDesc() }
+
+// AboutDesc says "A resident scratchpad for text you paste, change and copy out again: every snippet is kept, titled and searchable, wi…"
+// in the language of msgs.
+func (msgs Messages) AboutDesc() string {
+	return Catalog.Format(msgs.locale, "aboutDesc", nil)
+}
+
+// SchemaVersion says "Database schema v{n}"
+// in the language the app shows.
+func SchemaVersion(n int) string { return In(i18n.Locale()).SchemaVersion(n) }
+
+// SchemaVersion says "Database schema v{n}"
+// in the language of msgs.
+func (msgs Messages) SchemaVersion(n int) string {
+	return Catalog.Format(msgs.locale, "schemaVersion", map[string]any{"n": n})
+}
+
+// OpenSettings says "Settings"
+// in the language the app shows.
+func OpenSettings() string { return In(i18n.Locale()).OpenSettings() }
+
+// OpenSettings says "Settings"
+// in the language of msgs.
+func (msgs Messages) OpenSettings() string {
+	return Catalog.Format(msgs.locale, "openSettings", nil)
+}
+
+// WindowMenu says "Window"
+// in the language the app shows.
+func WindowMenu() string { return In(i18n.Locale()).WindowMenu() }
+
+// WindowMenu says "Window"
+// in the language of msgs.
+func (msgs Messages) WindowMenu() string {
+	return Catalog.Format(msgs.locale, "windowMenu", nil)
+}
