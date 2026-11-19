@@ -369,9 +369,12 @@ macOS 上 ⌘\` 是系统「在同一应用的窗口之间切换」的快捷键�
 ### 5.10 设置
 
 - **外观**：跟随系统 / 浅色 / 深色，用 `mygo.Theme.SetSource(ThemeSystem / ThemeLight / ThemeDark)`。启动时在 `App.Run` 之前按已保存的设置调用，应用直接以正确外观启动。
-- **语言**：跟随系统 / 简体中文 / English；切换后即时生效（**验证**运行时切换语言的 API，文档中为 `App.SetLanguages`）。
+- **语言**：跟随系统 / 简体中文 / English；用 `App.SetLocale`（空字符串为跟随系统），即时生效，MyGo 会记住选择供下次启动使用。
 - **强调色**：设计中的 4 个预设，用 `Theme.WithAccent` 派生悬停、按下、选中与焦点色。
-- **其他**：按住 ⌘ 显示快捷键（开关）；快捷键自定义（录制新组合键、冲突检测、全部恢复默认）；编辑字体与字号（`ui.FontFamilies()` 中 `Monospaced` 为真的字体）；登录时启动（`App.SetOpenAtLogin`，**待确认**默认值）。
+- **其他**：快捷键自定义（录制新组合键、冲突检测、全部恢复默认）；编辑字体与字号（`ui.FontFamilies()` 中 `Monospaced` 为真的字体，字号 11–20）；登录时启动（`App.SetOpenAtLogin`，默认关闭，**待确认**）；按住 ⌘ 显示快捷键（开关，功能本身尚未实现，开关暂不显示）。
+- **页面**（2026-11-19 实现）：⌘, / Ctrl+, 打开整页设置（macOS 在应用菜单「设置…」，Windows 在「文件」菜单），左侧分类：通用、快捷键、编辑与文本保真、Agent 访问、存储、关于；esc 返回编辑。每项修改立即生效并写入 `setting` 表。外观、语言、登录启动、菜单与全局热键通过 `appui.Platform` 接口交给 `internal/shell`，视图测试用假实现。
+- **Agent 访问**：「允许 Agent 访问」默认**关闭**（**待确认**，需求待确认问题 4）；「遮蔽疑似密钥」默认开启，写入 `agent.allowRaw` 的反值。访问记录读取 `agent_log.db` 最近 20 条。「安装命令行」「安装 Skill」随 M4 的打包一起做。
+- **存储**：数据目录、片段数与版本数、占用空间，「显示所在位置」。清理策略待需求待确认问题 11。
 
 ## 6. 界面（MyGo 原生 UI）
 
@@ -489,7 +492,8 @@ macOS 上 ⌘\` 是系统「在同一应用的窗口之间切换」的快捷键�
 
 - 快捷键默认表集中定义在 `internal/ui/keys`，使用 MyGo 的加速键语法（`CmdOrCtrl+N`）。菜单、设置页、提示浮层都读这一张表。
 - 菜单项的 `Accelerator` 同时让 macOS 菜单显示快捷键，并在编辑器有焦点时优先生效。
-- 自定义快捷键存入 `setting.shortcuts`，修改后用 `MenuItem.SetAccelerator` 与 `GlobalShortcut.Unregister` / `Register` 立即生效；`Register` 因被占用而失败时，在设置页提示。
+- 自定义快捷键存入 `setting.shortcuts`（只存与默认不同的项），修改后立即生效：菜单按新表重建；窗口内快捷键每帧按当前表注册；编辑器把这些组合键绑定为 `NoCommand`；全局热键 `Unregister` / `Register`，被占用而失败时保留原来的并在设置页提示。
+- **录制**：录制期间暂停菜单加速键与全局热键（否则 macOS 菜单会先拿走 ⌘N 之类的按键），窗口内快捷键也不注册，按键全部交给录制框；esc 取消。新组合键必须含 ⌘ / ⌃ / ⌥（Windows 为 Ctrl / Alt），与其他操作（含固定的 ⌘,）冲突时不生效并写明冲突对象。主修饰键记为 `CmdOrCtrl`，表在两个平台之间可通用。
 
 ### 7.2 macOS 的 ⌘\`（**验证**）
 
@@ -613,7 +617,7 @@ go run ./scripts/build -platform windows/amd64,windows/arm64  # 任意机器：L
 
 ### 10.3 CI（GitHub Actions）
 
-- PR：`golangci-lint` + `staticcheck` + `govulncheck` + `go test ./...` + `mygo i18n check`；macOS 与 Windows 两个 runner 都跑测试（覆盖路径与文件锁差异）。
+- PR（已建，`.github/workflows/ci.yml`）：`CGO_ENABLED=0`；macOS 与 Windows 两个 runner 跑 `go vet`、`go test ./...`、`mygo i18n check` 和构建；macOS 上另查 `gofmt`、Windows / Linux 交叉 `vet`，以及 `tokens_gen.go`、`catalog_gen.go` 与源文件一致。`golangci-lint`、`staticcheck`、`govulncheck` 待加（需锁定版本）。
 - `main`：额外构建未签名的产物，供内部试用。
 - Tag：在 macOS runner 上构建、签名、公证 macOS 包；构建并签名 Windows 安装包；生成 Release 草稿。工作流参考 MyGo 文档中的 GitHub Actions 一节。
 

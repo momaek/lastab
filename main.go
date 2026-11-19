@@ -46,23 +46,22 @@ func main() {
 	svc := snippet.New(st)
 
 	// Appearance is set before Run, so the window opens in it: no flash.
-	var appearance, accent string
-	st.GetSetting(context.Background(), store.SettingAppearance, &appearance)
-	st.GetSetting(context.Background(), store.SettingAccent, &accent)
-	switch appearance {
-	case "light":
-		mygo.Theme.SetSource(mygo.ThemeLight)
-	case "dark":
-		mygo.Theme.SetSource(mygo.ThemeDark)
+	settings, err := appui.LoadSettings(context.Background(), st)
+	if err != nil {
+		log.Error("load settings", "err", err)
 	}
+	mygo.Theme.SetSource(shell.ThemeSource(settings.Appearance))
 
 	sh := &shell.Shell{Log: log}
 	app := appui.New(appui.Deps{
 		Service:   svc,
 		Clipboard: clipboard{},
 		Recovered: crashed,
-		Accent:    accent,
+		Accent:    settings.Accent,
 		Log:       log,
+		Platform:  sh,
+		DataDir:   dir,
+		AgentLog:  filepath.Join(dir, paths.AgentLogFile),
 		Async: func(work func() func()) {
 			go func() {
 				apply := work()

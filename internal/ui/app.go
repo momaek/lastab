@@ -46,6 +46,12 @@ type Deps struct {
 	// Accent is the accent color; "" for the default.
 	Accent string
 	Log    *slog.Logger
+	// Platform applies settings outside the window; nil in some tests.
+	Platform Platform
+	// DataDir holds lastab.db; AgentLog is agent_log.db, which the CLI
+	// writes and Settings reads.
+	DataDir  string
+	AgentLog string
 }
 
 // Tab is one open snippet. A blank tab has no ID: it lives in memory until
@@ -105,6 +111,8 @@ type App struct {
 	copiedUntil time.Time
 	switcher    switcher
 	lib         library
+	settings    Settings
+	prefs       prefsPage
 	history     history
 	toast       *toast
 	toastWidth  float32
@@ -130,7 +138,7 @@ func New(d Deps) *App {
 	if d.Log == nil {
 		d.Log = slog.Default()
 	}
-	a := &App{d: d, recovered: d.Recovered, focusEditor: true}
+	a := &App{d: d, recovered: d.Recovered, focusEditor: true, settings: DefaultSettings()}
 	a.tabs = []*Tab{a.blankTab(store.KindText)}
 	return a
 }
@@ -174,28 +182,10 @@ func (a *App) newEditor(body string) *editor.State {
 		NoAutoClose: true,
 		NoFolding:   true,
 		Indent:      editor.IndentTabs,
-		Font:        ui.Font{Size: theme.EditorFontSize},
-		LineHeight:  theme.EditorLineHeight / theme.EditorFontSize,
-		Bindings:    appBindings(),
 	}
+	a.styleEditor(st)
 	st.OnInput = func(ev ui.InputEvent) bool { return a.editorInput(st, ev) }
 	return st
-}
-
-// appBindings takes the app's shortcuts away from the editor. Cmd+K would
-// otherwise start the editor's chords (Cmd+K Cmd+0 folds).
-func appBindings() []editor.Binding {
-	var bs []editor.Binding
-	for _, k := range []struct {
-		m ui.Modifiers
-		k ui.Key
-	}{
-		{ui.Cmd, ui.KeyK}, {ui.Cmd, ui.KeyN}, {ui.Cmd, ui.KeyT}, {ui.Cmd, ui.KeyW},
-		{ui.Cmd, ui.KeyBackquote}, {ui.Cmd | ui.Shift, ui.KeyC}, {ui.Cmd, ui.KeyBackslash}, {ui.Cmd, ui.KeyY}, {ui.Cmd | ui.Shift, ui.KeyY},
-	} {
-		bs = append(bs, editor.Binding{Mods: k.m, Key: k.k, Command: editor.NoCommand})
-	}
-	return bs
 }
 
 // editorInput keeps pasted text exactly as it was: the editor gives pasted
@@ -220,6 +210,17 @@ func (a *App) editorInput(st *editor.State, ev ui.InputEvent) bool {
 
 // Load restores the open tabs.
 func (a *App) Load() error {
+	set, err := LoadSettings(a.ctx(), a.d.Service.Store)
+	if err != nil {
+		a.d.Log.Error("load settings", "err", err)
+	}
+	a.settings = set
+	if a.d.Accent == "" {
+		a.d.Accent = set.Accent
+	}
+	for _, t := range a.tabs {
+		a.styleEditor(t.ed)
+	}
 	sns, active, err := a.d.Service.Workspace(a.ctx())
 	if err != nil {
 		return err

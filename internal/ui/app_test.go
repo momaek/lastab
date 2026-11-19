@@ -24,6 +24,8 @@ type harness struct {
 	app  *App
 	tt   *ui.Tester
 	clip *fakeClipboard
+	plat *fakePlatform
+	dir  string
 }
 
 func newHarness(t *testing.T, path string) *harness {
@@ -37,9 +39,14 @@ func newHarness(t *testing.T, path string) *harness {
 	}
 	t.Cleanup(func() { st.Close() })
 	clip := &fakeClipboard{}
+	plat := &fakePlatform{}
+	dir := filepath.Dir(path)
 	app := New(Deps{
 		Service:   snippet.New(st),
 		Clipboard: clip,
+		Platform:  plat,
+		DataDir:   dir,
+		AgentLog:  filepath.Join(dir, "agent_log.db"),
 		Async: func(work func() func()) {
 			if apply := work(); apply != nil {
 				apply()
@@ -50,7 +57,7 @@ func newHarness(t *testing.T, path string) *harness {
 		t.Fatal(err)
 	}
 	tt := ui.NewTester(app.View, 900, 600)
-	return &harness{t, st, app, tt, clip}
+	return &harness{t, st, app, tt, clip, plat, dir}
 }
 
 // settle advances the clock past every delay of automatic keeping.

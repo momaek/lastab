@@ -284,5 +284,134 @@
       }
     }
   },
-  "versionsList": "Versions"
+  "versionsList": "Versions",
+  "settingsTitle": "Settings",
+  "settingsMenu": "Settings…",
+  "settingsSections": "Settings sections",
+  "secGeneral": "General",
+  "secShortcuts": "Shortcuts",
+  "secEditing": "Editing & fidelity",
+  "secAgent": "Agent access",
+  "secStorage": "Storage",
+  "secAbout": "About",
+  "appearance": "Appearance",
+  "appearanceDesc": "“System” switches with your system right away, no restart",
+  "followSystem": "System",
+  "light": "Light",
+  "dark": "Dark",
+  "language": "Language",
+  "languageDesc": "Falls back to English if your system language isn’t supported. Changes interface text only, never your snippets",
+  "accentColor": "Accent color",
+  "openAtLoginLabel": "Open at login",
+  "openAtLoginDesc": "Keeps Lastab running in the background, so the global shortcut opens it instantly",
+  "shortcutsDesc": "Changes apply at once. A shortcut needs ⌘, ⌃ or ⌥ (Ctrl or Alt on Windows).",
+  "globalBadge": "Global",
+  "summonAction": "Show Lastab and create new",
+  "descNewText": "In app; opens a blank editor",
+  "descNewTodo": "In app; start typing the first item",
+  "descSummon": "Works from any app",
+  "descRecent": "Open snippets only; press Tab to move, Enter to open",
+  "descAllSnippets": "Includes closed snippets",
+  "descCopyAll": "Copies the whole text, not the title",
+  "descHistory": "View and restore earlier versions",
+  "descHistoryWin": "View and restore earlier versions; Ctrl+Y stays Redo",
+  "descCloseTab": "Closing isn’t deleting; find it again in the list or search",
+  "descToggleSidebar": "Shows or hides the list of open snippets",
+  "recording": "Press a new shortcut…",
+  "escCancels": "{esc} to cancel",
+  "@escCancels": {
+    "placeholders": {
+      "esc": {
+        "type": "String"
+      }
+    }
+  },
+  "change": "Change",
+  "resetShortcuts": "Reset all to defaults",
+  "shortcutConflict": "{keys} is already used by “{action}”",
+  "@shortcutConflict": {
+    "placeholders": {
+      "keys": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "shortcutNeedsModifier": "A shortcut needs one of {mods}",
+  "@shortcutNeedsModifier": {
+    "placeholders": {
+      "mods": {
+        "type": "String"
+      }
+    }
+  },
+  "shortcutTaken": "{keys} is taken by another app or the system",
+  "@shortcutTaken": {
+    "placeholders": {
+      "keys": {
+        "type": "String"
+      }
+    }
+  },
+  "fidelityDesc": "Lastab keeps text exactly as you typed or pasted it. These are always on.",
+  "fidelityPaste": "Always paste as plain text",
+  "fidelityQuotes": "No smart quotes or dash substitution",
+  "fidelityAutocorrect": "No autocorrect or auto-capitalization",
+  "fidelityWhitespace": "Keep tabs, spaces and line breaks as typed",
+  "editorFont": "Editor font",
+  "monoOnly": "Monospaced fonts only",
+  "systemMonospace": "System monospaced",
+  "editorSize": "Font size",
+  "agentDesc": "Let agents like Claude Code search and read all your snippets and to-do lists through the local lastab command. Read-only.",
+  "agentAccessLabel": "Allow agent access",
+  "agentAccessDesc": "When off, the command-line tool refuses every read",
+  "agentMaskLabel": "Mask likely secrets (recommended)",
+  "agentMaskDesc": "Authorization, Bearer, api_key and similar come out as ••••. Only changeable here; agents can’t bypass it with a flag.",
+  "agentInfo": "Whatever an agent reads is sent to the model service that agent uses. Lastab itself still uploads nothing, and every read is logged below.",
+  "agentCLIHint": "Agents call the lastab command. Its JSON field names are always English, whatever the interface language:",
+  "accessLog": "Access log",
+  "accessLogEmpty": "No agent has read anything yet.",
+  "colTime": "Time",
+  "colSource": "Source",
+  "colAction": "Action",
+  "colSnippet": "Snippet",
+  "resultsCount": "{count, plural, =0 {No results} one {# result} other {# results}}",
+  "@resultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storageDesc": "Everything stays on this computer. Nothing is synced or uploaded.",
+  "dataFolder": "Data folder",
+  "showInFolder": "Show in folder",
+  "storedLabel": "Stored",
+  "storedCounts": "{snippets, plural, one {# snippet} other {# snippets}} · {versions, plural, one {# version} other {# versions}} · {size}",
+  "@storedCounts": {
+    "placeholders": {
+      "snippets": {
+        "type": "int"
+      },
+      "versions": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutDesc": "A resident scratchpad for text you paste, change and copy out again: every snippet is kept, titled and searchable, without naming or filing anything.",
+  "schemaVersion": "Database schema v{n}",
+  "@schemaVersion": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "openSettings": "Settings",
+  "windowMenu": "Window"
 }
