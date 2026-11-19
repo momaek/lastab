@@ -411,7 +411,7 @@ func TestUndoAgentTitle(t *testing.T) {
 	ctx := context.Background()
 	s := openTest(t)
 	sn, _ := s.CreateSnippet(ctx, KindText, "hello", 0)
-	s.SetTitle(ctx, sn.ID, "hello", TitleAuto)
+	must(t, s.SetTitle(ctx, sn.ID, "hello", TitleAuto))
 	old, _ := s.AgentRetitle(ctx, sn.ID, "greeting", "claude-code")
 	ok, err := s.UndoAgentTitle(ctx, sn.ID, "greeting", "claude-code", old)
 	if err != nil || !ok {
@@ -422,7 +422,7 @@ func TestUndoAgentTitle(t *testing.T) {
 	}
 	// After the user renames it, an old agent rename no longer undoes.
 	old, _ = s.AgentRetitle(ctx, sn.ID, "greeting", "claude-code")
-	s.SetTitle(ctx, sn.ID, "mine", TitleManual)
+	must(t, s.SetTitle(ctx, sn.ID, "mine", TitleManual))
 	if ok, _ := s.UndoAgentTitle(ctx, sn.ID, "greeting", "claude-code", old); ok {
 		t.Fatal("undid over the user's title")
 	}
@@ -459,5 +459,12 @@ func TestOpenAgentWriter(t *testing.T) {
 	}
 	if _, err := OpenAgentWriter(path); !errors.Is(err, ErrTooOld) {
 		t.Fatalf("old db: %v", err)
+	}
+}
+
+func must(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err)
 	}
 }

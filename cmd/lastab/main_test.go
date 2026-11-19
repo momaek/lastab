@@ -126,7 +126,7 @@ func TestRetitle(t *testing.T) {
 	dir, st := setup(t, true)
 	ctx := context.Background()
 	sn, _ := st.CreateSnippet(ctx, store.KindText, "curl https://x.dev/v2/orders", 0)
-	st.SetTitle(ctx, sn.ID, "curl · GET /v2/orders", store.TitleAuto)
+	must(t, st.SetTitle(ctx, sn.ID, "curl · GET /v2/orders", store.TitleAuto))
 
 	// Off until the user allows it, even with access on.
 	code, m := cli(t, dir, "retitle", sn.ID, "orders repro")
@@ -141,7 +141,7 @@ func TestRetitle(t *testing.T) {
 		t.Errorf("status %v", m)
 	}
 
-	st.SetSetting(ctx, store.SettingAgentRename, true)
+	must(t, st.SetSetting(ctx, store.SettingAgentRename, true))
 	code, m = cli(t, dir, "retitle", sn.ID[:20], "staging", "orders\nrepro")
 	if code != 0 || m["title"] != "staging orders repro" || m["previous_title"] != "curl · GET /v2/orders" {
 		t.Fatalf("retitle %d %v", code, m)
@@ -158,7 +158,7 @@ func TestRetitle(t *testing.T) {
 	}
 
 	// The user's own name is final.
-	st.SetTitle(ctx, sn.ID, "mine", store.TitleManual)
+	must(t, st.SetTitle(ctx, sn.ID, "mine", store.TitleManual))
 	code, m = cli(t, dir, "retitle", sn.ID, "theirs")
 	if code != exitRefused || m["error"].(map[string]any)["kind"] != "user_title" {
 		t.Fatalf("over the user's: %d %v", code, m)
@@ -168,7 +168,7 @@ func TestRetitle(t *testing.T) {
 	}
 
 	// Access off refuses renames too.
-	st.SetSetting(ctx, store.SettingAgentAccess, false)
+	must(t, st.SetSetting(ctx, store.SettingAgentAccess, false))
 	if code, _ = cli(t, dir, "retitle", sn.ID, "x"); code != exitDenied {
 		t.Errorf("access off: %d", code)
 	}
@@ -179,5 +179,12 @@ func TestRetitle(t *testing.T) {
 	if len(es) != 1 || es[0].Op != "retitle" || es[0].Args["from"] != "curl · GET /v2/orders" ||
 		es[0].Args["from_source"] != "auto" || es[0].Args["title"] != "staging orders repro" {
 		t.Errorf("log %+v", es)
+	}
+}
+
+func must(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err)
 	}
 }
