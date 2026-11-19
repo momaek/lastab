@@ -769,7 +769,7 @@ func humanBytes(n int64) string {
 func (a *App) prefsAbout(c *ui.Context) {
 	p := a.pal
 	a.sectionTitle(c, locales.SecAbout(), "")
-	ui.Text(c, "Lastab").FontSize(20).FontWeight(600)
+	brandMark(c, 36, p.Text).Margin(4, 0, 8, 0)
 	v := ""
 	if a.d.Platform != nil {
 		v = a.d.Platform.Version()
