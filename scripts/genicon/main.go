@@ -1,6 +1,13 @@
-// Command genicon draws Lastab's placeholder app icons, resources/icon.png
-// and resources/icon-dev.png (1024×1024): a sheet of paper with a tab and a
-// text cursor on a rounded square, the development one in orange.
+// Command genicon draws Lastab's app and tray icons from the back-tab mark
+// (design/brand): a text cursor, and an arrow returning to it.
+//
+//	resources/icon.png                    1024×1024, ink tile, the app
+//	resources/icon-dev.png                1024×1024, orange tile, the development app
+//	internal/shell/assets/tray-template.png  36×36, black on clear (macOS menu bar, 18 pt @2x)
+//	internal/shell/assets/tray-win.png       32×32, ink tile (Windows notification area)
+//
+// The geometry matches the SVG masters in design/brand: on a 256 grid, every
+// stroke is a 32-wide capsule. Change both together.
 //
 //	go run ./scripts/genicon
 package main
@@ -14,8 +21,6 @@ import (
 	"os"
 	"path/filepath"
 )
-
-const size = 1024
 
 type rgba struct{ r, g, b, a float64 }
 
@@ -39,9 +44,14 @@ func hex(s string) rgba {
 	return rgba{v[0], v[1], v[2], 1}
 }
 
-func mix(a, b rgba, t float64) rgba {
-	return rgba{a.r + (b.r-a.r)*t, a.g + (b.g-a.g)*t, a.b + (b.b-a.b)*t, 1}
-}
+// Brand colours, as in design/brand/README.md.
+var (
+	ink      = hex("#1C1C1A")
+	white    = hex("#FFFFFF")
+	black    = hex("#000000")
+	blueLift = hex("#5B85F2") // the cursor on dark
+	orange   = hex("#C2410C") // development builds
+)
 
 // roundRect is the signed distance from (x, y) to a rounded rectangle.
 func roundRect(x, y, x0, y0, x1, y1, r float64) float64 {
@@ -52,9 +62,43 @@ func roundRect(x, y, x0, y0, x1, y1, r float64) float64 {
 	return out + math.Min(math.Max(dx, dy), 0) - r
 }
 
+// capsule is the signed distance from (x, y) to a segment with round ends.
+func capsule(x, y, ax, ay, bx, by, r float64) float64 {
+	px, py, vx, vy := x-ax, y-ay, bx-ax, by-ay
+	t := math.Max(0, math.Min(1, (px*vx+py*vy)/(vx*vx+vy*vy)))
+	return math.Hypot(px-vx*t, py-vy*t) - r
+}
+
+// The mark on its 256 grid; the content box is 40..216 both ways.
+const (
+	grid    = 128.0 // centre of the grid
+	content = 176.0 // height of the content box
+	stroke  = 16.0  // half the stroke width
+)
+
+func cursor(x, y float64) float64 { return capsule(x, y, 56, 56, 56, 200, stroke) }
+
+func arrow(x, y float64) float64 {
+	return math.Min(capsule(x, y, 104, 128, 192, 128, stroke),
+		math.Min(capsule(x, y, 152, 80, 104, 128, stroke), capsule(x, y, 104, 128, 152, 176, stroke)))
+}
+
 type layer struct {
 	dist  func(x, y float64) float64
-	color func(x, y float64) rgba
+	color rgba
+}
+
+// mark places the mark centred on (cx, cy), its content box h pixels tall.
+func mark(cx, cy, h float64, cursorColor, arrowColor rgba) []layer {
+	s := h / content
+	at := func(f func(x, y float64) float64) func(x, y float64) float64 {
+		return func(x, y float64) float64 { return f(grid+(x-cx)/s, grid+(y-cy)/s) * s }
+	}
+	return []layer{{at(cursor), cursorColor}, {at(arrow), arrowColor}}
+}
+
+func tile(x0, y0, x1, y1, r float64, c rgba) layer {
+	return layer{func(x, y float64) float64 { return roundRect(x, y, x0, y0, x1, y1, r) }, c}
 }
 
 func over(dst, src rgba, a float64) rgba {
@@ -67,26 +111,7 @@ func over(dst, src rgba, a float64) rgba {
 	return rgba{f(dst.r, src.r), f(dst.g, src.g), f(dst.b, src.b), out}
 }
 
-func draw(path string, top, bottom rgba) error {
-	solid := func(c rgba) func(x, y float64) rgba { return func(float64, float64) rgba { return c } }
-	paper := hex("#FFFFFF")
-	line := hex("#C9D3E6")
-	layers := []layer{
-		// The rounded square of the macOS icon grid, 824 of 1024.
-		{func(x, y float64) float64 { return roundRect(x, y, 100, 100, 924, 924, 185) },
-			func(x, y float64) rgba { return mix(top, bottom, (y-100)/824) }},
-		// Shadow of the sheet.
-		{func(x, y float64) float64 { return roundRect(x, y, 262, 266, 762, 812, 44) - 6 },
-			solid(rgba{0, 0, 0, 0.10})},
-		// The tab on top of the sheet, then the sheet.
-		{func(x, y float64) float64 { return roundRect(x, y, 262, 210, 520, 330, 36) }, solid(paper)},
-		{func(x, y float64) float64 { return roundRect(x, y, 262, 250, 762, 790, 44) }, solid(paper)},
-		// Lines of text, and the cursor.
-		{func(x, y float64) float64 { return roundRect(x, y, 332, 360, 692, 392, 16) }, solid(line)},
-		{func(x, y float64) float64 { return roundRect(x, y, 332, 452, 642, 484, 16) }, solid(line)},
-		{func(x, y float64) float64 { return roundRect(x, y, 332, 544, 562, 576, 16) }, solid(line)},
-		{func(x, y float64) float64 { return roundRect(x, y, 584, 520, 610, 600, 13) }, solid(bottom)},
-	}
+func draw(path string, size int, layers []layer) error {
 	img := image.NewNRGBA(image.Rect(0, 0, size, size))
 	const ss = 4 // samples per side of a pixel
 	for py := range size {
@@ -99,7 +124,7 @@ func draw(path string, top, bottom rgba) error {
 					var c rgba
 					for _, l := range layers {
 						if d := l.dist(x, y); d < 0.5 {
-							c = over(c, l.color(x, y), math.Min(0.5-d, 1))
+							c = over(c, l.color, math.Min(0.5-d, 1))
 						}
 					}
 					acc.r += c.r * c.a
@@ -128,14 +153,28 @@ func draw(path string, top, bottom rgba) error {
 }
 
 func main() {
-	dir := "resources"
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		log.Fatal(err)
+	// The macOS icon grid: a rounded square of 824 in 1024; the mark is 470 tall.
+	app := func(bg, cursorColor rgba) []layer {
+		return append([]layer{tile(100, 100, 924, 924, 185, bg)}, mark(512, 512, 470, cursorColor, white)...)
 	}
-	if err := draw(filepath.Join(dir, "icon.png"), hex("#4A74E8"), hex("#2F5BD3")); err != nil {
-		log.Fatal(err)
+	icons := []struct {
+		path   string
+		size   int
+		layers []layer
+	}{
+		{"resources/icon.png", 1024, app(ink, blueLift)},
+		{"resources/icon-dev.png", 1024, app(orange, ink)},
+		// Template images are drawn black; the menu bar tints them.
+		{"internal/shell/assets/tray-template.png", 36, mark(18, 18, 30, black, black)},
+		{"internal/shell/assets/tray-win.png", 32,
+			append([]layer{tile(0, 0, 32, 32, 7, ink)}, mark(16, 16, 20, blueLift, white)...)},
 	}
-	if err := draw(filepath.Join(dir, "icon-dev.png"), hex("#F08A3C"), hex("#C2410C")); err != nil {
-		log.Fatal(err)
+	for _, ic := range icons {
+		if err := os.MkdirAll(filepath.Dir(ic.path), 0o755); err != nil {
+			log.Fatal(err)
+		}
+		if err := draw(ic.path, ic.size, ic.layers); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
