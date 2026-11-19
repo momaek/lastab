@@ -105,7 +105,7 @@ MyGo 很新：仓库创建于 2026-09，当前是 v0.10.0，1.0 之前 API 可�
                           │ lastab.db（SQLite，WAL）  片段 / 版本 / 设置 / FTS     │
                           │ agent_log.db（SQLite）    Agent 访问记录              │
                           └─────────────────────────────────────▲────────────────┘
-                                                                │ 只读 lastab.db，写 agent_log.db
+                                                                │ 读 lastab.db（retitle 可改标题），写 agent_log.db
                           ┌─────────────────────────────────────┴────────────────┐
                           │ lastab（命令行，独立进程，应用未运行时也可用）           │
                           │ Claude Code 通过 SKILL.md 调用；其他 Agent 直接调用     │
@@ -244,19 +244,21 @@ CREATE TABLE setting (
 - **关闭不等于删除**：关闭 tab 只删除 `workspace_tab` 行；`snippet` 保留。
 - **删除是明确操作**：从 ⌘K 列表删除时，同一事务里删除片段、版本与 FTS 行（硬删除，配合设计中的锚定确认气泡）。
 - **时间**：库里一律存 UTC 毫秒；显示时按界面语言本地化。
-- **设置项**（`setting` 表）：`appearance`、`language`、`accent`、`shortcuts`（自定义快捷键表）、`editor.font`、`editor.fontSize`、`holdHint`、`openAtLogin`、`agent.access`、`agent.mask`、`agent.allowRaw`。
+- **设置项**（`setting` 表）：`appearance`、`language`、`accent`、`shortcuts`（自定义快捷键表）、`editor.font`、`editor.fontSize`、`holdHint`、`openAtLogin`、`agent.access`、`agent.mask`、`agent.allowRaw`、`agent.rename`（允许 Agent 改标题，默认关闭）。
 
 ### 4.3 应用与命令行并发访问（**定**，细节 **验证**）
 
-- 应用是唯一写入 `lastab.db` 的进程。写入用单个连接串行化，读取用连接池。
+- 应用写入时用单个连接串行化，读取用连接池。
 - 命令行用 `file:lastab.db?mode=ro` 只读打开，并设 `busy_timeout = 2000`。WAL 模式下读者不阻塞写者，不会锁住应用或损坏数据。
-- 命令行要记录 Agent 访问，就写入独立的 `agent_log.db`。这样主库对命令行始终只读。
+- 唯一的例外是 `lastab retitle`（2026-11-19）：它用 `store.OpenAgentWriter` 以 `mode=rw` 打开，`busy_timeout = 5000`，在一个事务里改一行的 `title` / `title_source` / `title_by`。它不建库、不迁移，库版本与自己不同（更新或更旧）时都拒绝写。WAL 与 `busy_timeout` 让它和应用的写入排队，不会互相覆盖。
+- 命令行要记录 Agent 访问，就写入独立的 `agent_log.db`。
 - 应用未运行时，`-wal` / `-shm` 可能已清理，只读打开仍可读（技术验证中确认）。
 
 ### 4.4 迁移
 
 - `PRAGMA user_version` 记录版本；`internal/store/migrations/NNN_*.sql` 用 `embed` 打包，顺序执行，每个迁移一个事务。
-- 命令行遇到比自己新的 `user_version` 时，拒绝读取，并提示升级（避免旧 CLI 读新库出错）。
+- 命令行遇到比自己新的 `user_version` 时，拒绝读取，并提示升级（避免旧 CLI 读新库出错）。`retitle` 还要求库不比自己旧：旧库没有它要写的列，提示先打开一次 Lastab 完成迁移。
+- `003_title_by.sql`（2026-11-19）：`snippet.title_by`，手动标题由谁起：空为用户，否则为 Agent 的 `--client` 名。没有给 `title_source` 加 `agent`，因为 SQLite 改 CHECK 约束要重建表。
 
 ### 4.5 为什么不用 MyGo 的 SQLite 插件
 
@@ -296,6 +298,7 @@ func (s *Service) Rename(ctx context.Context, id, title string) error           
 
 - 在后台 goroutine 中生成，绝不阻塞编辑与复制。片段第一次有实质内容后，等输入停止约 1 秒再生成。
 - 生成后 `title_source = auto`，之后保持稳定；用户手动改名后为 `manual`，不再自动覆盖。生成前列表与 tab 显示「未命名 · 14:52」。
+- Agent 改名（`lastab retitle`）同样存为 `manual`，`title_by` 记 Agent 名，自动标题不再覆盖它；另一个 Agent 可以再改，用户改名后 `title_by` 清空，Agent 不能再改。Agent 给的标题经 `title.Clean`：合成一行、去控制字符、遮蔽、截断到 40 个字符。
 - 规则（按顺序命中即用）：
 
 | 内容 | 标题示例 |
@@ -513,13 +516,14 @@ macOS 上 ⌘\` 是系统「在同一应用的窗口之间切换」的快捷键�
 
 ### 8.1 命令行 `lastab`
 
-只读（**待确认**，需求待确认问题 3）。所有子命令都输出 JSON，字段名固定为英文。
+除 `retitle` 外只读（需求待确认问题 3：2026-11-19 先开放改标题）。所有子命令都输出 JSON，字段名固定为英文。
 
 ```
 lastab list   [--limit 20] [--kind text|todo] [--since 1d] [--open]
 lastab search <query> [--limit 20] [--since 1d] [--until 2026-11-18] [--kind …]
 lastab read   <id 或唯一前缀>
-lastab status                     # 访问开关、库版本、条数
+lastab retitle <id 或唯一前缀> "<标题>"   # 唯一的写入，需用户允许
+lastab status                     # 访问开关、能否改名、库版本、条数
 lastab version
 ```
 
@@ -548,15 +552,17 @@ lastab version
 | --- | --- |
 | 0 | 成功 |
 | 2 | 参数错误 |
-| 3 | 用户关闭了「允许 Agent 访问」 |
+| 3 | 用户关闭了「允许 Agent 访问」，或（`retitle`）没有打开「允许 Agent 修改标题」 |
 | 4 | 未找到 / ID 前缀不唯一 |
-| 5 | 数据库不存在或版本过新 |
+| 5 | 数据库不存在或版本过新；`retitle` 还有版本过旧 |
+| 6 | （`retitle`）用户自己起的标题，Agent 不能改 |
 
 ### 8.2 访问控制与遮蔽
 
 - 命令行每次运行都先读 `setting.agent.access`；关闭时返回退出码 3，不输出任何内容。默认值**待确认**（需求待确认问题 4）。
 - 正文默认经过 `redact`。是否允许输出原文，由设置项 `agent.allowRaw` 决定，命令行不提供绕过参数。
-- 每次 `list` / `search` / `read` 都写入 `agent_log.db`：时间、来源、操作与参数、涉及的片段 ID。设置页「访问记录」读取这里的数据。
+- 每次 `list` / `search` / `read` / `retitle` 都写入 `agent_log.db`：时间、来源、操作与参数、涉及的片段 ID。设置页「访问记录」读取这里的数据。
+- `retitle` 另需设置项 `agent.rename` 为真（默认关闭）。它的记录还存被替换的标题、来源与 `title_by`，访问记录据此在该片段最新一次改名上显示「撤销」，且只在标题仍是那个 Agent 给的时显示；撤销时也再核对一次，之后谁改过都不覆盖。窗口重新获得焦点时重读已打开 tab 的标题，外部改名随即显示。
 
 ### 8.3 分发与安装（只在用户点击后写入 PATH 与 Skill）
 
