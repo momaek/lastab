@@ -34,9 +34,11 @@ func (a *App) sidebar(c *ui.Context) {
 
 	ui.Column(c.Key("sidebar")).Width(SidebarWidth).AlignItems(ui.Stretch).
 		Background(p.Side).BorderWidth(0, 1, 0, 0).BorderColor(p.ChromeLine).Children(func() {
-		// The header: room for the traffic lights, then New and Hide.
-		ui.Row(c).Height(max(bar.Height, theme.TitleBarHeight)).Padding(0, 8, 0, bar.Left+8).
+		// The header: room for the traffic lights, the mark, then Settings,
+		// Hide and New.
+		ui.Row(c).Height(max(bar.Height, theme.TitleBarHeight)).Padding(0, 8, 0, bar.Left+12).
 			Gap(2).AlignItems(ui.Center).DragWindow().Children(func() {
+			a.sidebarMark(c, bar)
 			ui.Spacer(c)
 			if a.iconButton(c, "settings", iconSettings, locales.OpenSettings(), keys.Settings).Clicked() {
 				a.OpenSettings(-1)
@@ -56,6 +58,17 @@ func (a *App) sidebar(c *ui.Context) {
 			}
 		})
 	})
+}
+
+// sidebarMark is the Lastab mark at the head of the sidebar: the symbol and
+// wordmark where they fit, the symbol alone beside the traffic lights,
+// which leave the header too little room for both.
+func (a *App) sidebarMark(c *ui.Context, bar ui.TitleBar) {
+	if bar.Left > 0 {
+		brandIcon(c, 30, a.pal.Text)
+		return
+	}
+	brandMark(c, 24, a.pal.Text)
 }
 
 func (a *App) sidebarItem(c *ui.Context, i int, t *Tab, now time.Time, loc string) {

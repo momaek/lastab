@@ -637,7 +637,7 @@ go run ./scripts/genicon                                      # 重新生成应�
 | Windows | `Lastab.exe`、`bin\lastab.exe` 与 `lastab-setup-<版本>-<架构>.exe`（NSIS，按用户安装）。有证书时签名应用、`lastab.exe`、安装包与卸载程序 |
 
 - 签名证书与公证凭据只放在 CI Secrets 与钥匙串中，不进仓库。
-- 图标：`resources/icon.png`（1024×1024，墨色底）与 `resources/icon-dev.png`（橙色底，`mygo dev` 用），连同托盘图标都由 `scripts/genicon` 画出，标志母版与使用说明在 `design/brand/`。`icon.png` 会随应用进入资源目录（MyGo 的更新插件会读它），不排除。
+- 图标：`resources/icon.png`（1024×1024，墨色标签栏）与 `resources/icon-dev.png`（橙色标签栏，`mygo dev` 用），连同托盘图标都由 `scripts/genicon` 画出，标志母版与使用说明在 `design/brand/`。`icon.png` 会随应用进入资源目录（MyGo 的更新插件会读它），不排除。
 - 版本号：`mygo.json` 的 `version`；应用与 CLI 同一个版本号（构建时用 `-ldflags` 写入 CLI），`lastab version` 可查。
 - 自动更新：MyGo 内置签名更新（`mygo.Updater`，支持 GitHub Releases 与增量更新）。需求未提，首期不开启，**待确认**；开启后 `release.yml` 改用 `mygo build -upload`。
 
