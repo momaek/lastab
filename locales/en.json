@@ -413,5 +413,94 @@
     }
   },
   "openSettings": "Settings",
-  "windowMenu": "Window"
+  "windowMenu": "Window",
+  "todoListLabel": "To-do items",
+  "todoItemLabel": "Item text",
+  "todoAddLabel": "Add an item",
+  "todoAddPlaceholder": "Add an item, press Enter. Paste several lines to add several items",
+  "todoCheckLabel": "Done: {text}",
+  "@todoCheckLabel": {
+    "description": "Name of an item's check box for assistive technology.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "todoDeleteItem": "Delete item",
+  "todoDoneGroup": "Done {count}",
+  "@todoDoneGroup": {
+    "description": "Header of the group of checked items.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "todoClearDone": "Clear completed",
+  "todoCleared": "Cleared {count, plural, one {# completed item} other {# completed items}}",
+  "@todoCleared": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "todoDeleted": "Deleted “{text}”",
+  "@todoDeleted": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "todoPasted": "Split {count} pasted lines into {count} items",
+  "@todoPasted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "todoUndone": "Restored",
+  "@todoUndone": {
+    "description": "Toast after undoing a change to a to-do list."
+  },
+  "todoProgress": "{done}/{total} done",
+  "@todoProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "todoHints": "{add} add · {done} done · {move} move · {remove} delete",
+  "@todoHints": {
+    "description": "Status bar of a to-do list: its keys.",
+    "placeholders": {
+      "add": {
+        "type": "String"
+      },
+      "done": {
+        "type": "String"
+      },
+      "move": {
+        "type": "String"
+      },
+      "remove": {
+        "type": "String"
+      }
+    }
+  },
+  "todoCopiedAnnounce": "Copied as a plain-text list, {count, plural, one {# item} other {# items}}",
+  "@todoCopiedAnnounce": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

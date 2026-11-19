@@ -8,7 +8,9 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
 
+	"github.com/momaek/lastab/internal/store"
 	"github.com/momaek/lastab/internal/theme"
+	"github.com/momaek/lastab/internal/todo"
 	"github.com/momaek/lastab/internal/ui/keys"
 	"github.com/momaek/lastab/locales"
 )
@@ -109,6 +111,10 @@ func tabTitle(t *Tab) string {
 
 func (a *App) editorArea(c *ui.Context) {
 	t := a.Active()
+	if t.kind == store.KindTodo {
+		a.todoView(c, t)
+		return
+	}
 	p := a.pal
 	th := editor.DefaultTheme(c.Theme())
 	th.Background = p.Bg
@@ -180,9 +186,15 @@ func (a *App) statusBar(c *ui.Context) {
 					FontFeatures("tnum").Tooltip(locales.Created(clock(t.createdAt)))
 			}
 			ui.Spacer(c)
-			ui.Text(c, fmt.Sprintf("%s · UTF-8 · %s", locales.PlainText(), lineEndingName(t.buf().LineEnding()))).
-				FontSize(small).TextColor(p.Faint)
-			ui.Text(c, locales.Chars(charCount(t))).FontSize(small).TextColor(p.Faint).FontFeatures("tnum")
+			if t.kind == store.KindTodo {
+				prog := todo.Count(todo.Parse(t.Body()))
+				ui.Text(c, todoHints()).FontSize(small).TextColor(p.Faint).SingleLine().Shrink(1)
+				ui.Text(c, locales.TodoProgress(prog.Done, prog.Total)).FontSize(small).TextColor(p.Muted).FontFeatures("tnum")
+			} else {
+				ui.Text(c, fmt.Sprintf("%s · UTF-8 · %s", locales.PlainText(), lineEndingName(t.buf().LineEnding()))).
+					FontSize(small).TextColor(p.Faint)
+				ui.Text(c, locales.Chars(charCount(t))).FontSize(small).TextColor(p.Faint).FontFeatures("tnum")
+			}
 			a.copyButton(c)
 		})
 }
@@ -211,6 +223,10 @@ func (a *App) copyButton(c *ui.Context) {
 	})
 	if b.Clicked() {
 		a.CopyAll(c.Now())
-		c.Announce(locales.CopiedAnnounce())
+		if a.Active().kind == store.KindTodo {
+			c.Announce(locales.TodoCopiedAnnounce(a.copiedItems))
+		} else {
+			c.Announce(locales.CopiedAnnounce())
+		}
 	}
 }
