@@ -1,0 +1,159 @@
+name: Release
+
+# Push a tag that matches mygo.json's version (v0.1.0 for "0.1.0"):
+#   git tag v0.1.0 && git push origin v0.1.0
+# The workflow builds the macOS universal app and DMG and the Windows amd64
+# and arm64 installers, signs what the secrets allow, and uploads them to a
+# draft release, which you publish by hand. Without the signing secrets the
+# builds still succeed: the macOS app is signed ad hoc (Gatekeeper blocks it
+# on other Macs) and the Windows installers are unsigned (SmartScreen warns).
+#
+# Secrets (all optional; see the development doc, section 10.2):
+#   MACOS_CERTIFICATE             base64 of the "Developer ID Application" .p12, with its key
+#   MACOS_CERTIFICATE_PASSWORD    the .p12's password
+#   APPLE_ID, APPLE_TEAM_ID, APPLE_APP_PASSWORD   notarization (an app-specific password)
+#   WINDOWS_CERTIFICATE           base64 of the code signing .pfx
+#   WINDOWS_CERTIFICATE_PASSWORD  the .pfx's password
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # the draft release, and the uploads to it
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # The project needs no cgo (MyGo calls native code through purego).
+  CGO_ENABLED: "0"
+
+jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the tag against mygo.json
+        run: |
+          want="v$(jq -r .version mygo.json)"
+          if [ "$GITHUB_REF_NAME" != "$want" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match mygo.json's version ($want)"
+            exit 1
+          fi
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+              --draft --verify-tag --title "Lastab ${GITHUB_REF_NAME#v}" --generate-notes
+          fi
+
+  macos:
+    needs: draft-release
+    name: macOS (universal)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Import the certificate and the notary credentials
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          if [ -z "$MACOS_CERTIFICATE" ]; then
+            echo "::warning::MACOS_CERTIFICATE is not set: the app is signed ad hoc and not notarized"
+            exit 0
+          fi
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password="$(openssl rand -base64 24)"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          echo "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" \
+            -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain"
+          security list-keychains -d user -s "$keychain" login.keychain
+          identity="$(security find-identity -v -p codesigning "$keychain" \
+            | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -n 1)"
+          if [ -z "$identity" ]; then
+            echo "::error::MACOS_CERTIFICATE holds no Developer ID Application identity"
+            exit 1
+          fi
+          echo "MACOS_SIGNING_IDENTITY=$identity" >> "$GITHUB_ENV"
+          if [ -z "$APPLE_ID" ] || [ -z "$APPLE_TEAM_ID" ] || [ -z "$APPLE_APP_PASSWORD" ]; then
+            echo "::warning::APPLE_ID, APPLE_TEAM_ID or APPLE_APP_PASSWORD is not set: the app is signed but not notarized"
+            exit 0
+          fi
+          xcrun notarytool store-credentials notary --keychain "$keychain" \
+            --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD"
+          echo "NOTARY_KEYCHAIN_PROFILE=notary" >> "$GITHUB_ENV"
+          echo "NOTARY_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+      - name: Build
+        run: go run ./scripts/build -platform darwin/universal
+      - name: Check the bundled command
+        run: |
+          app=build/darwin-universal/Lastab.app
+          lipo -info "$app/Contents/Resources/bin/lastab"
+          "$app/Contents/Resources/bin/lastab" version
+          codesign --verify --deep --strict "$app"
+      - name: Upload to the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" build/darwin-universal/*.dmg --repo "$GITHUB_REPOSITORY" --clobber
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: build/darwin-universal/*.dmg
+
+  windows:
+    needs: draft-release
+    name: Windows (amd64, arm64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install NSIS and osslsigncode
+        run: sudo apt-get update && sudo apt-get install -y nsis osslsigncode
+      - name: Write the certificate
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+        run: |
+          if [ -z "$WINDOWS_CERTIFICATE" ]; then
+            echo "::warning::WINDOWS_CERTIFICATE is not set: the installers are not signed"
+            exit 0
+          fi
+          echo "$WINDOWS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/code-signing.pfx"
+          echo "WINDOWS_CERTIFICATE_FILE=$RUNNER_TEMP/code-signing.pfx" >> "$GITHUB_ENV"
+      - name: Build
+        env:
+          MYGO_WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: go run ./scripts/build -platform windows/amd64,windows/arm64
+      - name: Check the bundled command
+        run: |
+          for arch in amd64 arm64; do
+            test -f "build/windows-$arch/bin/lastab.exe"
+            ls build/windows-$arch/*-setup-*.exe
+          done
+      - name: Remove the certificate
+        if: always()
+        run: rm -f "$RUNNER_TEMP/code-signing.pfx"
+      - name: Upload to the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" build/windows-*/*-setup-*.exe --repo "$GITHUB_REPOSITORY" --clobber
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: build/windows-*/*-setup-*.exe

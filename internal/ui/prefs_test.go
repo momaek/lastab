@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"github.com/momaek/lastab/internal/agentlog"
+	"github.com/momaek/lastab/internal/install"
 	"github.com/momaek/lastab/internal/store"
 	"github.com/momaek/lastab/internal/ui/keys"
 )
@@ -23,6 +24,30 @@ type fakePlatform struct {
 	applyErr             error
 	suspends             []bool
 	shown                string
+
+	cli, skill       install.Status
+	cliErr, skillErr error
+	cliCalls         []bool // admin, per InstallCLI
+	skillCalls       int
+}
+
+func (f *fakePlatform) CLIStatus() install.Status   { return f.cli }
+func (f *fakePlatform) SkillStatus() install.Status { return f.skill }
+func (f *fakePlatform) InstallCLI(admin bool) (install.Status, error) {
+	f.cliCalls = append(f.cliCalls, admin)
+	if f.cliErr != nil {
+		return f.cli, f.cliErr
+	}
+	f.cli.State = install.Installed
+	return f.cli, nil
+}
+func (f *fakePlatform) InstallSkill() (install.Status, error) {
+	f.skillCalls++
+	if f.skillErr != nil {
+		return f.skill, f.skillErr
+	}
+	f.skill.State = install.Installed
+	return f.skill, nil
 }
 
 func (f *fakePlatform) SetAppearance(m string)  { f.appearance = m }

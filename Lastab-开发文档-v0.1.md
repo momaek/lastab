@@ -129,7 +129,7 @@ lastab/
 ├── Lastab-开发文档-v0.1.md
 ├── design/                     # 设计源文件与 tokens.json（已存在）
 ├── go.mod                      # go 1.27.3+；tool github.com/egoist/mygo/cmd/mygo
-├── mygo.json                   # 应用名、identifier、版本、i18n、签名等配置
+├── mygo.json                   # 应用名、identifier、版本、i18n、最低系统版本；签名设置由 scripts/build 从环境变量注入，不进仓库
 ├── main.go                     # 桌面应用入口（App.Run）
 ├── e2e.go                      # //go:build e2e，导入自动化插件
 ├── cmd/
@@ -145,7 +145,8 @@ lastab/
 │   ├── todo/                   # 待办纯文本解析与序列化
 │   ├── agentlog/               # agent_log.db 读写
 │   ├── theme/                  # tokens_gen.go（生成）+ 主题构建、强调色派生
-│   ├── shell/                  # 菜单、托盘、全局快捷键、单实例、登录时启动、CLI/Skill 安装
+│   ├── shell/                  # 菜单、托盘、全局快捷键、单实例、登录时启动；实现 appui.Platform（含 CLI/Skill 安装）
+│   ├── install/                # 「安装命令行」与「安装 Skill」：符号链接 / 用户 PATH / 写 SKILL.md（纯 Go，可在临时目录测试）
 │   └── ui/                     # 原生 UI：视图、组件、快捷键表
 │       ├── app.go              # 应用状态与根视图
 │       ├── sidebar.go  view.go     # 左侧栏、编辑区标题栏、状态栏
@@ -155,9 +156,10 @@ lastab/
 │       └── keys/               # 快捷键默认表与平台显示（⌘ vs Ctrl）
 ├── locales/                    # en.json（源语言）、zh-Hans.json；catalog_gen.go（生成，需提交）
 ├── skill/
-│   └── SKILL.md                # 安装到 ~/.claude/skills/lastab/ 的模板
+│   ├── SKILL.md                # 安装到 ~/.claude/skills/lastab/ 的模板（含 lastab-skill-version 版本注释）
+│   └── skill.go                # //go:embed SKILL.md，供设置页写出
 ├── resources/
-│   ├── icon.png                # 1024×1024 应用图标；icon-dev.png 为开发版图标
+│   ├── icon.png                # 1024×1024 占位应用图标（scripts/genicon 生成）；icon-dev.png 为开发版图标（橙色）
 │   ├── tray.png                # 托盘图标（macOS 模板图）
 │   ├── fonts/                  # 由 //go:embed 使用，不进入资源目录（resourcesExclude）
 │   ├── darwin-arm64/bin/lastab           # 由 scripts/build 生成，不提交
@@ -166,8 +168,11 @@ lastab/
 │   └── windows-arm64/bin/lastab.exe
 └── scripts/
     ├── gentokens/              # design/tokens.json → internal/theme/tokens_gen.go
-    └── build/                  # 先交叉编译 lastab 到 resources/<平台>/bin，再调用 mygo build
+    ├── genicon/                # 画占位图标 resources/icon.png、icon-dev.png
+    └── build/                  # 先交叉编译 lastab 到 resources/<平台>/bin，再调用 mygo build；从环境变量注入签名设置
 ```
+
+`.github/workflows/`：`ci.yml`（PR 与 main）、`release.yml`（`v*` 标签，见 10.3）。注意 `.gitignore` 只忽略根目录的 `/build/`，不能写成 `build/`，否则会连 `scripts/build/` 一起忽略（早期版本就因此漏提交了 `scripts/build`）。
 
 ## 4. 数据与存储
 
@@ -554,20 +559,27 @@ lastab version
 
 ### 8.3 分发与安装（只在用户点击后写入 PATH 与 Skill）
 
-`lastab` 作为 MyGo 的[辅助可执行文件](https://github.com/egoist/mygo/blob/main/docs/distribution.md)随应用分发：`scripts/build` 先把它交叉编译到 `resources/<平台>/bin/`，再调用 `mygo build`。`mygo build` 会和应用一起为它签名；打 macOS Universal 包时，arm64 与 amd64 两份会自动合并为通用二进制。
+`lastab` 作为 MyGo 的[辅助可执行文件](https://github.com/egoist/mygo/blob/main/docs/distribution.md)随应用分发：`scripts/build` 先把它交叉编译到 `resources/<平台>/bin/`（`-ldflags -X main.version=<mygo.json 的 version>`），再调用 `mygo build`。`mygo build` 会和应用一起为它签名；打 macOS Universal 包时，arm64 与 amd64 两份自动合并为通用二进制（已验证：`lipo -info` 为 `arm64 x86_64`，`Lastab.app/Contents/Resources/bin/lastab version` 可运行）。
 
 | 项 | macOS | Windows |
 | --- | --- | --- |
 | CLI 在应用中的位置 | `Lastab.app/Contents/Resources/bin/lastab` | `%LOCALAPPDATA%\Programs\Lastab\bin\lastab.exe` |
-| 「安装命令行」 | 在 `/usr/local/bin/lastab` 建符号链接，需要管理员授权（系统授权对话框） | 把 `%LOCALAPPDATA%\Programs\Lastab\bin` 加入用户 PATH（`HKCU\Environment`），并广播环境变量变更 |
+| 「安装命令行」 | 在 `/usr/local/bin/lastab` 建符号链接；不可写时退回 `~/.local/bin/lastab`，并提示加入 PATH，另给「安装到 /usr/local/bin…」按钮，点了才弹系统管理员授权框 | 把 `%LOCALAPPDATA%\Programs\Lastab\bin` 加入用户 PATH（`HKCU\Environment` 的 `Path`，保留原有的 `REG_SZ` / `REG_EXPAND_SZ` 类型），并广播 `WM_SETTINGCHANGE`；提示新开的终端才生效 |
 | Skill | 写入 `~/.claude/skills/lastab/SKILL.md` | 写入 `%USERPROFILE%\.claude\skills\lastab\SKILL.md` |
 
-- 符号链接 / PATH 指向应用内的 CLI，应用更新后 CLI 自动跟着更新，不需要再复制。
-- 设计稿中 Windows 的 CLI 路径写的是 `%LOCALAPPDATA%\Lastab\bin\lastab.exe`，需要改成实际安装位置 `%LOCALAPPDATA%\Programs\Lastab\bin\lastab.exe`（MyGo 安装包的默认位置）。
-- `/usr/local/bin` 在部分 Apple Silicon 机器上不存在或不可写；授权失败时退回 `~/.local/bin`，并提示用户把它加入 PATH（**待确认**是否接受）。
-- 安装失败留在原处显示原因和「重试」（对应设计「安装 Skill：失败」画板）。
+实现（**已做**）：
+
+- 代码：`internal/install`（纯 Go，`Env{Home, CLI, GlobalBin}` 可指向临时目录测试）；`internal/shell` 用它实现 `appui.Platform` 新增的 `CLIStatus` / `SkillStatus` / `InstallCLI(admin)` / `InstallSkill`；界面在 `internal/ui/agent.go`，视图测试用假 Platform，覆盖「点击前不写入」、安装中、失败与重试、Skill 过期重装、`~/.local/bin` 退回与管理员安装。
+- 应用内 CLI 的位置：`mygo.App.Path(PathResources)/bin/lastab`；`go run` / `mygo dev` 下退回 `resources/<平台>/bin/lastab`（先跑 `go run ./scripts/build -cli-only`）。
+- 符号链接 / PATH 指向应用内的 CLI，应用更新后 CLI 自动跟着更新，不需要再复制。链接先建在同目录的临时名再改名覆盖，旧链接不会中途消失。
+- 只替换指向某个 Lastab 的链接（指向本应用，或路径以 `.app/Contents/Resources/bin/lastab` 结尾）；同名的普通文件或指向别处的链接一律不动，报「已存在且不是 Lastab 的」。指向另一份 Lastab（如移动过的应用）的链接显示为「需重新安装」。
+- 应用在磁盘映像里或被 App Translocation 临时搬运时（路径在 `/Volumes/` 或含 `/AppTranslocation/`），拒绝安装并提示先移到「应用程序」，否则链接会失效。
+- 管理员安装用 `osascript` 的 `do shell script … with administrator privileges`，只在用户点「安装到 /usr/local/bin…」时调用；用户取消授权（-128）不算失败，不显示错误。
+- 失败留在原处显示原因和「重试」（对应设计 AgentFailed 画板）：没有权限、文件已存在、应用内没有 CLI、应用未安装到「应用程序」，其余显示系统错误原文。安装中按钮显示转圈与「正在安装…」（AgentInstalling 画板）。
+- 设计稿中 Windows 的 CLI 路径 `%LOCALAPPDATA%\Lastab\bin\lastab.exe` 已按实际安装位置显示为 `%LOCALAPPDATA%\Programs\Lastab\bin\lastab.exe`。
 - `SKILL.md` 说明何时调用（用户提到「我之前改的 / 记的…」）、命令用法、输出字段，并要求 Agent 在用户要求时才读取正文。
-- 应用升级后，若 Skill 模板版本变化，在设置页提示「重新安装」，不静默覆盖。
+- Skill 版本：`SKILL.md` 中的 `<!-- lastab-skill-version: N -->`。已安装文件的版本低于应用自带的（或没有版本注释，比如用户自己改写过的），设置页提示「这个版本的 Lastab 附带了更新的 Skill」并给「重新安装」，不静默覆盖。**改动 `SKILL.md` 时必须把 N 加一。**
+- 未做 / 待确认：卸载 Windows 版时不会从用户 PATH 移除 `bin` 目录（残留一条指向不存在目录的 PATH，无害；可用 `windows.installerInclude` 的 `customUnInstall` 补上）；`~/.local/bin` 退回方案是否接受仍**待确认**。
 
 ## 9. 平台差异
 
@@ -600,26 +612,57 @@ go tool mygo generate                  # 重新生成 locales/catalog_gen.go
 ### 10.2 打包与签名
 
 ```bash
-go run ./scripts/build -platform darwin/universal          # 在 Mac 上：.app + DMG，签名并公证
-go run ./scripts/build -platform windows/amd64,windows/arm64  # 任意机器：Lastab.exe + 安装包
+go run ./scripts/build                                        # 本机平台：Lastab.app + DMG（ad hoc 签名）
+go run ./scripts/build -platform darwin/universal             # 在 Mac 上：通用 .app + DMG，有证书时签名并公证
+go run ./scripts/build -platform windows/amd64,windows/arm64  # 任意机器：Lastab.exe + NSIS 安装包（需 makensis，没有时跳过安装包）
+go run ./scripts/genicon                                      # 重新生成占位图标
 ```
 
-`scripts/build` 依次：交叉编译 `lastab` 到对应的 `resources/<平台>/bin/` → 运行 `go tool mygo build -platform …`。
+`scripts/build` 依次：交叉编译 `lastab` 到对应的 `resources/<平台>/bin/` → 按环境变量临时把签名设置写进 `mygo.json` → 运行 `go tool mygo build -platform …` → 无论成败（含 Ctrl+C）都把 `mygo.json` 恢复原样。产物在 `build/<平台>/`，不提交。
+
+`mygo.json` 只放不含秘密的设置：`macos.minimumSystemVersion: "12.0"`、`windows.installDirName: "Lastab"`（NSIS 安装包默认按用户安装到 `%LOCALAPPDATA%\Programs\Lastab`，不需要管理员权限）、`resourcesExclude: ["fonts"]`。`mygo.json` 是 JSON，不能读环境变量（只有 `mygo.config.ts` 可以，但那需要 Node/Bun），所以签名设置由 `scripts/build` 注入：
+
+| 环境变量 | 写入 `mygo.json` 的 | 没有时 |
+| --- | --- | --- |
+| `MACOS_SIGNING_IDENTITY` | `macos.signingIdentity`（如 `Developer ID Application: … (TEAMID)`） | ad hoc 签名，其他 Mac 上 Gatekeeper 会拦 |
+| `NOTARY_KEYCHAIN_PROFILE`、`NOTARY_KEYCHAIN` | `macos.notarize.keychainProfile` / `.keychain`（`xcrun notarytool store-credentials` 存的凭据；只在有签名身份时生效） | 不公证 |
+| `WINDOWS_CERTIFICATE_FILE` | `windows.certificate`（`.pfx` 路径；密码由 mygo 直接读 `MYGO_WINDOWS_CERTIFICATE_PASSWORD`） | 不签名，SmartScreen 会警告 |
+| `WINDOWS_SIGN_COMMAND` | `windows.signCommand`（如 Azure Trusted Signing，`%1` 为文件） | 同上 |
 
 | 平台 | 产物与签名 |
 | --- | --- |
-| macOS | `Lastab.app` 与 `lastab-<版本>-universal.dmg`。`mygo.json` 中配置 `macos.signingIdentity`（Developer ID）与 `macos.notarize.keychainProfile`，`mygo build` 自动签名（含资源中的 `lastab`）、启用强化运行时、公证并附加票据 |
-| Windows | `Lastab.exe` 与 `lastab-setup-<版本>-<架构>.exe`（NSIS）。配置 `windows.certificate`（密码来自 `MYGO_WINDOWS_CERTIFICATE_PASSWORD`）或 `windows.signCommand`（如 Azure Trusted Signing），签名应用、`lastab.exe`、安装包与卸载程序 |
+| macOS | `Lastab.app` 与 `lastab-<版本>.dmg`（单架构为 `lastab-<版本>-<架构>.dmg`）。有签名身份时 `mygo build` 签名（含资源中的 `lastab`）、启用强化运行时；再有公证凭据时公证 app 与 DMG 并附加票据 |
+| Windows | `Lastab.exe`、`bin\lastab.exe` 与 `lastab-setup-<版本>-<架构>.exe`（NSIS，按用户安装）。有证书时签名应用、`lastab.exe`、安装包与卸载程序 |
 
 - 签名证书与公证凭据只放在 CI Secrets 与钥匙串中，不进仓库。
+- 图标：`resources/icon.png`（1024×1024，`scripts/genicon` 画的占位图，蓝色）与 `resources/icon-dev.png`（橙色，`mygo dev` 用）。正式图标出来后直接替换这两个文件。`icon.png` 会随应用进入资源目录（MyGo 的更新插件会读它），不排除。
 - 版本号：`mygo.json` 的 `version`；应用与 CLI 同一个版本号（构建时用 `-ldflags` 写入 CLI），`lastab version` 可查。
-- 自动更新：MyGo 内置签名更新（`mygo.Updater`，支持 GitHub Releases 与增量更新）。需求未提，首期不开启，**待确认**。
+- 自动更新：MyGo 内置签名更新（`mygo.Updater`，支持 GitHub Releases 与增量更新）。需求未提，首期不开启，**待确认**；开启后 `release.yml` 改用 `mygo build -upload`。
 
 ### 10.3 CI（GitHub Actions）
 
 - PR（已建，`.github/workflows/ci.yml`）：`CGO_ENABLED=0`；macOS 与 Windows 两个 runner 跑 `go vet`、`go test ./...`、`mygo i18n check` 和构建；macOS 上另查 `gofmt`、Windows / Linux 交叉 `vet`，以及 `tokens_gen.go`、`catalog_gen.go` 与源文件一致。`golangci-lint`、`staticcheck`、`govulncheck` 待加（需锁定版本）。
-- `main`：额外构建未签名的产物，供内部试用。
-- Tag：在 macOS runner 上构建、签名、公证 macOS 包；构建并签名 Windows 安装包；生成 Release 草稿。工作流参考 MyGo 文档中的 GitHub Actions 一节。
+- `main`：额外构建未签名的产物，供内部试用（未做）。
+- Tag（已建，`.github/workflows/release.yml`，参考 MyGo 文档的 GitHub Actions 一节）：推送 `v*` 标签触发。
+  1. `draft-release`：检查标签与 `mygo.json` 的 `version` 一致（`v0.1.0` 对 `0.1.0`），不一致就失败、什么都不构建；然后创建草稿 Release（已有则复用）。
+  2. `macos`（macos-latest）：有证书时导入到临时钥匙串、从证书中取出 `Developer ID Application` 身份写入 `MACOS_SIGNING_IDENTITY`；再有 Apple ID 凭据时存为 notarytool 配置 `notary`，设置 `NOTARY_KEYCHAIN_PROFILE` / `NOTARY_KEYCHAIN`。然后 `go run ./scripts/build -platform darwin/universal`，检查通用 `lastab` 可运行、`codesign --verify`，把 DMG 传到草稿。
+  3. `windows`（ubuntu-latest，交叉编译）：装 `nsis` 与 `osslsigncode`；有证书时写出 `.pfx` 并设置 `WINDOWS_CERTIFICATE_FILE`；`go run ./scripts/build -platform windows/amd64,windows/arm64`，把两个安装包传到草稿。
+  4. 人工检查草稿后发布。
+- 没有任何签名 Secret 时工作流照常成功，只在日志里给出 warning：macOS 为 ad hoc 签名、不公证；Windows 不签名。
+
+需要在仓库 Secrets 中配置（都可选，缺哪组就跳过哪一步）：
+
+| Secret | 内容 | 用于 |
+| --- | --- | --- |
+| `MACOS_CERTIFICATE` | `Developer ID Application` 证书连私钥导出的 `.p12`，base64（`base64 -i cert.p12 \| gh secret set MACOS_CERTIFICATE`） | macOS 签名 |
+| `MACOS_CERTIFICATE_PASSWORD` | `.p12` 的密码 | macOS 签名 |
+| `APPLE_ID` | 开发者账号的 Apple ID | 公证 |
+| `APPLE_TEAM_ID` | Team ID（身份名括号里的那串） | 公证 |
+| `APPLE_APP_PASSWORD` | Apple ID 的 App 专用密码（account.apple.com → 登录与安全） | 公证 |
+| `WINDOWS_CERTIFICATE` | 代码签名 `.pfx`，base64 | Windows 签名 |
+| `WINDOWS_CERTIFICATE_PASSWORD` | `.pfx` 的密码（作为 `MYGO_WINDOWS_CERTIFICATE_PASSWORD` 传给 mygo） | Windows 签名 |
+
+硬件令牌或 Azure Trusted Signing 这类证书需要 `signtool`：把 `windows` 作业改到 `windows-latest`，设置 `WINDOWS_SIGN_COMMAND`。
 
 ## 11. 测试与验收
 
