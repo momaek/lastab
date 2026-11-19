@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/momaek/lastab/internal/redact"
 	"github.com/momaek/lastab/internal/store"
 )
 
@@ -120,5 +121,43 @@ func TestRecordRestore(t *testing.T) {
 	vs, _ = s.Versions(ctx, sn.ID)
 	if len(vs) != 4 || vs[0].Body != "v1" || vs[0].RestoredFrom != old.ID || vs[1].Body != "v2 edited" || vs[1].RestoredFrom != "" {
 		t.Fatalf("versions %+v", vs)
+	}
+}
+
+func TestMaskAutoTitles(t *testing.T) {
+	ctx := context.Background()
+	st, err := store.Open(filepath.Join(t.TempDir(), "lastab.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	s := New(st)
+	const key = "Gpws2uEk7F6gIMi7NlweDHt"
+	auto, _ := s.Create(ctx, store.KindText, key, 0)
+	mine, _ := s.Create(ctx, store.KindText, "x", 1)
+	plain, _ := s.Create(ctx, store.KindText, "y", 2)
+	// Titles as an older Lastab made them, before it masked bare tokens.
+	for _, c := range []struct {
+		id, title string
+		src       store.TitleSource
+	}{{auto.ID, key, store.TitleAuto}, {mine.ID, key, store.TitleManual}, {plain.ID, "curl · GET /a", store.TitleAuto}} {
+		if err := st.SetTitle(ctx, c.id, c.title, c.src); err != nil {
+			t.Fatal(err)
+		}
+	}
+	changed, err := s.MaskAutoTitles(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(changed) != 1 || changed[auto.ID] != redact.Mask {
+		t.Fatalf("changed %v", changed)
+	}
+	for id, want := range map[string]string{auto.ID: redact.Mask, mine.ID: key, plain.ID: "curl · GET /a"} {
+		if got, _ := st.Get(ctx, id); got.Title != want {
+			t.Errorf("%s: title %q, want %q", id, got.Title, want)
+		}
+	}
+	if changed, _ := s.MaskAutoTitles(ctx); len(changed) != 0 {
+		t.Errorf("second run changed %v", changed)
 	}
 }

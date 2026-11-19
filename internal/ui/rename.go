@@ -113,6 +113,26 @@ func (a *App) RefreshTitles() {
 	})
 }
 
+// maskAutoTitles masks, off the main thread, secrets an older Lastab let
+// into automatic titles, and shows the masked titles.
+func (a *App) maskAutoTitles() {
+	svc := a.d.Service
+	a.d.Async(func() func() {
+		changed, err := svc.MaskAutoTitles(a.ctx())
+		if err != nil {
+			a.d.Log.Error("mask titles", "err", err)
+		}
+		if len(changed) == 0 {
+			return nil
+		}
+		return func() {
+			for id, t := range changed {
+				a.applyTitle(id, t, store.TitleAuto)
+			}
+		}
+	})
+}
+
 // applyTitle shows a snippet's new title wherever it shows.
 func (a *App) applyTitle(id, title string, src store.TitleSource) {
 	for _, t := range a.tabs {

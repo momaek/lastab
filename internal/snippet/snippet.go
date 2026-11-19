@@ -11,6 +11,7 @@ import (
 	"unicode"
 
 	"github.com/momaek/lastab/internal/history"
+	"github.com/momaek/lastab/internal/redact"
 	"github.com/momaek/lastab/internal/store"
 	"github.com/momaek/lastab/internal/title"
 )
@@ -78,6 +79,33 @@ func (s *Service) UpdateTitle(ctx context.Context, id string) (string, store.Tit
 		return "", "", err
 	}
 	return t, store.TitleAuto, nil
+}
+
+// MaskAutoTitles masks secrets the masking rules of an older Lastab let
+// through into automatic titles, such as a bare API key on a snippet's
+// first line, and returns the snippets it changed with their new titles.
+// The user's and agents' titles are theirs, and stay. It is cheap enough to
+// run at every launch: it reads titles only.
+func (s *Service) MaskAutoTitles(ctx context.Context) (map[string]string, error) {
+	ts, err := s.Store.AutoTitles(ctx)
+	if err != nil {
+		return nil, err
+	}
+	changed := map[string]string{}
+	for id, t := range ts {
+		masked, ok := redact.Text(t)
+		if !ok {
+			continue
+		}
+		done, err := s.Store.ReplaceAutoTitle(ctx, id, t, masked)
+		if err != nil {
+			return changed, err
+		}
+		if done {
+			changed[id] = masked
+		}
+	}
+	return changed, nil
 }
 
 // Rename sets a title by hand; automatic titles no longer replace it. An
