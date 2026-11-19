@@ -370,7 +370,54 @@
   "agentMaskLabel": "Mask likely secrets (recommended)",
   "agentMaskDesc": "Authorization, Bearer, api_key and similar come out as ••••. Only changeable here; agents can’t bypass it with a flag.",
   "agentInfo": "Whatever an agent reads is sent to the model service that agent uses. Lastab itself still uploads nothing, and every read is logged below.",
-  "agentCLIHint": "Agents call the lastab command. Its JSON field names are always English, whatever the interface language:",
+  "installHeading": "Install",
+  "cliTool": "Command-line tool",
+  "installed": "Installed",
+  "reinstall": "Reinstall",
+  "installCLI": "Install",
+  "installSkill": "Install skill",
+  "installing": "Installing…",
+  "installNoPermission": "Couldn’t install: no permission to write to {dir}. Check the folder’s permissions, then try again.",
+  "@installNoPermission": {
+    "placeholders": {
+      "dir": {
+        "type": "String"
+      }
+    }
+  },
+  "installExists": "Couldn’t install: {path} already exists and isn’t Lastab’s. Remove or rename it, then try again.",
+  "@installExists": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "installNoCLI": "Couldn’t install: this copy of Lastab has no lastab command inside. Download Lastab again, then try again.",
+  "installMoveApp": "Couldn’t install: Lastab is running from its disk image. Move it to Applications, open it from there, then try again.",
+  "installFailed": "Couldn’t install: {reason}",
+  "@installFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "cliNeedsPath": "Installed in {dir}, which your shell may not search. Add it to PATH in your shell profile, or install in /usr/local/bin with an administrator’s password.",
+  "@cliNeedsPath": {
+    "placeholders": {
+      "dir": {
+        "type": "String"
+      }
+    }
+  },
+  "installAsAdmin": "Install in /usr/local/bin…",
+  "cliNewTerminal": "Terminals opened from now on find lastab.",
+  "cliOutdated": "The installed link points to another copy of Lastab.",
+  "skillOutdated": "This version of Lastab comes with a newer skill.",
+  "installCLIPrompt": "Lastab wants to add the lastab command to /usr/local/bin.",
+  "agentOther": "Other agents can call it directly:",
+  "agentJSONNote": "JSON field names are always English, whatever the interface language.",
   "accessLog": "Access log",
   "accessLogEmpty": "No agent has read anything yet.",
   "colTime": "Time",

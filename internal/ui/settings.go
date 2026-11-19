@@ -9,6 +9,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
 
+	"github.com/momaek/lastab/internal/install"
 	"github.com/momaek/lastab/internal/store"
 	"github.com/momaek/lastab/internal/theme"
 	"github.com/momaek/lastab/internal/ui/keys"
@@ -30,6 +31,18 @@ type Platform interface {
 	SuspendShortcuts(suspend bool)
 	ShowInFolder(path string)
 	Version() string
+
+	// The lastab command and the Claude Code skill, which Settings >
+	// Agent access installs only when the user clicks. The statuses read
+	// the disk and the installs write it, and InstallCLI(true) shows the
+	// system's administrator dialog, so the UI calls them off the main
+	// thread.
+	CLIStatus() install.Status
+	SkillStatus() install.Status
+	// InstallCLI puts lastab on the PATH; admin asks for an administrator
+	// to write /usr/local/bin (macOS).
+	InstallCLI(admin bool) (install.Status, error)
+	InstallSkill() (install.Status, error)
 }
 
 // Settings are the user's choices, kept in the setting table.
