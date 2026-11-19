@@ -11,6 +11,7 @@ import (
 
 	"github.com/momaek/lastab/internal/snippet"
 	"github.com/momaek/lastab/internal/store"
+	"github.com/momaek/lastab/internal/ui/keys"
 )
 
 type fakeClipboard struct{ text string }
@@ -58,6 +59,17 @@ func newHarness(t *testing.T, path string) *harness {
 	}
 	tt := ui.NewTester(app.View, 900, 600)
 	return &harness{t, st, app, tt, clip, plat, dir}
+}
+
+// press presses an action's default shortcut on this platform: History is
+// Cmd+Y on macOS but Ctrl+Shift+Y on Windows, where Ctrl+Y is Redo.
+func (h *harness) press(a keys.Action) {
+	h.t.Helper()
+	m, k, ok := parseAccel(keys.Default(a))
+	if !ok {
+		h.t.Fatalf("no default shortcut for %s", a)
+	}
+	h.tt.Key(m, k)
 }
 
 // settle advances the clock past every delay of automatic keeping.

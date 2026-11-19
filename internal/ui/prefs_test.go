@@ -149,23 +149,25 @@ func TestRecordShortcut(t *testing.T) {
 	if h.app.Recording() != keys.NewText || !h.tt.HasText("Press a new shortcut…") {
 		t.Fatalf("not recording: %q", h.tt.Texts())
 	}
-	// Window shortcuts wait while recording: Cmd+N makes no tab.
+	// Window shortcuts wait while recording: Cmd+N makes no tab. The new
+	// keys are Cmd+Shift+N, not Cmd+Alt+N, which on Windows is Ctrl+Alt+N:
+	// the global Summon key.
 	tabs := len(h.app.Tabs())
-	h.tt.Key(ui.Cmd|ui.Alt, ui.KeyN)
+	h.tt.Key(ui.Cmd|ui.Shift, ui.KeyN)
 	if h.app.Recording() != "" || len(h.app.Tabs()) != tabs {
 		t.Fatalf("recording %q tabs %d", h.app.Recording(), len(h.app.Tabs()))
 	}
-	if got := h.app.Shortcuts()[keys.NewText]; got != "CmdOrCtrl+Alt+N" {
+	if got := h.app.Shortcuts()[keys.NewText]; got != "CmdOrCtrl+Shift+N" {
 		t.Fatalf("shortcut %q", got)
 	}
 	if len(h.plat.suspends) != 2 || !h.plat.suspends[0] || h.plat.suspends[1] {
 		t.Errorf("suspends %v", h.plat.suspends)
 	}
-	if n := len(h.plat.applied); n == 0 || h.plat.applied[n-1][keys.NewText] != "CmdOrCtrl+Alt+N" {
+	if n := len(h.plat.applied); n == 0 || h.plat.applied[n-1][keys.NewText] != "CmdOrCtrl+Shift+N" {
 		t.Errorf("not applied to menus: %v", h.plat.applied)
 	}
 	saved := setting[map[keys.Action]string](t, h.st, store.SettingShortcuts)
-	if saved[keys.NewText] != "CmdOrCtrl+Alt+N" {
+	if saved[keys.NewText] != "CmdOrCtrl+Shift+N" {
 		t.Errorf("saved %v", saved)
 	}
 
@@ -175,14 +177,14 @@ func TestRecordShortcut(t *testing.T) {
 	if len(h.app.Tabs()) != tabs {
 		t.Error("old shortcut still makes a tab")
 	}
-	h.tt.Key(ui.Cmd|ui.Alt, ui.KeyN)
+	h.tt.Key(ui.Cmd|ui.Shift, ui.KeyN)
 	if len(h.app.Tabs()) != tabs+1 {
 		t.Error("new shortcut makes no tab")
 	}
 	// The editor gave the new keys up, not the old.
 	var found bool
 	for _, b := range h.app.Active().ed.Bindings {
-		if b.Mods == ui.Cmd|ui.Alt && b.Key == ui.KeyN {
+		if b.Mods == ui.Cmd|ui.Shift && b.Key == ui.KeyN {
 			found = true
 		}
 	}

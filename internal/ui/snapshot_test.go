@@ -9,6 +9,8 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
+	"github.com/momaek/lastab/internal/ui/keys"
+
 	"github.com/momaek/lastab/internal/install"
 )
 
@@ -73,14 +75,14 @@ func TestSnapshots(t *testing.T) {
 		save(name+"-library-empty", h.tt)
 		h.tt.Key(0, ui.KeyEscape)
 		h.tt.Click("curl · POST /v2/orders/search")
-		h.tt.Key(ui.Cmd, ui.KeyY) // no-op guard: opens below
-		h.tt.Key(ui.Cmd, ui.KeyY)
-		h.tt.Key(ui.Cmd, ui.KeyY)
+		h.press(keys.History) // no-op guard: opens below
+		h.press(keys.History)
+		h.press(keys.History)
 		h.app.CloseHistory()
 		h.tt.Frame()
 		h.app.Active().buf().Set("curl -X POST 'https://api.staging.example.com/v2/orders/search' \\\n  -H 'Authorization: Bearer abcdefgh12345678' \\\n  -d '{\"order_id\":\"A-20391\",\"page_size\":50}'")
 		h.settle()
-		h.tt.Key(ui.Cmd, ui.KeyY)
+		h.press(keys.History)
 		save(name+"-history", h.tt)
 		h.tt.Click("Restore this version")
 		save(name+"-history-restored", h.tt)
