@@ -557,15 +557,15 @@ func (a *App) todoView(c *ui.Context, t *Tab) {
 			return
 		}
 		ui.Row(c.Key("doneHead")).Gap(8).AlignItems(ui.Center).Padding(16, 0, 4, 24).Children(func() {
-			chev := "▾"
+			chev := iconChevDown
 			if l.hideDone {
-				chev = "▸"
+				chev = iconChevRight
 			}
 			label := locales.TodoDoneGroup(len(done))
 			b := ui.ButtonBase(c.Key("doneToggle")).Row().Gap(8).AlignItems(ui.Center).Height(28).Padding(0, 8, 0, 0).
 				Label(label).Expanded(!l.hideDone)
 			b.Children(func() {
-				ui.Text(c, chev).FontSize(12).TextColor(p.Muted)
+				ui.Icon(c, chev).Size(14, 14).TextColor(p.Muted)
 				ui.Text(c, label).FontSize(12.5).FontWeight(500).TextColor(p.Muted).FontFeatures("tnum")
 			})
 			b.OnClick(func() { l.hideDone = !l.hideDone })
@@ -760,8 +760,8 @@ func (a *App) todoRow(c *ui.Context, t *Tab, it *todoItem, kind rowKind, fresh b
 		if kind == rowDone || !hovered && kind != rowLifted && !gripHeld(grip) {
 			grip.Opacity(0)
 		}
-		grip.Children(func() {
-			ui.Text(c, "⠿").FontSize(12).TextColor(p.Faint).Fill().TextAlign(ui.Center).Padding(7, 0, 0, 0)
+		grip.Row().AlignItems(ui.Center).Justify(ui.Center).Children(func() {
+			ui.Icon(c, iconGrip).Size(10, 14).TextColor(p.Faint)
 		})
 		done := it.done
 		cb := ui.Checkbox(c.Key("check"), &done, "").Label(locales.TodoCheckLabel(it.text)).Margin(0, 4, 0, 0)
@@ -807,7 +807,7 @@ func (a *App) todoRow(c *ui.Context, t *Tab, it *todoItem, kind rowKind, fresh b
 			del.Background(p.Chrome)
 		}
 		del.Children(func() {
-			ui.Text(c, "✕").FontSize(12).TextColor(p.Muted)
+			ui.Icon(c, iconClose).Size(14, 14).TextColor(p.Muted)
 		})
 		del.OnClick(func() { a.todoDelete(t, id, true, a.frameNow) })
 	})

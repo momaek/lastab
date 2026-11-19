@@ -445,7 +445,7 @@ func (a *App) librarySearch(c *ui.Context) {
 	ui.Column(c).Gap(12).Padding(16, 20, 12, 20).BorderWidth(0, 0, 1, 0).BorderColor(p.Line).Children(func() {
 		ui.Row(c).Height(40).Gap(8).AlignItems(ui.Center).Padding(0, 12).
 			Border(1.5, a.acc.Accent).Radius(8).Background(p.Bg).Role(ui.RoleSearch).Children(func() {
-			ui.Text(c, "⌕").FontSize(16).TextColor(p.Muted)
+			ui.Icon(c, iconSearch).Size(16, 16).TextColor(p.Muted)
 			in := ui.TextInput(c.Key("query"), &l.query).Grow(1).Shrink(1).
 				Placeholder(locales.SearchPlaceholder()).Label(locales.SearchAll()).
 				Role(ui.RoleComboBox).HasPopup(ui.PopupListBox).
@@ -642,11 +642,11 @@ func (a *App) libraryRow(c *ui.Context, it *libItem, i int, now time.Time, loc s
 	}
 	row.Children(func() {
 		ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-			icon := "≡"
+			icon := iconText
 			if it.Kind == store.KindTodo {
-				icon = "☑"
+				icon = iconTodo
 			}
-			ui.Text(c, icon).FontSize(13).TextColor(p.Muted)
+			ui.Icon(c, icon).Size(13, 13).TextColor(p.Muted)
 			ui.Text(c, listTitle(it.Snippet)).FontSize(13.5).FontWeight(500).TextColor(p.Text).SingleLine().Shrink(1)
 			if !it.Open {
 				ui.Text(c, locales.ClosedBadge()).FontSize(11).TextColor(p.Muted).
@@ -714,7 +714,7 @@ func (a *App) libraryEmpty(c *ui.Context) {
 	l := &a.lib
 	p := a.pal
 	ui.Column(c).Grow(1).Gap(12).Padding(32).AlignItems(ui.Center).Justify(ui.Center).Children(func() {
-		ui.Text(c, "⌕").FontSize(32).TextColor(p.Faint)
+		ui.Icon(c, iconSearch).Size(32, 32).TextColor(p.Faint)
 		title := locales.EmptyNone()
 		if q := strings.TrimSpace(l.query); q != "" {
 			title = locales.EmptyQuery(q)
@@ -823,17 +823,20 @@ func (a *App) libraryPreview(c *ui.Context, it *libItem) {
 				l.reveal = !l.reveal
 			}
 		}
-		ui.Spacer(c)
-		del := ui.ButtonBase(c.Key("delete")).Height(32).Padding(0, 12).Radius(8).
-			Label(locales.DeleteEllipsis()).Expanded(l.confirm).HasPopup(ui.PopupDialog)
-		if l.confirm || del.Hovered() {
-			del.Background(p.DangerBg)
-		}
-		del.Children(func() { ui.Text(c, locales.DeleteEllipsis()).FontSize(13).TextColor(p.Danger) })
-		if del.Clicked() {
-			l.confirm = !l.confirm
-		}
-		a.confirmDelete(c, del, it)
+		// Delete keeps to the right, on the line of the others or, when
+		// they leave it no room, on a line of its own.
+		ui.Row(c).Grow(1).Justify(ui.End).Children(func() {
+			del := ui.ButtonBase(c.Key("delete")).Height(32).Padding(0, 12).Radius(8).
+				Label(locales.DeleteEllipsis()).Expanded(l.confirm).HasPopup(ui.PopupDialog)
+			if l.confirm || del.Hovered() {
+				del.Background(p.DangerBg)
+			}
+			del.Children(func() { ui.Text(c, locales.DeleteEllipsis()).FontSize(13).TextColor(p.Danger) })
+			if del.Clicked() {
+				l.confirm = !l.confirm
+			}
+			a.confirmDelete(c, del, it)
+		})
 	})
 }
 
@@ -850,6 +853,18 @@ func (a *App) outlineButton(c *ui.Context, key, label, hint string) ui.Element {
 			ui.Text(c, hint).FontSize(13).TextColor(p.Muted)
 		}
 	})
+	return b
+}
+
+// outlineIconButton is outlineButton showing an icon, named label.
+func (a *App) outlineIconButton(c *ui.Context, key string, icon *ui.SVG, label string) ui.Element {
+	p := a.pal
+	b := ui.ButtonBase(c.Key(key)).Row().AlignItems(ui.Center).Justify(ui.Center).Height(32).Radius(8).
+		Border(1, p.BtnLine).Background(p.Btn).Label(label)
+	if b.Hovered() {
+		b.Background(p.Chrome)
+	}
+	b.Children(func() { ui.Icon(c, icon).Size(14, 14).TextColor(p.Text) })
 	return b
 }
 

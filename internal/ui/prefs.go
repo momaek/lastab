@@ -304,7 +304,7 @@ func (a *App) prefRow(c *ui.Context, key, label, desc string, control func()) {
 	ui.Row(c.Key(key)).Gap(24).AlignItems(ui.Center).Padding(14, 0).
 		BorderWidth(0, 0, 1, 0).BorderColor(p.LineSoft).Children(func() {
 		ui.Column(c).Grow(1).Shrink(1).Gap(4).Children(func() {
-			ui.Text(c, label).FontSize(13.5).FontWeight(500)
+			ui.Text(c, label).FontSize(13.5).FontWeight(500).NoWrap() // a long control wraps, not the label
 			if desc != "" {
 				ui.Text(c, desc).FontSize(12).LineHeight(1.5).TextColor(p.Muted)
 			}
@@ -491,12 +491,12 @@ func (a *App) prefsEditing(c *ui.Context) {
 	})
 	a.prefRow(c, "size", locales.EditorSize(), "", func() {
 		ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-			if a.outlineButton(c, "smaller", "−", "").Width(32).Disabled(set.EditorSize <= MinEditorSize).Clicked() {
+			if a.outlineIconButton(c, "smaller", iconMinus, "−").Width(32).Disabled(set.EditorSize <= MinEditorSize).Clicked() {
 				a.SetEditorFont(set.EditorFont, set.EditorSize-0.5)
 			}
 			ui.Text(c, fmt.Sprintf("%g", set.EditorSize)).FontSize(13).FontFeatures("tnum").MinWidth(36).TextAlign(ui.Center).
 				Role(ui.RoleStatus).Label(locales.EditorSize())
-			if a.outlineButton(c, "larger", "+", "").Width(32).Disabled(set.EditorSize >= MaxEditorSize).Clicked() {
+			if a.outlineIconButton(c, "larger", iconPlus, "+").Width(32).Disabled(set.EditorSize >= MaxEditorSize).Clicked() {
 				a.SetEditorFont(set.EditorFont, set.EditorSize+0.5)
 			}
 		})
@@ -533,7 +533,7 @@ func (a *App) prefsAgent(c *ui.Context) {
 		}
 	})
 	ui.Row(c).Gap(10).AlignItems(ui.Start).Padding(12, 14).Radius(8).Background(p.Info).Margin(16, 0, 8, 0).Children(func() {
-		ui.Text(c, "ⓘ").FontSize(14).TextColor(p.Muted)
+		ui.Icon(c, iconInfo).Size(15, 15).TextColor(p.Muted)
 		ui.Text(c, locales.AgentInfo()).FontSize(12.5).LineHeight(1.5).TextColor(p.Text2).Shrink(1)
 	})
 	a.agentInstall(c)
