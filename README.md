@@ -23,7 +23,7 @@ Lastab is a resident desktop app for plain-text snippets, on macOS and Windows. 
 - **Version history**: see what changed in a snippet and restore an earlier version, then undo the restore if you need to.
 - **To-do lists**: ⌘T / Ctrl+T opens a new list, stored as plain `- [ ]` text. Pasting several lines makes one item per line.
 - **Copy all**: ⌘⇧C / Ctrl+Shift+C copies the whole snippet with line endings, tabs and full-width characters kept as they are.
-- **Agent access**: a read-only `lastab` command and a Claude Code skill let agents search and read your snippets. Off by default, with likely secrets masked by default.
+- **Agent access**: a `lastab` command and a Claude Code skill let agents search and read your snippets, and, if you allow it, rename their titles. Off by default, with likely secrets masked by default.
 - **Dark mode and languages**: light, dark or follow the system; English and Simplified Chinese; a custom accent color.
 
 ## Install
@@ -68,10 +68,15 @@ Then ask Claude Code something like "find the curl I was editing yesterday". Oth
 lastab search "orders" --since 1d --client my-agent
 lastab list --open --kind todo
 lastab read 01JD2F9C          # an ID or a unique prefix
+lastab retitle 01JD2F9C "Staging orders repro"
 lastab status
 ```
 
-**Mask likely secrets** is on by default: `Authorization`, `Bearer`, `api_key` and similar come out as `••••••••`. It can only be turned off in Settings; agents can't bypass it with a flag. Every read is recorded, and you can review them under **Access log** in Settings. Exit codes and the error format are in [`skill/SKILL.md`](skill/SKILL.md).
+**Mask likely secrets** is on by default: `Authorization`, `Bearer`, `api_key` and similar come out as `••••••••`. It can only be turned off in Settings; agents can't bypass it with a flag. Every read is recorded, and you can review them under **Access log** in Settings.
+
+The command can only read, except for `retitle`, which renames a snippet's title and works only after you turn on **Let agents rename titles** (off by default). It never changes the text, and never renames a title you named yourself. Each rename appears in the access log with **Undo**.
+
+Exit codes and the error format are in [`skill/SKILL.md`](skill/SKILL.md).
 
 ## Data
 
@@ -149,7 +154,7 @@ git tag v0.1.2 && git push origin v0.1.2
 | Path | Contents |
 | --- | --- |
 | `main.go` | Desktop app entry point |
-| `cmd/lastab/` | The read-only `lastab` command |
+| `cmd/lastab/` | The `lastab` command: reads, plus `retitle` when allowed |
 | `internal/store/` | SQLite storage, migrations and FTS5 search |
 | `internal/snippet/` | Snippets, workspace and crash recovery |
 | `internal/ui/` | All screens and interaction |

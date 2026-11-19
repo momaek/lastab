@@ -121,3 +121,70 @@ func TestListSearchRead(t *testing.T) {
 		t.Errorf("log %+v", es)
 	}
 }
+
+func TestRetitle(t *testing.T) {
+	dir, st := setup(t, true)
+	ctx := context.Background()
+	sn, _ := st.CreateSnippet(ctx, store.KindText, "curl https://x.dev/v2/orders", 0)
+	must(t, st.SetTitle(ctx, sn.ID, "curl · GET /v2/orders", store.TitleAuto))
+
+	// Off until the user allows it, even with access on.
+	code, m := cli(t, dir, "retitle", sn.ID, "orders repro")
+	if code != exitDenied || m["error"].(map[string]any)["kind"] != "rename_denied" {
+		t.Fatalf("rename off: %d %v", code, m)
+	}
+	if got, _ := st.Get(ctx, sn.ID); got.Title != "curl · GET /v2/orders" {
+		t.Fatalf("renamed while off: %q", got.Title)
+	}
+	_, m = cli(t, dir, "status")
+	if m["rename"] != false {
+		t.Errorf("status %v", m)
+	}
+
+	must(t, st.SetSetting(ctx, store.SettingAgentRename, true))
+	code, m = cli(t, dir, "retitle", sn.ID[:20], "staging", "orders\nrepro")
+	if code != 0 || m["title"] != "staging orders repro" || m["previous_title"] != "curl · GET /v2/orders" {
+		t.Fatalf("retitle %d %v", code, m)
+	}
+	got, _ := st.Get(ctx, sn.ID)
+	if got.Title != "staging orders repro" || got.TitleBy != "test" || got.UserNamed() {
+		t.Fatalf("stored %+v", got)
+	}
+	if code, _ = cli(t, dir, "retitle", sn.ID, " \t"); code != exitUsage {
+		t.Errorf("empty title: %d", code)
+	}
+	if code, _ = cli(t, dir, "retitle", "ZZZZ", "x"); code != exitNotFound {
+		t.Errorf("missing id: %d", code)
+	}
+
+	// The user's own name is final.
+	must(t, st.SetTitle(ctx, sn.ID, "mine", store.TitleManual))
+	code, m = cli(t, dir, "retitle", sn.ID, "theirs")
+	if code != exitRefused || m["error"].(map[string]any)["kind"] != "user_title" {
+		t.Fatalf("over the user's: %d %v", code, m)
+	}
+	if got, _ := st.Get(ctx, sn.ID); got.Title != "mine" {
+		t.Fatalf("title %q", got.Title)
+	}
+
+	// Access off refuses renames too.
+	must(t, st.SetSetting(ctx, store.SettingAgentAccess, false))
+	if code, _ = cli(t, dir, "retitle", sn.ID, "x"); code != exitDenied {
+		t.Errorf("access off: %d", code)
+	}
+
+	l, _ := agentlog.Open(filepath.Join(dir, "agent_log.db"))
+	defer l.Close()
+	es, _ := l.Recent(ctx, 50)
+	if len(es) != 1 || es[0].Op != "retitle" || es[0].Args["from"] != "curl · GET /v2/orders" ||
+		es[0].Args["from_source"] != "auto" || es[0].Args["title"] != "staging orders repro" {
+		t.Errorf("log %+v", es)
+	}
+}
+
+func must(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err)
+	}
+}

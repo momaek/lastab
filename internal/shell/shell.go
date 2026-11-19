@@ -290,8 +290,14 @@ func (s *Shell) Install(onQuit func()) {
 		s.Win.Hide()
 	})
 	s.Win.OnBlur(func() { s.App.FlushAll() })
-	// Coming back to the window is a settle point: the sidebar reorders.
-	s.Win.OnFocus(func() { s.do(s.App.Resort) })
+	// Coming back to the window is a settle point: the sidebar reorders, and
+	// titles an agent renamed meanwhile (lastab retitle) show.
+	s.Win.OnFocus(func() {
+		s.do(func() {
+			s.App.Resort()
+			s.App.RefreshTitles()
+		})
+	})
 	mygo.App.OnBeforeQuit(func(*mygo.QuitEvent) {
 		s.quitting = true
 		s.App.FlushAll()

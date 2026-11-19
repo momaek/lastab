@@ -21,6 +21,7 @@ const (
 	SettingAgentAccess = "agent.access"
 	SettingAgentMask   = "agent.mask"
 	SettingAgentRaw    = "agent.allowRaw"
+	SettingAgentRename = "agent.rename" // agents may rename titles: lastab retitle
 )
 
 // GetSetting decodes a setting's JSON value into v and reports whether it

@@ -179,3 +179,21 @@ func truncate(s string, n int) string {
 	r := []rune(s)
 	return strings.TrimRightFunc(string(r[:n-1]), unicode.IsSpace) + "…"
 }
+
+// Clean makes a title someone else wrote, an agent through `lastab
+// retitle`, follow the rules of an automatic one: one line, no control
+// characters, secrets masked, at most MaxRunes. It returns "" when nothing
+// is left.
+func Clean(s string) string {
+	s = strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) || unicode.Is(unicode.Zl, r) || unicode.Is(unicode.Zp, r) {
+			return ' '
+		}
+		return r
+	}, s)
+	s = strings.Join(strings.Fields(s), " ")
+	if s == "" {
+		return ""
+	}
+	return truncate(redact.String(s), MaxRunes)
+}

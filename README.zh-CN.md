@@ -23,7 +23,7 @@ Lastab 是一个常驻桌面的纯文本片段应用，适用于 macOS 和 Windo
 - **版本历史**：查看片段改过什么，恢复修改前的内容，恢复后还可以撤销。
 - **待办清单**：⌘T / Ctrl+T 新建待办。存为纯文本 `- [ ]` 清单，粘贴多行时每行变成一项。
 - **复制全部**：⌘⇧C / Ctrl+Shift+C 一键复制整条正文，原样保留行尾、Tab 和全角字符。
-- **Agent 访问**：自带只读命令行 `lastab` 和一份 Claude Code Skill，Agent 可以搜索、读取你的片段。默认关闭，密钥类内容默认遮蔽。
+- **Agent 访问**：自带命令行 `lastab` 和一份 Claude Code Skill，Agent 可以搜索、读取你的片段；你允许时还能修改标题。默认关闭，密钥类内容默认遮蔽。
 - **深色模式与多语言**：浅色、深色或跟随系统；界面支持简体中文和英文；强调色可自定义。
 
 ## 安装
@@ -68,10 +68,15 @@ Lastab 是一个常驻桌面的纯文本片段应用，适用于 macOS 和 Windo
 lastab search "orders" --since 1d --client my-agent
 lastab list --open --kind todo
 lastab read 01JD2F9C          # ID 或唯一前缀
+lastab retitle 01JD2F9C "staging 下单接口复现"
 lastab status
 ```
 
-「遮蔽疑似密钥」默认开启：`Authorization`、`Bearer`、`api_key` 等会输出为 `••••••••`，只能在设置里关，Agent 无法用参数绕过。每次读取都会记录下来，可以在设置中的「访问记录」里查看。退出码与错误格式见 [`skill/SKILL.md`](skill/SKILL.md)。
+「遮蔽疑似密钥」默认开启：`Authorization`、`Bearer`、`api_key` 等会输出为 `••••••••`，只能在设置里关，Agent 无法用参数绕过。每次读取都会记录下来，可以在设置中的「访问记录」里查看。
+
+命令行只能读取，唯一的例外是 `retitle`：它修改片段标题，需要先在设置里打开「允许 Agent 修改标题」（默认关闭）。它不会改正文，也不会改你自己起的标题；每次改名都会出现在访问记录里，可以「撤销」。
+
+退出码与错误格式见 [`skill/SKILL.md`](skill/SKILL.md)。
 
 ## 数据
 
@@ -149,7 +154,7 @@ git tag v0.1.2 && git push origin v0.1.2
 | 路径 | 内容 |
 | --- | --- |
 | `main.go` | 桌面应用入口 |
-| `cmd/lastab/` | 只读命令行 `lastab` |
+| `cmd/lastab/` | 命令行 `lastab`：只读，允许时可 `retitle` 改标题 |
 | `internal/store/` | SQLite 存储、迁移与 FTS5 搜索 |
 | `internal/snippet/` | 片段、工作区与异常恢复 |
 | `internal/ui/` | 全部界面与交互 |

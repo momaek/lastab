@@ -59,6 +59,7 @@ type Settings struct {
 	OpenAtLogin bool
 	AgentAccess bool
 	AgentMask   bool // mask secrets in what agents read
+	AgentRename bool // agents may rename titles (lastab retitle); off by default
 	HoldHint    bool // holding ⌘ alone shows the buttons' shortcuts
 	Tray        bool // an icon in the menu bar or notification area
 }
@@ -97,6 +98,7 @@ func LoadSettings(ctx context.Context, st *store.Store) (Settings, error) {
 		{store.SettingOpenAtLogin, &s.OpenAtLogin},
 		{store.SettingAgentAccess, &s.AgentAccess},
 		{store.SettingAgentRaw, &raw},
+		{store.SettingAgentRename, &s.AgentRename},
 		{store.SettingHoldHint, &s.HoldHint},
 		{store.SettingTray, &s.Tray},
 	} {
@@ -218,6 +220,12 @@ func (a *App) SetAgentAccess(on bool) {
 func (a *App) SetAgentMask(on bool) {
 	a.settings.AgentMask = on
 	a.saveSetting(store.SettingAgentRaw, !on)
+}
+
+// SetAgentRename lets agents rename titles through `lastab retitle`, or not.
+func (a *App) SetAgentRename(on bool) {
+	a.settings.AgentRename = on
+	a.saveSetting(store.SettingAgentRename, on)
 }
 
 // ShortcutError explains why a shortcut wasn't taken.

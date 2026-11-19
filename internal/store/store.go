@@ -98,6 +98,49 @@ func OpenReadOnly(path string) (*Store, error) {
 	return s, nil
 }
 
+// ErrTooOld means the database predates this program; the app migrates it
+// the next time it starts.
+var ErrTooOld = errors.New("store: database is older than this program")
+
+// OpenAgentWriter opens an existing database for the one write an agent may
+// make, as `lastab retitle` does. Like OpenReadOnly it never creates or
+// migrates; it also refuses a database at any schema version but this
+// build's, so it never writes to columns the database lacks or doesn't know.
+// The app may have it open at the same time: WAL and busy_timeout serialize
+// the two writers.
+func OpenAgentWriter(path string) (*Store, error) {
+	if _, err := os.Stat(path); err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return nil, ErrNoDatabase
+		}
+		return nil, err
+	}
+	q := url.Values{}
+	q.Set("mode", "rw")
+	q.Add("_pragma", "foreign_keys(1)")
+	q.Add("_pragma", "busy_timeout(5000)")
+	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(path)+"?"+q.Encode())
+	if err != nil {
+		return nil, err
+	}
+	db.SetMaxOpenConns(1)
+	s := &Store{path: path, w: db, r: db, now: time.Now}
+	v, err := s.UserVersion(context.Background())
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+	switch {
+	case v > LatestVersion():
+		db.Close()
+		return nil, fmt.Errorf("%w (database v%d, supported v%d)", ErrTooNew, v, LatestVersion())
+	case v < LatestVersion():
+		db.Close()
+		return nil, fmt.Errorf("%w (database v%d, this program v%d)", ErrTooOld, v, LatestVersion())
+	}
+	return s, nil
+}
+
 func dsn(path string, readOnly bool) string {
 	q := url.Values{}
 	q.Add("_pragma", "foreign_keys(1)")
@@ -127,7 +170,7 @@ func (s *Store) Close() error {
 	if s.w != nil {
 		err = s.w.Close()
 	}
-	if s.r != nil {
+	if s.r != nil && s.r != s.w {
 		err = errors.Join(err, s.r.Close())
 	}
 	return err
