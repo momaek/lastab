@@ -89,8 +89,9 @@ func (l *Log) Recent(ctx context.Context, limit int) ([]Entry, error) {
 			return nil, err
 		}
 		e.At = time.UnixMilli(at)
-		json.Unmarshal([]byte(args), &e.Args)
-		json.Unmarshal([]byte(ids), &e.SnippetIDs)
+		// Add wrote these; a malformed one still lists, without its details.
+		_ = json.Unmarshal([]byte(args), &e.Args)
+		_ = json.Unmarshal([]byte(ids), &e.SnippetIDs)
 		out = append(out, e)
 	}
 	return out, rows.Err()

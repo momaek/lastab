@@ -51,3 +51,29 @@ jobs:
         run: |
           go build -o build-check/ .
           go build -o build-check/ ./cmd/lastab
+
+  lint:
+    runs-on: macos-latest
+    env:
+      # Exact versions: bump them deliberately, in their own commit.
+      STATICCHECK_VERSION: "2026.2.2"
+      GOVULNCHECK_VERSION: v1.10.0
+      GOLANGCI_LINT_VERSION: v2.15.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install linters
+        # Built with the project's Go, so they understand its language version.
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@$STATICCHECK_VERSION
+          go install golang.org/x/vuln/cmd/govulncheck@$GOVULNCHECK_VERSION
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$GOLANGCI_LINT_VERSION
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: staticcheck
+        run: staticcheck ./... && GOOS=windows staticcheck ./...
+      - name: golangci-lint
+        run: golangci-lint run ./... && GOOS=windows golangci-lint run ./...
+      - name: govulncheck
+        run: govulncheck ./...
