@@ -1,6 +1,6 @@
 # Lastab 验收对照
 
-需求说明 v0.5「验收行为」表中的每一行，在这里对应到一个自动化测试或手工检查（开发文档 11.2、开发计划「每个阶段结束」）。每个阶段结束时更新状态与结果表。
+[需求说明 v0.5](requirements/Lastab-需求说明-v0.5.md)「验收行为」表中的每一行，在这里对应到一个自动化测试或手工检查（[开发文档](requirements/Lastab-开发文档-v0.1.md) 11.2、[开发计划](requirements/Lastab-开发计划-v0.1.md)「每个阶段结束」）。每个阶段结束时更新状态与结果表。
 
 **状态**：
 
@@ -10,7 +10,7 @@
 
 一行可以同时有自动化测试与手工检查：自动化覆盖逻辑，手工确认真实窗口里的表现。两者都通过，这一行才算通过。
 
-本文最后核对：2026-11-19，合入待办界面（#6）与打包（#7）之后的 `main`。
+本文最后核对：2026-11-19，合入待办界面（#6）与打包（#7）之后的 `main`；A30–A31 对应 Agent 改标题（#18），A32 对应无前缀密钥遮蔽（#20）。
 
 ## 验收行为对照
 
@@ -45,6 +45,9 @@
 | A27 | 异常退出后再打开，能看到此前已自动留存的内容 | `internal/snippet/snippet_test.go` `TestSessionCrash`；`internal/ui/app_test.go` `TestCloseIsNotDeleteAndRestore`（同一数据库重新打开恢复 tab）、`TestSaveFailureStaysWithRetry` | M6 第 3 步 | 通过；M6 手工 |
 | A28 | 含 `Authorization` 等密钥的片段，列表中不明文显示密钥 | `internal/ui/library_test.go` `TestLibraryMasksAndCopies`；`internal/search/search_test.go` `TestPreviewMasks`、`TestPreviewWindow`；`internal/title/title_test.go` `TestMake` | — | 通过 |
 | A29 | macOS 与 Windows 上以上行为一致 | CI 在 macOS 与 Windows 上跑全部测试（`.github/workflows/ci.yml`） | 上述每项手工检查在两个平台各做一遍 | 手工 |
+| A30 | （新）打开「允许 Agent 修改标题」后，Agent 可改片段标题；不能改正文，也不能改用户自己起的标题 | `cmd/lastab/main_test.go` `TestRetitle`；`internal/store/store_test.go` `TestAgentRetitle`、`TestOpenAgentWriter`；`internal/title/title_test.go` `TestClean` | M7 第 5–7 步 | 通过；M7 手工 |
+| A31 | （新）「允许 Agent 修改标题」默认关闭；关闭时或「允许 Agent 访问」关闭时，Agent 改不了标题；每次改名可在访问记录中撤销 | `cmd/lastab/main_test.go` `TestRetitle`；`internal/store/store_test.go` `TestUndoAgentTitle`；`internal/ui/prefs_test.go` `TestAgentRenameSettingAndUndo` | M7 第 6–7 步 | 通过；M7 手工 |
+| A32 | （新）没有前缀的密钥（单独粘贴的 API key、账号清单里的密码与 2FA 密钥）在列表、预览与 Agent 输出中被遮蔽；旧版带出密钥的自动标题在启动时被遮蔽 | `internal/redact/bare_test.go` `TestBareTokens`、`TestBareTokenFalsePositives`、`TestBareTokenRecall`；`internal/snippet/snippet_test.go` `TestMaskAutoTitles`（#20） | — | 未做：#20 合入后通过 |
 | S1 | 成功标准的对照测试：约 20 个片段，在 Sublime 与 Lastab 中找回 3 分钟前编辑的那条，Lastab 更快 | — | M8 | 手工 |
 
 ## 手工检查
@@ -196,8 +199,11 @@ printf 'curl -H "Content-Type: application/json" --data '"'"'{"name": "it'"'"'s 
 2. 在 Claude Code 中提问「在 Lastab 里找一下周会纪要」：Claude 调用 Skill → `lastab search`，返回正确的片段；再请它读出全文，`lastab read` 的结果中密钥被遮蔽。
 3. 设置的访问记录中出现这两次调用（客户端为 `claude-code`）。
 4. 关闭「允许 Agent 访问」后重复第 2 步：Claude 得到「访问已关闭」的错误，读不到任何内容。
+5. 重新打开访问，请 Claude 给那条片段改个标题：`lastab status` 显示 `"rename": false`，`retitle` 返回退出码 3。在设置中打开「允许 Agent 修改标题」后再请它改：改名成功，切回 Lastab 窗口时侧栏与 ⌘K 里立即显示新标题。
+6. 访问记录出现 `retitle "…"` 一行与「撤销」按钮；点撤销，标题回到原来的样子，按钮消失。
+7. 在 Lastab 中手动改那条的标题，再请 Claude 改：返回退出码 6，标题不变。
 
-| 日期 | 系统 | Lastab 提交 | Claude Code 版本 | 第 1–4 步结果 | 结果 | 检查人 | 备注 |
+| 日期 | 系统 | Lastab 提交 | Claude Code 版本 | 第 1–7 步结果 | 结果 | 检查人 | 备注 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | | | | | | | | |
 

@@ -1,6 +1,6 @@
 # Lastab UI 设计
 
-对应需求：[`Lastab-需求说明-v0.5.md`](../Lastab-需求说明-v0.5.md)。设计版本 v0.6（经过两轮评审修订）。
+对应需求：[`docs/requirements/Lastab-需求说明-v0.5.md`](../docs/requirements/Lastab-需求说明-v0.5.md)。设计版本 v0.6（经过两轮评审修订）。
 
 在线画布：<https://claude.ai/artifact/2ev4fABBLpxom8xdxAb8SN>（私有，需在页面的 Share 菜单中共享后他人才能打开）。
 
