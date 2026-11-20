@@ -9,7 +9,7 @@ func TestBareTokens(t *testing.T) {
 	for _, c := range []struct{ in, want string }{
 		{"Gpws2uEk7F6gIMi7NlweDHt", Mask},
 		{"key: Gpws2uEk7F6gIMi7NlweDHt\n", "key: " + Mask + "\n"},
-		{"hazmmazm23@gmail.com----qmPh3kZ8vTn2Lx9Rw4Ya", "hazmmazm23@gmail.com----" + Mask},
+		{"user@example.com----qmPh3kZ8vTn2Lx9Rw4Ya", "user@example.com----" + Mask},
 		{"token is NhBdTfK3pL9mQ2rV8sX1, keep it", "token is " + Mask + ", keep it"},
 		{"aGVsbG8gd29ybGQ1MjM0NTY3OA==", Mask},
 		{"https://x.dev/cb?code=Gpws2uEk7F6gIMi7NlweDHt&x=1", "https://x.dev/cb?code=" + Mask + "&x=1"},
