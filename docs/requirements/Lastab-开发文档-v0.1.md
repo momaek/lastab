@@ -2,7 +2,7 @@
 
 2026-11-18
 
-根据 [需求说明 v0.5](Lastab-需求说明-v0.5.md) 与 [UI 设计 v0.6](design/README.md)，给出 Lastab 的技术选型、架构、数据模型、模块设计、构建发布与测试方案。本文是技术方案草案；需求里仍「待确认」的项，在这里先按建议默认设计，并在末尾列出会影响实现的待确认点。
+根据 [需求说明 v0.5](Lastab-需求说明-v0.5.md) 与 [UI 设计 v0.6](../../design/README.md)，给出 Lastab 的技术选型、架构、数据模型、模块设计、构建发布与测试方案。本文是技术方案草案；需求里仍「待确认」的项，在这里先按建议默认设计，并在末尾列出会影响实现的待确认点。
 
 ## 文档说明
 
@@ -125,8 +125,9 @@ MyGo 很新：仓库创建于 2026-09，当前是 v0.10.0，1.0 之前 API 可�
 
 ```
 lastab/
-├── Lastab-需求说明-v0.5.md
-├── Lastab-开发文档-v0.1.md
+├── docs/
+│   ├── acceptance.md           # 验收对照（见 11.2）
+│   └── requirements/           # 需求说明、开发文档（本文）、开发计划
 ├── design/                     # 设计源文件与 tokens.json（已存在）
 ├── go.mod                      # go 1.27.3+；tool github.com/egoist/mygo/cmd/mygo
 ├── mygo.json                   # 应用名、identifier、版本、i18n、最低系统版本；签名设置由 scripts/build 从环境变量注入，不进仓库
@@ -691,7 +692,7 @@ go run ./scripts/genicon                                      # 重新生成应�
 
 ### 11.2 验收对照
 
-需求「验收行为」表中的每一行，都在 `docs/acceptance.md`（开工后建立）中对应到一个自动化测试或手工检查步骤。其中两项需要手工对比：
+需求「验收行为」表中的每一行，都在 [`docs/acceptance.md`](../acceptance.md) 中对应到一个自动化测试或手工检查步骤。其中两项需要手工对比：
 
 - **新建速度**：在同一台机器上，按下快捷键到光标可输入，与 Sublime Text 的 ⌘N / Ctrl+N 对比（录屏逐帧，或在应用内打点记录）。
 - **找回对照**：开约 20 个片段，在 Sublime 与 Lastab 中分别找回 3 分钟前编辑的那条，记录用时。
@@ -727,7 +728,7 @@ go run ./scripts/genicon                                      # 重新生成应�
 
 开发环境补充：本机 Command Line Tools 的 SDK 与链接器不匹配时，`go test` 默认启用 cgo 会链接失败。项目不用 cgo，统一用 `CGO_ENABLED=0` 运行 `go test` / `go build`（`scripts/build` 已设置）。
 
-其余验证项（1、2、4、5、9、10、11）需要真实窗口、输入法或多种键盘布局，仍待手工验证，步骤见 `docs/acceptance.md`。
+其余验证项（1、2、4、5、9、10、11）需要真实窗口、输入法或多种键盘布局，仍待手工验证，步骤见 [`docs/acceptance.md`](../acceptance.md)。
 
 #### 12.1.1 验证项 7：1 万条片段的搜索延迟（2026-11-19）
 

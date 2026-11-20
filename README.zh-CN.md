@@ -167,8 +167,8 @@ git tag v0.1.2 && git push origin v0.1.2
 
 ### 文档
 
-- [需求说明](Lastab-需求说明-v0.5.md)
-- [开发文档](Lastab-开发文档-v0.1.md)：架构、存储、各模块设计、平台差异
-- [开发计划](Lastab-开发计划-v0.1.md)
+- [需求说明](docs/requirements/Lastab-需求说明-v0.5.md)
+- [开发文档](docs/requirements/Lastab-开发文档-v0.1.md)：架构、存储、各模块设计、平台差异
+- [开发计划](docs/requirements/Lastab-开发计划-v0.1.md)
 - [验收对照](docs/acceptance.md)
 - [UI 设计](design/README.md)与[品牌标志](design/brand/README.md)
