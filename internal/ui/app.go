@@ -227,6 +227,7 @@ func (a *App) Load() error {
 	for _, t := range a.tabs {
 		a.styleEditor(t.ed)
 	}
+	a.maskAutoTitles()
 	sns, active, err := a.d.Service.Workspace(a.ctx())
 	if err != nil {
 		return err

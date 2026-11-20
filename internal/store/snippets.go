@@ -216,6 +216,41 @@ func (s *Store) UndoAgentTitle(ctx context.Context, id, agentTitle, client strin
 	return n > 0, nil
 }
 
+// AutoTitles returns the ID and title of every snippet with an automatic
+// title, without reading bodies.
+func (s *Store) AutoTitles(ctx context.Context) (map[string]string, error) {
+	rows, err := s.r.QueryContext(ctx, `SELECT id, title FROM snippet WHERE title_source = 'auto'`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]string{}
+	for rows.Next() {
+		var id, t string
+		if err := rows.Scan(&id, &t); err != nil {
+			return nil, err
+		}
+		out[id] = t
+	}
+	return out, rows.Err()
+}
+
+// ReplaceAutoTitle sets the title of snippet id to title if it is still the
+// automatic title old, and reports whether it did.
+func (s *Store) ReplaceAutoTitle(ctx context.Context, id, old, title string) (bool, error) {
+	w, err := s.writer()
+	if err != nil {
+		return false, err
+	}
+	res, err := w.ExecContext(ctx,
+		`UPDATE snippet SET title = ? WHERE id = ? AND title = ? AND title_source = 'auto'`, title, id, old)
+	if err != nil {
+		return false, err
+	}
+	n, _ := res.RowsAffected()
+	return n > 0, nil
+}
+
 // Get returns one snippet.
 func (s *Store) Get(ctx context.Context, id string) (Snippet, error) {
 	return scanSnippet(s.r.QueryRowContext(ctx, `SELECT `+snippetCols+` FROM snippet s WHERE s.id = ?`, id))
