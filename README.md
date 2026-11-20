@@ -169,8 +169,8 @@ git tag v0.1.2 && git push origin v0.1.2
 
 The design docs are in Chinese:
 
-- [Requirements](Lastab-需求说明-v0.5.md)
-- [Development guide](Lastab-开发文档-v0.1.md): architecture, storage, module design, platform differences
-- [Development plan](Lastab-开发计划-v0.1.md)
+- [Requirements](docs/requirements/Lastab-需求说明-v0.5.md)
+- [Development guide](docs/requirements/Lastab-开发文档-v0.1.md): architecture, storage, module design, platform differences
+- [Development plan](docs/requirements/Lastab-开发计划-v0.1.md)
 - [Acceptance checklist](docs/acceptance.md)
 - [UI design](design/README.md) and [brand marks](design/brand/README.md)

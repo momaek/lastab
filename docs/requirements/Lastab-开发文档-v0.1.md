@@ -2,7 +2,7 @@
 
 2026-11-18
 
-根据 [需求说明 v0.5](Lastab-需求说明-v0.5.md) 与 [UI 设计 v0.6](design/README.md)，给出 Lastab 的技术选型、架构、数据模型、模块设计、构建发布与测试方案。本文是技术方案草案；需求里仍「待确认」的项，在这里先按建议默认设计，并在末尾列出会影响实现的待确认点。
+根据 [需求说明 v0.5](Lastab-需求说明-v0.5.md) 与 [UI 设计 v0.6](../../design/README.md)，给出 Lastab 的技术选型、架构、数据模型、模块设计、构建发布与测试方案。本文是技术方案草案；需求里仍「待确认」的项，在这里先按建议默认设计，并在末尾列出会影响实现的待确认点。
 
 ## 文档说明
 
@@ -105,7 +105,7 @@ MyGo 很新：仓库创建于 2026-09，当前是 v0.10.0，1.0 之前 API 可�
                           │ lastab.db（SQLite，WAL）  片段 / 版本 / 设置 / FTS     │
                           │ agent_log.db（SQLite）    Agent 访问记录              │
                           └─────────────────────────────────────▲────────────────┘
-                                                                │ 只读 lastab.db，写 agent_log.db
+                                                                │ 读 lastab.db（retitle 可改标题），写 agent_log.db
                           ┌─────────────────────────────────────┴────────────────┐
                           │ lastab（命令行，独立进程，应用未运行时也可用）           │
                           │ Claude Code 通过 SKILL.md 调用；其他 Agent 直接调用     │
@@ -125,8 +125,9 @@ MyGo 很新：仓库创建于 2026-09，当前是 v0.10.0，1.0 之前 API 可�
 
 ```
 lastab/
-├── Lastab-需求说明-v0.5.md
-├── Lastab-开发文档-v0.1.md
+├── docs/
+│   ├── acceptance.md           # 验收对照（见 11.2）
+│   └── requirements/           # 需求说明、开发文档（本文）、开发计划
 ├── design/                     # 设计源文件与 tokens.json（已存在）
 ├── go.mod                      # go 1.27.3+；tool github.com/egoist/mygo/cmd/mygo
 ├── mygo.json                   # 应用名、identifier、版本、i18n、最低系统版本；签名设置由 scripts/build 从环境变量注入，不进仓库
@@ -244,19 +245,21 @@ CREATE TABLE setting (
 - **关闭不等于删除**：关闭 tab 只删除 `workspace_tab` 行；`snippet` 保留。
 - **删除是明确操作**：从 ⌘K 列表删除时，同一事务里删除片段、版本与 FTS 行（硬删除，配合设计中的锚定确认气泡）。
 - **时间**：库里一律存 UTC 毫秒；显示时按界面语言本地化。
-- **设置项**（`setting` 表）：`appearance`、`language`、`accent`、`shortcuts`（自定义快捷键表）、`editor.font`、`editor.fontSize`、`holdHint`、`openAtLogin`、`agent.access`、`agent.mask`、`agent.allowRaw`。
+- **设置项**（`setting` 表）：`appearance`、`language`、`accent`、`shortcuts`（自定义快捷键表）、`editor.font`、`editor.fontSize`、`holdHint`、`openAtLogin`、`agent.access`、`agent.mask`、`agent.allowRaw`、`agent.rename`（允许 Agent 改标题，默认关闭）。
 
 ### 4.3 应用与命令行并发访问（**定**，细节 **验证**）
 
-- 应用是唯一写入 `lastab.db` 的进程。写入用单个连接串行化，读取用连接池。
+- 应用写入时用单个连接串行化，读取用连接池。
 - 命令行用 `file:lastab.db?mode=ro` 只读打开，并设 `busy_timeout = 2000`。WAL 模式下读者不阻塞写者，不会锁住应用或损坏数据。
-- 命令行要记录 Agent 访问，就写入独立的 `agent_log.db`。这样主库对命令行始终只读。
+- 唯一的例外是 `lastab retitle`（2026-11-19）：它用 `store.OpenAgentWriter` 以 `mode=rw` 打开，`busy_timeout = 5000`，在一个事务里改一行的 `title` / `title_source` / `title_by`。它不建库、不迁移，库版本与自己不同（更新或更旧）时都拒绝写。WAL 与 `busy_timeout` 让它和应用的写入排队，不会互相覆盖。
+- 命令行要记录 Agent 访问，就写入独立的 `agent_log.db`。
 - 应用未运行时，`-wal` / `-shm` 可能已清理，只读打开仍可读（技术验证中确认）。
 
 ### 4.4 迁移
 
 - `PRAGMA user_version` 记录版本；`internal/store/migrations/NNN_*.sql` 用 `embed` 打包，顺序执行，每个迁移一个事务。
-- 命令行遇到比自己新的 `user_version` 时，拒绝读取，并提示升级（避免旧 CLI 读新库出错）。
+- 命令行遇到比自己新的 `user_version` 时，拒绝读取，并提示升级（避免旧 CLI 读新库出错）。`retitle` 还要求库不比自己旧：旧库没有它要写的列，提示先打开一次 Lastab 完成迁移。
+- `003_title_by.sql`（2026-11-19）：`snippet.title_by`，手动标题由谁起：空为用户，否则为 Agent 的 `--client` 名。没有给 `title_source` 加 `agent`，因为 SQLite 改 CHECK 约束要重建表。
 
 ### 4.5 为什么不用 MyGo 的 SQLite 插件
 
@@ -296,6 +299,7 @@ func (s *Service) Rename(ctx context.Context, id, title string) error           
 
 - 在后台 goroutine 中生成，绝不阻塞编辑与复制。片段第一次有实质内容后，等输入停止约 1 秒再生成。
 - 生成后 `title_source = auto`，之后保持稳定；用户手动改名后为 `manual`，不再自动覆盖。生成前列表与 tab 显示「未命名 · 14:52」。
+- Agent 改名（`lastab retitle`）同样存为 `manual`，`title_by` 记 Agent 名，自动标题不再覆盖它；另一个 Agent 可以再改，用户改名后 `title_by` 清空，Agent 不能再改。Agent 给的标题经 `title.Clean`：合成一行、去控制字符、遮蔽、截断到 40 个字符。
 - 规则（按顺序命中即用）：
 
 | 内容 | 标题示例 |
@@ -515,13 +519,14 @@ macOS 上 ⌘\` 是系统「在同一应用的窗口之间切换」的快捷键�
 
 ### 8.1 命令行 `lastab`
 
-只读（**待确认**，需求待确认问题 3）。所有子命令都输出 JSON，字段名固定为英文。
+除 `retitle` 外只读（需求待确认问题 3：2026-11-19 先开放改标题）。所有子命令都输出 JSON，字段名固定为英文。
 
 ```
 lastab list   [--limit 20] [--kind text|todo] [--since 1d] [--open]
 lastab search <query> [--limit 20] [--since 1d] [--until 2026-11-18] [--kind …]
 lastab read   <id 或唯一前缀>
-lastab status                     # 访问开关、库版本、条数
+lastab retitle <id 或唯一前缀> "<标题>"   # 唯一的写入，需用户允许
+lastab status                     # 访问开关、能否改名、库版本、条数
 lastab version
 ```
 
@@ -550,15 +555,17 @@ lastab version
 | --- | --- |
 | 0 | 成功 |
 | 2 | 参数错误 |
-| 3 | 用户关闭了「允许 Agent 访问」 |
+| 3 | 用户关闭了「允许 Agent 访问」，或（`retitle`）没有打开「允许 Agent 修改标题」 |
 | 4 | 未找到 / ID 前缀不唯一 |
-| 5 | 数据库不存在或版本过新 |
+| 5 | 数据库不存在或版本过新；`retitle` 还有版本过旧 |
+| 6 | （`retitle`）用户自己起的标题，Agent 不能改 |
 
 ### 8.2 访问控制与遮蔽
 
 - 命令行每次运行都先读 `setting.agent.access`；关闭时返回退出码 3，不输出任何内容。默认值**待确认**（需求待确认问题 4）。
 - 正文默认经过 `redact`。是否允许输出原文，由设置项 `agent.allowRaw` 决定，命令行不提供绕过参数。
-- 每次 `list` / `search` / `read` 都写入 `agent_log.db`：时间、来源、操作与参数、涉及的片段 ID。设置页「访问记录」读取这里的数据。
+- 每次 `list` / `search` / `read` / `retitle` 都写入 `agent_log.db`：时间、来源、操作与参数、涉及的片段 ID。设置页「访问记录」读取这里的数据。
+- `retitle` 另需设置项 `agent.rename` 为真（默认关闭）。它的记录还存被替换的标题、来源与 `title_by`，访问记录据此在该片段最新一次改名上显示「撤销」，且只在标题仍是那个 Agent 给的时显示；撤销时也再核对一次，之后谁改过都不覆盖。窗口重新获得焦点时重读已打开 tab 的标题，外部改名随即显示。
 
 ### 8.3 分发与安装（只在用户点击后写入 PATH 与 Skill）
 
@@ -687,7 +694,7 @@ go run ./scripts/genicon                                      # 重新生成应�
 
 ### 11.2 验收对照
 
-需求「验收行为」表中的每一行，都在 `docs/acceptance.md`（开工后建立）中对应到一个自动化测试或手工检查步骤。其中两项需要手工对比：
+需求「验收行为」表中的每一行，都在 [`docs/acceptance.md`](../acceptance.md) 中对应到一个自动化测试或手工检查步骤。其中两项需要手工对比：
 
 - **新建速度**：在同一台机器上，按下快捷键到光标可输入，与 Sublime Text 的 ⌘N / Ctrl+N 对比（录屏逐帧，或在应用内打点记录）。
 - **找回对照**：开约 20 个片段，在 Sublime 与 Lastab 中分别找回 3 分钟前编辑的那条，记录用时。
@@ -723,7 +730,7 @@ go run ./scripts/genicon                                      # 重新生成应�
 
 开发环境补充：本机 Command Line Tools 的 SDK 与链接器不匹配时，`go test` 默认启用 cgo 会链接失败。项目不用 cgo，统一用 `CGO_ENABLED=0` 运行 `go test` / `go build`（`scripts/build` 已设置）。
 
-其余验证项（1、2、4、5、9、10、11）需要真实窗口、输入法或多种键盘布局，仍待手工验证，步骤见 `docs/acceptance.md`。
+其余验证项（1、2、4、5、9、10、11）需要真实窗口、输入法或多种键盘布局，仍待手工验证，步骤见 [`docs/acceptance.md`](../acceptance.md)。
 
 #### 12.1.1 验证项 7：1 万条片段的搜索延迟（2026-11-19）
 
